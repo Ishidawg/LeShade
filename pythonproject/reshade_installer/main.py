@@ -1,9 +1,8 @@
 from pathlib import Path
 from zipfile import ZipFile
-
+import shutil
+import os
 def find_reshade(start_path, exe_pattern):
-  # start = Path('/home')
-  # pattern = 'ReShade_Setup*.exe'
   start = Path(start_path)
   pattern = f'{exe_pattern}'
   matches = list(start.rglob(pattern))
@@ -25,13 +24,38 @@ def user_input():
       break
 
   if game_bits == 1:
-    find_reshade('./reshade', 'ReShade32.dll')
+    local_source = find_reshade('./reshade', 'ReShade32.dll')
   else:
-    find_reshade('./reshade', 'ReShade64.dll')
+    local_source = find_reshade('./reshade', 'ReShade64.dll')
+  
+  print("local_source: " + local_source)
 
-def copy_to_folder():
-  pass
+  while True:
+    game_api = int(input("Is your game api Vulkan or openGL? [1] - [2]: "))
 
+    if game_api <= 2:
+      break
+
+  if game_api == 1:
+    print("Cooking a Vulkan dll...")
+    new_dll = ready_dll(local_source, 'dxgi.dll',)
+    correct_dll = find_reshade('./reshade', 'dxgi.dll')
+  else:
+    print("Cooking a openGL dll...")
+    new_dll = ready_dll(local_source, 'opengl.dll')
+    correct_dll = find_reshade('./reshade', 'opengl.dll')
+
+  print(correct_dll)
+
+  game_source = str(input("What is your game directory: "))
+  print(game_source)
+
+  # copy to games folders
+  shutil.copyfile(correct_dll, f'{game_source}/{new_dll}')
+
+def ready_dll(local, new_name):
+  os.system(f'cp {local} reshade/{new_name}')
+  return new_name
 
 print("Path:", find_reshade('/home', 'ReShade_Setup*.exe'))
 unzip_reshade(find_reshade('/home', 'ReShade_Setup*.exe'))
