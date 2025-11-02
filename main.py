@@ -63,7 +63,7 @@ def user_input():
   #   new_dll = ready_dll(local_source, 'opengl.dll')
   #   correct_dll = find_reshade('./reshade', 'opengl.dll')
 
-  game_source = str(input("What is your game directory: "))
+  game_source = str(input("What is your game directory: ")).strip()
 
   # copy reshade files to games folder
   copy_reshade_to_games_folder(correct_dll, game_source, new_dll)
