@@ -2,6 +2,7 @@ from pathlib import Path
 from zipfile import ZipFile
 import shutil
 import os
+import sys
 
 def find_reshade(start_path, exe_pattern):
   start = Path(start_path)
@@ -13,11 +14,13 @@ def find_reshade(start_path, exe_pattern):
   return str(matches[0])
 
 def unzip_reshade(source):
-  with ZipFile(source, 'r') as zip_object:
-    zip_object.extractall("./reshade")
+  # Check if directory exists
+  if not os.path.isdir('./reshade'):
+    with ZipFile(source, 'r') as zip_object:
+      zip_object.extractall("./reshade")
 
 def user_input():
-  # Unzip the reshaded that was downloaded
+  # Unzip the reshade that was downloaded
   unzip_reshade(find_reshade('/home', 'ReShade_Setup*.exe'))
 
   # Clone default shaders to copy it later on to the games folder
@@ -39,7 +42,7 @@ def user_input():
     print("[1] - Vulkan")
     print("[2] - d3d9")
     print("[3] - d3d10")
-    # print("[4] - OpenGL") Can't get openGL to work
+    # print("[4] - OpenGL") I couldn't test openGL on Linux
 
     game_api = abs(int(input("Choice: ")))
 
@@ -58,7 +61,7 @@ def user_input():
       new_dll = ready_dll(local_source, 'd3d10.dll',)
       correct_dll = find_reshade('./reshade', 'd3d10.dll')
 
-  # Can't test openGL on Linux
+  # I couldn't test openGL on Linux
   # case 4:
   #   new_dll = ready_dll(local_source, 'opengl.dll')
   #   correct_dll = find_reshade('./reshade', 'opengl.dll')
@@ -78,9 +81,11 @@ def copy_reshade_to_games_folder(correct_dll, game_source, new_dll):
   shutil.copytree('./reshade/effects/Textures', f'{game_source}/Textures', dirs_exist_ok=True)
 
 def git_clone_effects():
+  # Check if effects directory exists
   if not os.path.isdir('./reshade/effects'):
     os.system('mkdir ./reshade/effects')
 
+  # Check if we already clone it
   if len(os.listdir('./reshade/effects')) == 0:
     os.system("git clone https://github.com/crosire/reshade-shaders.git ./reshade/effects")
   else:    
