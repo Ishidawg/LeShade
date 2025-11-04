@@ -1,8 +1,9 @@
-from pathlib import Path
+from PySide6.QtCore import QObject, Signal
 from zipfile import ZipFile
+from pathlib import Path
 import shutil
-import os
 import sys
+import os
 
 class ReshadeInstaller:
   def __init__(self):
@@ -18,14 +19,14 @@ class ReshadeInstaller:
     if not all([self.correct_dll, self.game_source, self.new_dll]):
       raise ValueError("ERROR: Builder failed to configures the properties")
 
-    print(f"Copying {self.new_dll} to {self.game_source}")
+    yield f"Copying {self.new_dll} to {self.game_source}"
     shutil.copyfile(self.correct_dll, f'{self.game_source}/{self.new_dll}')
 
-    print("Copying shaders and textures")
+    yield "Copying shaders and textures"
     shutil.copytree('./reshade/effects/Shaders', f'{self.game_source}/Shaders', dirs_exist_ok=True)
     shutil.copytree('./reshade/effects/Textures', f'{self.game_source}/Textures', dirs_exist_ok=True)
 
-    print("\nInstallation completed!")
+    yield "\nInstallation completed!"
 
   # Debug funtion
   def __str__(self):
@@ -38,10 +39,13 @@ class ReshadeInstaller:
       f"  final dll:        {self.correct_dll}\n"
     )
 
-class ReshadeInstallerBuilder:
-  def __init__(self):
-    self.reshade = ReshadeInstaller()  
+class ReshadeInstallerBuilder(QObject):
 
+  installation_progress_updated = Signal(str)
+
+  def __init__(self):
+    super().__init__()
+    self.reshade = ReshadeInstaller()  
 
   # Return an complete installation and resets the builder
   def get_reshade_product(self):
@@ -50,6 +54,8 @@ class ReshadeInstallerBuilder:
     return reshade_product
 
   def find_and_unzip(self, start_path, exe_pattern):
+    self.installation_progress_updated.emit("Searching for the Reshade.exe")
+
     source_path = self._find_reshade(start_path, exe_pattern)
 
     if not source_path:
@@ -61,6 +67,8 @@ class ReshadeInstallerBuilder:
     return self
 
   def clone_shaders(self):
+    self.installation_progress_updated.emit("Verifying shaders from crosire repository...")
+
     self._git_clone_effects()
     return self
 
@@ -86,7 +94,7 @@ class ReshadeInstallerBuilder:
     match api:
       case "Vulkan":
         new_name = "dxgi.dll"
-      case "d3d9c":
+      case "d3d9":
         new_name = "d3d9.dll"
       case "d3d10":
         new_name = "d3d10.dll"
@@ -117,7 +125,7 @@ class ReshadeInstallerBuilder:
     try: 
       matches = list(start.rglob(pattern))
     except PermissionError:
-      print("ERROR: Not allowed due to permission stuff")
+      raise PermissionError("ERROR: Not allowed due to permission stuff")
       return None
 
     if not matches:
@@ -127,6 +135,7 @@ class ReshadeInstallerBuilder:
 
   def _unzip_reshade(self, source):
     if not os.path.isdir('./reshade'): # Check if directory exists
+      self.installation_progress_updated.emit("Extracting Reshade executable...")
       with ZipFile(source, 'r') as zip_object:
         zip_object.extractall("./reshade")
 
@@ -142,12 +151,21 @@ class ReshadeInstallerBuilder:
 
     # Check if we already clone it
     if len(os.listdir(effects_dir)) == 0:
+      self.installation_progress_updated.emit("Cloning shaders from crosire repository...")
       os.system("git clone https://github.com/crosire/reshade-shaders.git ./reshade/effects")
     else:    
       print("We already have shaders downloaded.")
 
 if __name__ == "__main__":
+  app = QApplication(sys.argv)
+
   builder = ReshadeInstallerBuilder()
+
+  def debug_message(message):
+    print(f"SIGNAL: {message}")
+
+
+  builder.installation_progress_updated.connect(debug_message)
 
   RESHADE_SEARCH_PATH = '/home'
   RESHADE_PATTERN = 'ReShade_Setup*.exe'
@@ -168,7 +186,8 @@ if __name__ == "__main__":
       installer = builder.get_reshade_product()
       print(installer) 
       
-      installer.install()
+      for message in installer.install():
+        debug_message(message)
 
   except Exception as e:
       print(f"\n--- ERROR ---", file=sys.stderr)
