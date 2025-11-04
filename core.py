@@ -30,12 +30,12 @@ class ReshadeInstaller:
   # Debug funtion
   def __str__(self):
     return (
-      f"  reshade source: {self.reshade_source}\n"
-      f"  game source: {self.game_source}\n"
-      f"  architecture:   {self.game_bits}\n"
-      f"  API:   {self.game_api}\n"
-      f"  local dll:      {self.local_source}\n"
-      f"  final dll:     {self.correct_dll}\n"
+      f"  reshade source:   {self.reshade_source}\n"
+      f"  game source:      {self.game_source}\n"
+      f"  architecture:     {self.game_bits}\n"
+      f"  API:              {self.game_api}\n"
+      f"  local dll:        {self.local_source}\n"
+      f"  final dll:        {self.correct_dll}\n"
     )
 
 class ReshadeInstallerBuilder:
@@ -149,7 +149,7 @@ class ReshadeInstallerBuilder:
 if __name__ == "__main__":
   builder = ReshadeInstallerBuilder()
 
-  RESHADE_SEARCH_PATH = '/home/ishidaw'
+  RESHADE_SEARCH_PATH = '/home'
   RESHADE_PATTERN = 'ReShade_Setup*.exe'
 
   user_game_dir = str(input("Qual o diretório do seu jogo: ")).strip()
