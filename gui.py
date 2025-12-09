@@ -3,6 +3,7 @@ from PySide6.QtGui import QFont, QPixmap
 from core import ReshadeInstallerBuilder
 from PySide6.QtCore import Qt, QThread
 import sys
+import os
 
 class TitleLabel(QLabel):
   def __init__(self, font, text):
@@ -68,10 +69,10 @@ class MainWindow(QMainWindow):
     browse_container.setContentsMargins(0, 0, 0, 40)
     browse_layout = QHBoxLayout(browse_container)
 
-    architecture_container = QWidget()
-    architecture_container.setContentsMargins(0, 0, 0, 40)
-    architecture_layout = QHBoxLayout(architecture_container)
-    architecture_layout.setAlignment(Qt.AlignLeft)
+    #architecture_container = QWidget()
+    #architecture_container.setContentsMargins(0, 0, 0, 40)
+    #architecture_layout = QHBoxLayout(architecture_container)
+    #architecture_layout.setAlignment(Qt.AlignLeft)
 
     rendering_container = QWidget()
     rendering_container.setContentsMargins(0, 0, 0, 40)
@@ -90,7 +91,7 @@ class MainWindow(QMainWindow):
     label_description.setFixedHeight(120)
 
     ## Directory step
-    label_directory_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games directory")
+    label_directory_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games executable")
     self.line_edit = QLineEdit()
     self.browse_button = QPushButton("Browse")
 
@@ -100,15 +101,15 @@ class MainWindow(QMainWindow):
     folder_icon_draw.setGeometry(56, 230, folder_icon_draw.width(), folder_icon_draw.height())
 
     # Game architecture step
-    label_arch_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games architecture")
-    self.bit_32_radio = QRadioButton("32bit")
-    self.bit_64_radio = QRadioButton("64bit")
-    self.bit_64_radio.setChecked(True)
+    #label_arch_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games architecture")
+    #self.bit_32_radio = QRadioButton("32bit")
+    #self.bit_64_radio = QRadioButton("64bit")
+    #self.bit_64_radio.setChecked(True)
 
-    arch_icon_draw = QLabel(self)
-    arch_icon = QPixmap("./images/step_icons/arch_icon.png")
-    arch_icon_draw.setPixmap(arch_icon)
-    arch_icon_draw.setGeometry(56, 362, arch_icon_draw.width(), arch_icon_draw.height())
+    #arch_icon_draw = QLabel(self)
+    #arch_icon = QPixmap("./images/step_icons/arch_icon.png")
+    #arch_icon_draw.setPixmap(arch_icon)
+    #arch_icon_draw.setGeometry(56, 362, arch_icon_draw.width(), arch_icon_draw.height())
 
     # Rendering API step
     label_api_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games rendering API")
@@ -120,7 +121,7 @@ class MainWindow(QMainWindow):
     api_icon_draw = QLabel(self)
     api_icon = QPixmap("./images/step_icons/api_icon.png")
     api_icon_draw.setPixmap(api_icon)
-    api_icon_draw.setGeometry(56, 493, api_icon_draw.width(), api_icon_draw.height())
+    api_icon_draw.setGeometry(56, 405, api_icon_draw.width(), api_icon_draw.height())
 
     # Install
     self.install_button = QPushButton("Install Reshade")
@@ -140,10 +141,10 @@ class MainWindow(QMainWindow):
     browse_layout.addWidget(self.line_edit)
     browse_layout.addWidget(self.browse_button)
 
-    main_layout.addWidget(label_arch_step)
-    main_layout.addWidget(architecture_container)
-    architecture_layout.addWidget(self.bit_32_radio)
-    architecture_layout.addWidget(self.bit_64_radio)
+    # main_layout.addWidget(label_arch_step)
+    # main_layout.addWidget(architecture_container)
+    #architecture_layout.addWidget(self.bit_32_radio)
+    #architecture_layout.addWidget(self.bit_64_radio)
 
     main_layout.addWidget(label_api_step)
     main_layout.addWidget(rendering_container)
@@ -183,10 +184,11 @@ class MainWindow(QMainWindow):
     QApplication.processEvents() # Ensure the UI updates
 
   def on_browse_clicked(self):
-    directory = QFileDialog.getExistingDirectory(self, "Select the game root directory")
+    # directory = QFileDialog.getExistingDirectory(self, "Select the game executable")
+    directory = QFileDialog.getOpenFileName(self, "Select the game executable")
 
     if directory:
-      self.line_edit.setText(directory)
+      self.line_edit.setText(directory[0])
 
   def on_install_clicked(self):
     try:
@@ -195,7 +197,8 @@ class MainWindow(QMainWindow):
       if not game_dir:
         raise ValueError("ERROR: Game directory cannot be empty")
 
-      bit = "64bit" if self.bit_64_radio.isChecked() else "32bit"
+      #bit = "64bit" if self.bit_64_radio.isChecked() else "32bit"
+
 
       api = None
 
@@ -210,9 +213,10 @@ class MainWindow(QMainWindow):
       self.update_status("Starting Installation...")
 
       # Calling builder that will emit signals to the update_status
-      self.builder.set_game_architecture(bit)
+      # self.builder.set_game_architecture(bit)
+      self.builder.set_game_architecture(game_dir)
       self.builder.set_game_api(api)
-      self.builder.set_game_directory(game_dir)
+      self.builder.set_game_directory(os.path.dirname(game_dir)) # Sendind the entire path
 
       reshade_installer = self.builder.get_reshade_product()
       self.update_status(f"Used settings: {reshade_installer}")

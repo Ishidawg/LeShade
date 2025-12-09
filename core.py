@@ -1,9 +1,14 @@
+from __future__ import annotations
 from PySide6.QtCore import QObject, Signal, Slot
+from typing import Literal, Final
 from zipfile import ZipFile
 from pathlib import Path
 import shutil
 import sys
 import os
+import struct
+
+Architecture = Literal["32-bit", "64-bit", "unknown"]
 
 class ReshadeInstaller:
   def __init__(self):
@@ -88,10 +93,18 @@ class ReshadeInstallerBuilder(QObject):
     self._git_clone_effects()
     return self
 
-  def set_game_architecture(self, bits: str):
-    self.reshade.game_bits = bits
+  def set_game_architecture(self, game_executable_path):
+    
+    # Workaround to fix a parsing error that was string
+    converted_path = Path(game_executable_path)
 
-    dll_name = "ReShade64.dll" if bits == "64bit" else "ReShade32.dll"
+    try:
+      bits: Architecture = self._get_executable_architecture(converted_path)
+      self.reshade.game_bits = bits
+    except Exception as e:
+        print(f"ERROR: {e}")
+
+    dll_name = "ReShade64.dll" if bits == "64-bit" else "ReShade32.dll"
 
     self.reshade.local_source = self._find_reshade('./reshade', dll_name)
 
@@ -171,3 +184,32 @@ class ReshadeInstallerBuilder(QObject):
     else:    
       print("We already have shaders downloaded.")
       
+  # Jhen code snippet (https://github.com/Dzavoy)
+  # Indentify binary achitecture, so user do not have to do it manually.
+  def _get_executable_architecture(self, path: Path) -> Architecture:
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    with path.open("rb") as f:
+        dos_header: bytes = f.read(64)
+        if len(dos_header) < 64 or dos_header[:2] != b"MZ":
+            raise ValueError("Not a valid DOS/PE executable (missing MZ header)")
+
+        e_lfanew: int = struct.unpack_from("<I", dos_header, 60)[0]
+
+        f.seek(e_lfanew)
+        pe_signature: bytes = f.read(4)
+        if pe_signature != b"PE\x00\x00":
+            raise ValueError("Invalid PE signature")
+
+        machine_bytes: bytes = f.read(2)
+        machine: int = struct.unpack("<H", machine_bytes)[0]
+
+    MACHINE_TYPES: Final[dict[int, Architecture]] = {
+        0x014C: "32-bit",
+        0x8664: "64-bit",
+        0xAA64: "64-bit",
+    }
+
+    architecture: Architecture = MACHINE_TYPES.get(machine, "unknown")
+    return architecture
