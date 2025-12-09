@@ -213,3 +213,4 @@ class ReshadeInstallerBuilder(QObject):
 
     architecture: Architecture = MACHINE_TYPES.get(machine, "unknown")
     return architecture
+    

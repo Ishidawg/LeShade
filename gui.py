@@ -69,11 +69,6 @@ class MainWindow(QMainWindow):
     browse_container.setContentsMargins(0, 0, 0, 40)
     browse_layout = QHBoxLayout(browse_container)
 
-    #architecture_container = QWidget()
-    #architecture_container.setContentsMargins(0, 0, 0, 40)
-    #architecture_layout = QHBoxLayout(architecture_container)
-    #architecture_layout.setAlignment(Qt.AlignLeft)
-
     rendering_container = QWidget()
     rendering_container.setContentsMargins(0, 0, 0, 40)
     rendering_layout = QHBoxLayout(rendering_container)
@@ -99,17 +94,6 @@ class MainWindow(QMainWindow):
     folder_icon = QPixmap("./images/step_icons/folder_icon.png")
     folder_icon_draw.setPixmap(folder_icon)
     folder_icon_draw.setGeometry(56, 230, folder_icon_draw.width(), folder_icon_draw.height())
-
-    # Game architecture step
-    #label_arch_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games architecture")
-    #self.bit_32_radio = QRadioButton("32bit")
-    #self.bit_64_radio = QRadioButton("64bit")
-    #self.bit_64_radio.setChecked(True)
-
-    #arch_icon_draw = QLabel(self)
-    #arch_icon = QPixmap("./images/step_icons/arch_icon.png")
-    #arch_icon_draw.setPixmap(arch_icon)
-    #arch_icon_draw.setGeometry(56, 362, arch_icon_draw.width(), arch_icon_draw.height())
 
     # Rendering API step
     label_api_step = self.labelFactory.createLabel("sub_title", SUBTITLE_OVERPASS_FONT_400, "Select games rendering API")
@@ -140,11 +124,6 @@ class MainWindow(QMainWindow):
     main_layout.addWidget(browse_container)
     browse_layout.addWidget(self.line_edit)
     browse_layout.addWidget(self.browse_button)
-
-    # main_layout.addWidget(label_arch_step)
-    # main_layout.addWidget(architecture_container)
-    #architecture_layout.addWidget(self.bit_32_radio)
-    #architecture_layout.addWidget(self.bit_64_radio)
 
     main_layout.addWidget(label_api_step)
     main_layout.addWidget(rendering_container)
@@ -184,7 +163,6 @@ class MainWindow(QMainWindow):
     QApplication.processEvents() # Ensure the UI updates
 
   def on_browse_clicked(self):
-    # directory = QFileDialog.getExistingDirectory(self, "Select the game executable")
     directory = QFileDialog.getOpenFileName(self, "Select the game executable")
 
     if directory:
@@ -196,9 +174,6 @@ class MainWindow(QMainWindow):
 
       if not game_dir:
         raise ValueError("ERROR: Game directory cannot be empty")
-
-      #bit = "64bit" if self.bit_64_radio.isChecked() else "32bit"
-
 
       api = None
 
@@ -213,7 +188,6 @@ class MainWindow(QMainWindow):
       self.update_status("Starting Installation...")
 
       # Calling builder that will emit signals to the update_status
-      # self.builder.set_game_architecture(bit)
       self.builder.set_game_architecture(game_dir)
       self.builder.set_game_api(api)
       self.builder.set_game_directory(os.path.dirname(game_dir)) # Sendind the entire path
