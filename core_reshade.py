@@ -1,3 +1,4 @@
+from PySide6.QtCore import QObject
 from zipfile import ZipFile
 from pathlib import Path
 import os
@@ -16,7 +17,7 @@ class ReshadeDraft:
     if not self.reshade_path:
       raise ValueError("ERROR: Failed to draft")
 
-class ReshadeDraftBuilder():
+class ReshadeDraftBuilder(QObject):
   def __init__(self):
     self.draft = ReshadeDraft()
     self.reshade_temp_path = None

@@ -16,7 +16,7 @@ from PySide6.QtGui import QFont
 # Import widgets
 from widgets.start_widget import StartWidget
 from widgets.installation_widget import InstallationWidget
-from widgets.third_widget import ThirdWidget
+from widgets.clone_widget import CloneShaderWidget
 
 # l:    label
 # c:    container
@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
     # Set Widgets
     S_FIRST = StartWidget()
     S_SECOND = InstallationWidget()
-    S_THIRD = ThirdWidget()
+    S_THIRD = CloneShaderWidget()
 
     self.widgets = [S_FIRST, S_SECOND, S_THIRD]
     self.widget_index = 0
@@ -101,7 +101,6 @@ class MainWindow(QMainWindow):
     else:
       self.widget_index = self.widget_index - 1
 
-    print((self.widget_index + direction) % len(self.widgets))
     self.current_widget = self.widgets[self.widget_index]
 
     # Insert widget
@@ -120,8 +119,10 @@ class MainWindow(QMainWindow):
 
     if self.widget_index == len(self.widgets) - 1:
       self.b_next.setEnabled(False)
+      self.b_next.setText("Install")
     else:
       self.b_next.setEnabled(True)
+      self.b_next.setText("Next")
 
 if __name__ == "__main__":
   app = QApplication(sys.argv)
