@@ -27,7 +27,11 @@ class ReshadeDraftBuilder(QObject):
       self.download_reshade(RESHADE_URL)
       self.unzip_reshade(self.reshade_temp_path)
       self.clone_shaders()
-      self.draft.reshade_path = self.reshade_temp_path
+
+      if self.reshade_temp_path == None:
+        self.find_reshade()
+      else:
+        self.draft.reshade_path = self.reshade_temp_path
     except Exception as error:
       print(f"ERROR: {error}")
 
@@ -58,6 +62,13 @@ class ReshadeDraftBuilder(QObject):
       print("CLONE FAILED!")
 
     return self
+
+  def find_reshade(self):
+    try:
+      # self._find_reshade(START_PATH, PATTERN)
+      self.draft.reshade_path = self._find_reshade(START_PATH, PATTERN)
+    except Exception as error:
+      print("SEARCH FAILED!")
 
   # Private methods
   def _find_reshade(self, start_path: Path, exe_pattern: str):
