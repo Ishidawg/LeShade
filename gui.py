@@ -23,6 +23,14 @@ from widgets.clone_widget import CloneShaderWidget
 # ly:   layout
 # b:    button
 
+
+# To prevent failing on load the icon
+def get_localdir():
+  if getattr(sys, 'frozen', False): # means that it is running with pyinstaller
+    return sys._MEIPASS
+  else:
+    return os.path.dirname(os.path.abspath(__file__))
+
 class MainWindow(QMainWindow): 
 
   def __init__(self):
@@ -200,7 +208,7 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
   app = QApplication(sys.argv)
 
-  local_dir = os.path.dirname(__file__)
+  local_dir = get_localdir()
   icon_path = os.path.join(local_dir, "assets", "logo.png")
 
   if os.path.exists(icon_path):
