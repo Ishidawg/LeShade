@@ -38,5 +38,10 @@ The project of course is not currently done, look at monstrosity of GUI... Also 
  - [x] Redo GUI
  - [x] Automatically verify the application architecture: it can be done by looking into some of the first bytes of the game executable binary, they are located  on the COFF Header. (Thanks to Jhen - https://github.com/Dzavoy)
  - [x] Rewrite whole app with new pages
+ - [x] appImage
  - [ ] Flatpak
- - [ ] appImage
+
+ ## Sources
+ I have uploaded the `d3dcompiler.dll` here so it never fails to download!
+ - d3dcompiler.dll 64bit: https://lutris.net/files/tools/dll/d3dcompiler_47.dll
+ - d3dcompiler.dll 32bit: https://download-installer.cdn.mozilla.net/pub/firefox/releases/62.0.3/win32/ach/Firefox%20Setup%2062.0.3.exe
