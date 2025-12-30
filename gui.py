@@ -115,7 +115,9 @@ class MainWindow(QMainWindow):
       
       try:
         installation_widget.installation_finished.disconnect()
-      except: pass
+      except (RuntimeError, TypeError):
+        pass
+
       installation_widget.installation_finished.connect(self.on_installation_step_finished)
       
       installation_widget.process_installation()
@@ -127,7 +129,7 @@ class MainWindow(QMainWindow):
       
       try: 
         clone_widget.cloning_finished.disconnect()
-      except: 
+      except (RuntimeError, TypeError): 
         pass
 
       clone_widget.cloning_finished.connect(self.on_cloning_finished)

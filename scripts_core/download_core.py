@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 
 RESHADE_URL = "https://reshade.me/downloads/ReShade_Setup_6.6.2.exe"
-START_PATH = "/home"
+START_PATH = os.path.expanduser("~/Downloads")
 PATTERN = "ReShade_Setup*.exe"
 LOCAL_RESHADE_DIR = './reshade'
 
@@ -48,12 +48,17 @@ class ReshadeDraftBuilder(QObject):
   def run_draft(self):
     try:
       self.download_reshade(RESHADE_URL)
-      self.unzip_reshade(self.reshade_temp_path)
-
-      if self.reshade_temp_path == None:
-        self.find_reshade()
-      else:
+      
+      # Not good at all... sorry future me
+      if self.reshade_temp_path:
+        self.unzip_reshade(self.reshade_temp_path)
         self.draft.reshade_path = self.reshade_temp_path
+      elif self._find_reshade(START_PATH, PATTERN):
+        self.reshade_temp_path = self._find_reshade(START_PATH, PATTERN)
+        self.unzip_reshade(self.reshade_temp_path)
+        self.draft.reshade_path = self.reshade_temp_path
+      else:
+        self.find_reshade()
     except Exception as error:
       pass
       # print(f"ERROR: {error}")
@@ -108,7 +113,7 @@ class ReshadeDraftBuilder(QObject):
   def _download_reshade(self, url: str):
     if not self._find_reshade(START_PATH, PATTERN):
       try:
-        os.system(f"wget -q {url}")
+        os.system(f"wget -q {url} -P {START_PATH}")
         self.reshade_temp_path = self._find_reshade(START_PATH, PATTERN)
       except Exception as e:
         print(f"ERROR: {e}")
