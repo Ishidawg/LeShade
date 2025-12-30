@@ -25,7 +25,6 @@ from scripts_core.clone_core import CloneWorker
 class CloneShaderWidget(QWidget):
   cloning_finished = Signal(bool)
 
-
   def __init__(self):
     super().__init__()
 

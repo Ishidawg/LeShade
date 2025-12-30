@@ -87,6 +87,8 @@ class ReshadeDraftBuilder(QObject):
       pass
       # print("SEARCH FAILED!")
 
+    return self
+
   # Private methods
   def _find_reshade(self, start_path: Path, exe_pattern: str):
     start = Path(start_path)
