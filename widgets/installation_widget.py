@@ -39,9 +39,8 @@ class InstallationWidget(QWidget):
     ly = QVBoxLayout()
     ly.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
 
-    c_browse = QWidget()
-    c_browse.setContentsMargins(0, 0, 0, 40)
-    ly_browse = QHBoxLayout(c_browse)
+    # Creates only a layout instead of container to fix widgets not appearing in GTK
+    ly_browse = QHBoxLayout()
 
     c_api = QWidget()
     ly_api = QHBoxLayout(c_api)
@@ -78,12 +77,15 @@ class InstallationWidget(QWidget):
 
     # Add widgets
     ly.addWidget(l_exe)
-    ly.addWidget(c_browse)
-    ly.addWidget(l_api)
-    ly.addWidget(c_api)
 
     ly_browse.addWidget(self.line_edit)
     ly_browse.addWidget(self.browse_button)
+    ly.addLayout(ly_browse)
+    ly.addSpacing(20)
+
+    ly.addWidget(l_api)
+    ly.addWidget(c_api)
+
 
     for api in (self.r_vulkan, self.r_d3d9, self.r_d3d10):
       ly_api.addWidget(api)
