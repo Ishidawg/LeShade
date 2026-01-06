@@ -35,6 +35,7 @@ class StartWidget(QWidget):
     l_description.setWordWrap(True)
     l_description.setAlignment(Qt.AlignmentFlag.AlignCenter)
     l_description.setStyleSheet("font-size: 12pt; font-weight: 100;")
+    l_description.setMargin(15) # Don't know if there is a better way than set a 'spacing' like this, cuz this was introduced in Qt 4.0
 
     # Progress abr
     self.p_bar = QProgressBar()
