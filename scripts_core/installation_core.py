@@ -52,12 +52,16 @@ class InstallationWorker(QObject):
 
       dll_dest_name = ""
       match self.api_choice:
-        case "Vulkan":
-          dll_dest_name = "dxgi.dll"
-        case "DirectX 9":
+        case "OpenGL":
+          dll_dest_name = "opengl32.dll"
+        case "D3D 9":
           dll_dest_name = "d3d9.dll"
-        case "DirectX 10":
+        case "D3D 10":
           dll_dest_name = "d3d10.dll"
+        case "D3D 11":
+          dll_dest_name = "d3d11.dll"
+        case "Vulkan/D3D 12":
+          dll_dest_name = "dxgi.dll"
         case _:
           raise ValueError(f"YET an nsupported API!")
 

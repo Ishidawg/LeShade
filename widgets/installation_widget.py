@@ -45,7 +45,7 @@ class InstallationWidget(QWidget):
     c_api = QWidget()
     ly_api = QHBoxLayout(c_api)
     ly_api.setAlignment(Qt.AlignCenter | Qt.AlignmentFlag.AlignCenter)
-    ly_api.setSpacing(40)
+    ly_api.setSpacing(15)
 
     # Widgets
     l_exe = QLabel("Select game executable")
@@ -63,9 +63,11 @@ class InstallationWidget(QWidget):
     l_api.setAlignment(Qt.AlignmentFlag.AlignLeft)
     l_api.setStyleSheet("font-size: 12pt; font-weight: 100;")
 
-    self.r_vulkan = QRadioButton("Vulkan")
-    self.r_d3d9 = QRadioButton("DirectX 9")
-    self.r_d3d10 = QRadioButton("DirectX 10")
+    self.r_opengl = QRadioButton("OpenGL")
+    self.r_d3d9 = QRadioButton("D3D 9")
+    self.r_d3d10 = QRadioButton("D3D 10")
+    self.r_d3d11 = QRadioButton("D3D 11")
+    self.r_vulkan = QRadioButton("Vulkan/D3D 12")
     self.r_vulkan.setChecked(True)
 
     # Progress bar
@@ -86,8 +88,9 @@ class InstallationWidget(QWidget):
     ly.addWidget(l_api)
     ly.addWidget(c_api)
 
-
-    for api in (self.r_vulkan, self.r_d3d9, self.r_d3d10):
+    radio_api = [self.r_opengl, self.r_d3d9, self.r_d3d10, self.r_d3d11, self.r_vulkan]
+    
+    for api in (radio_api):
       ly_api.addWidget(api)
 
     ly.addWidget(self.p_bar)
@@ -124,9 +127,20 @@ class InstallationWidget(QWidget):
       self.installation_finished.emit(False)
       return
 
-    api = "Vulkan"
-    if self.r_d3d9.isChecked(): api = "DirectX 9"
-    elif self.r_d3d10.isChecked(): api = "DirectX 10"
+    available_api = {
+      self.r_opengl: "OpenGL",
+      self.r_d3d9:   "D3D 9",
+      self.r_d3d10:  "D3D 10",
+      self.r_d3d11:  "D3D 11",
+      self.r_vulkan: "Vulkan/D3D 12"
+    }
+
+    api = "Vulkan/D3D 12"
+
+    for r_api, api_label in available_api.items():
+      if r_api.isChecked():
+        api = api_label
+        break
 
     # Thread Setup
     self.thread = QThread()
