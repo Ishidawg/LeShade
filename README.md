@@ -44,8 +44,8 @@ The project of course is not currently done, look at monstrosity of GUI... Also 
  - [x] Automatically verify the application architecture: it can be done by looking into some of the first bytes of the game executable binary, they are located  on the COFF Header. (Thanks to Jhen - https://github.com/Dzavoy)
  - [x] Rewrite whole app with new pages
  - [x] appImage
- - [x] Add OpenGL, DirecX 10/11/12
- - [x] Add suport to DirecX 8 games with d3d8to9
+ - [x] Add OpenGL, DirectX 10/11/12
+ - [x] Add suport to DirectX 8 games with d3d8to9
  - [ ] add an Uninstall feature
  - [ ] Improve shaders download so the user can select many more shader repositories
  - [ ] Flatpak
