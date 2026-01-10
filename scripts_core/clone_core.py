@@ -8,15 +8,15 @@ from pathlib import Path
 
 REPO_INFO = {
   "default": {
-     "url": "https://github.com/crosire/reshade-shaders.git",
+     "url": "https://github.com/crosire/reshade-shaders",
      "branch": "slim"
   },
   "prod80": {
-    "url": "https://github.com/prod80/prod80-ReShade-Repository.git",
+    "url": "https://github.com/prod80/prod80-ReShade-Repository",
     "branch": "master"
   },
   "quint": {
-    "url": "https://github.com/martymcmodding/qUINT.git",
+    "url": "https://github.com/martymcmodding/qUINT",
     "branch": "master"
   }
 }
@@ -76,10 +76,10 @@ class CloneWorker(QObject):
 
         try:
           # Need to replace git with a python native because MINT 22.2 does not download
-
           urllib.request.urlretrieve(zip_url, zip_path)
 
           self.status_update.emit(f"Extracting {repo_name}...")
+
           with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(TEMP_DIR)
 
@@ -87,22 +87,24 @@ class CloneWorker(QObject):
 
           if extracted_folder_name:
             full_extracted_path = os.path.join(TEMP_DIR, extracted_folder_name)
-            shutil.move(full_extracted_path, extrac_path)
+            shutil.move(full_extracted_path, extract_path)
 
-          os.remove(zip_path)
-          # subprocess.run(["git", "clone", url, temp_repo_path], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+          if os.path.exists(zip_path):
+            os.remove(zip_path)
+
+          self.status_update.emit(f"Installing {repo_name} files")
+          self._organize_files(extract_path, shaders_dest, textures_dest)
+
         except Exception as e:
           self.status_update.emit(f"Failed to clone {repo_name}. Skipping.")
           continue
-
-        self.status_update.emit(f"Installing {repo_name} files")
-        self._organize_files(extract_path, shaders_dest, textures_dest)
 
         current_repo += 1
         percentage = int((current_repo / total_repos) * 100)
         self.progress_update.emit(percentage)
 
-      shutil.rmtree(TEMP_DIR, ignore_errors=True)
+      if os.path.exists(TEMP_DIR):
+        shutil.rmtree(TEMP_DIR, ignore_errors=True)
 
       self.status_update.emit("All shaders installed!")
       self.finished.emit()
@@ -111,10 +113,11 @@ class CloneWorker(QObject):
 
   def _find_extracted_folder(self, base_path, keyword):
     for item in os.listdir(base_path):
-      if os.path.isdir(os.path.join(base_path, item)):
+      full_path = os.path.join(base_path, item)
+
+      if os.path.isdir(full_path):
         if item == keyword: continue
         return item
-
     return None
 
   def _organize_files(self, source_root, shaders_dest, textures_dest):
