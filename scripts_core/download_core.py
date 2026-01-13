@@ -41,6 +41,8 @@ class DownloadWorker(QObject):
       if draft.reshade_path:
         self.status_update.emit("Download/Search Complete!")
         self.finished.emit(draft)
+      elif START_PATH:
+        self.error.emit("The download folder should be writeable and readable.")
       else:
         self.error.emit("Could not find ReShade executable.")
     except Exception as e:
