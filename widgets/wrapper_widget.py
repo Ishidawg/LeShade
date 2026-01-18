@@ -35,7 +35,8 @@ class WrapperWidget(QWidget):
     l_description.setWordWrap(True)
 
     # CSS style to command label
-    s_code = "color: #FACE68; padding: 5px; font-style: italic;"
+    # Yellow = FACE68
+    s_code = "color: #E83C91; padding: 5px; font-style: italic;"
     s_font = "font 12pt; font-weight: 600; padding: 5px; margin: 5px;"
 
     # Command widget
