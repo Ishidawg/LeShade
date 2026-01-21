@@ -1,0 +1,29 @@
+name: Build Flatpak
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  flatpak:
+    runs-on: ubuntu-22.04
+
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.6
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+            bundle: ReshadeInstaller-x86_64.flatpak
+            manifest-path: flatpak/io.github.ishidawg.ReshadeInstaller.yml
+            arch: x86_64
+            cache: true
+            restore-cache: true
+            cache-key: flatpak-builder-${{ github.sha }}
+            upload-artifact: true
+            artifact-name: ReshadeInstaller-Flatpak

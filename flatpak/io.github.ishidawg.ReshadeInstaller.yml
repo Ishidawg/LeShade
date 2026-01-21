@@ -1,0 +1,46 @@
+app-id: io.github.ishidawg.ReshadeInstaller
+
+runtime: org.kde.Platform
+runtime-version: '6.6'
+sdk: org.kde.Sdk
+
+command: reshade-installer
+
+finish-args:
+    - --share=ipc
+    - --socket=fallback-x11
+    - --socket=wayland
+    - --share=network
+    - --device=dri
+    - --filesystem=host
+
+modules:
+
+  - name: python-dependencies
+    buildsystem: simple
+    build-commands:
+      - pip install --prefix=/app PySide6 shiboken6
+    build-options:
+      build-args:
+        - --share=network
+
+  - name: reshade-installer
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/share/reshade-installer
+      - mkdir -p /app/bin
+      - mkdir -p /app/share/applications
+      - mkdir -p /app/share/icons/hicolor/128x128/apps
+
+      - cp -r . /app/share/reshade-installer/
+
+      - cp flatpak/reshade-installer.sh /app/bin/reshade-installer
+      - chmod +x /app/bin/reshade-installer
+
+      - cp assets/logo.png /app/share/icons/hicolor/128x128/apps/io.github.ishidawg.ReshadeInstaller.png
+      
+      - cp flatpak/io.github.ishidawg.ReshadeInstaller.desktop /app/share/applications/
+
+    sources:
+      - type: dir
+        path: ..
