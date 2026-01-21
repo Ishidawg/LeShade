@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
   QPushButton
 )
 
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QStandardPaths
 from PySide6.QtGui import QFont, QIcon
 
 # Import widgets
@@ -19,6 +19,8 @@ from widgets.installation_widget import InstallationWidget
 from widgets.clone_widget import CloneShaderWidget
 from widgets.wrapper_widget import WrapperWidget
 
+# Import constant
+from scripts_core.download_core import LOCAL_RESHADE_DIR
 # l:    label
 # c:    container
 # ly:   layout
@@ -105,11 +107,11 @@ class MainWindow(QMainWindow):
 
   def on_next_clicked(self):
     if self.widget_index == 0: # Start Widget
-      reshade_path = "./reshade"
+      # reshade_path = "./reshade"
+      reshade_path = LOCAL_RESHADE_DIR
 
       installation_widget = self.widgets[1]
       installation_widget.set_reshade_source(reshade_path)
-
       self.change_widget(1)
     elif self.widget_index == 1: # Install Widget
       self.b_next.setEnabled(False)
@@ -229,6 +231,9 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
   app = QApplication(sys.argv)
+
+  app.setOrganizationName("Ishidawg")
+  app.setApplicationName("ReshadeInstaller")
 
   local_dir = get_localdir()
   icon_path = os.path.join(local_dir, "assets", "logo.png")

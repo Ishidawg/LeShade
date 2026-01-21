@@ -1,10 +1,11 @@
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, QStandardPaths
 import os
 import shutil
 import urllib.request
 import zipfile
 from pathlib import Path
 import ssl
+import tempfile
 
 # I know that this is a force security, probably a security issue to force download withous SSL... 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -24,7 +25,9 @@ REPO_INFO = {
   }
 }
 
-TEMP_DIR = "./reshade/temp_clones"
+CACHE_PATH = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation)
+# TEMP_DIR = "./reshade/temp_clones"
+TEMP_DIR = os.path.join(CACHE_PATH, "reshade_temp_clones")
 
 class CloneWorker(QObject):
   finished = Signal()

@@ -12,8 +12,10 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 RESHADE_URL = "https://reshade.me/downloads/ReShade_Setup_6.6.2.exe"
 START_PATH = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
+CACHE_PATH = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation)
 PATTERN = "ReShade_Setup*.exe"
-LOCAL_RESHADE_DIR = './reshade'
+LOCAL_RESHADE_DIR = os.path.join(CACHE_PATH, "reshade_extracted")
+#LOCAL_RESHADE_DIR = './reshade'
 
 class ReshadeDraft:
   def __init__(self):
@@ -104,6 +106,9 @@ class ReshadeDraftBuilder(QObject):
     start = Path(start_path)
     pattern = f'{exe_pattern}'
 
+    if start_path is None:
+        return None
+
     try:
       matches = list(start.rglob(pattern))
     except PermissionError:
@@ -128,6 +133,12 @@ class ReshadeDraftBuilder(QObject):
         return None
 
   def _unzip_reshade(self, reshade_path):
-    if not os.path.isdir(LOCAL_RESHADE_DIR):
-      with ZipFile(reshade_path, 'r') as zip_object:
-        zip_object.extractall(LOCAL_RESHADE_DIR)
+    if not os.path.exists(LOCAL_RESHADE_DIR):
+        os.makedirs(LOCAL_RESHADE_DIR, exist_ok = True)
+
+    try:
+        with ZipFile(reshade_path, 'r') as zip_object:
+            zip_object.extractall(LOCAL_RESHADE_DIR)
+    except Exception as e:
+        print(f"shit happens: {e}")
+
