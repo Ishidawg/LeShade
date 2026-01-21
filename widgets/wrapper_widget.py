@@ -1,7 +1,6 @@
 import sys
 import os
 import struct
-import pyperclip
 
 from PySide6.QtWidgets import (
   QApplication,
@@ -19,6 +18,8 @@ class WrapperWidget(QWidget):
 
   def __init__(self):
     super().__init__()
+
+    self.clipboard = QApplication.clipboard()
 
     ly = QVBoxLayout()
     ly.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
@@ -74,9 +75,9 @@ class WrapperWidget(QWidget):
   # Functions to copy commands to clipboard
   @Slot()
   def copy_steam(self):
-    pyperclip.copy("WINEDLLOVERRIDES='d3d8=n,b' %command%")
+    self.clipboard.setText("WINEDLLOVERRIDES='d3d8=n,b' %command%")
 
   @Slot()
   def copy_other(self):
-    pyperclip.copy("WINEDLLOVERRIDES='d3d8=n,b'")
+    self.clipboard.setText("WINEDLLOVERRIDES='d3d8=n,b'")
 
