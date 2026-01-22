@@ -19,20 +19,20 @@
   
   <screenshots>
     <screenshot type="default">
-      <image>https://github.com/Ishidawg/reshade-installer-linux/blob/main/assets/screenshot_1.png?raw=true</image>
+      <image>https://github.com/Ishidawg/ReshadeInstaller/blob/main/assets/screenshot_1.png?raw=true</image>
     </screenshot>
     <screenshot type="default">
-      <image>https://github.com/Ishidawg/reshade-installer-linux/blob/main/assets/screenshot_2.png?raw=true</image>
+      <image>https://github.com/Ishidawg/ReshadeInstaller/blob/main/assets/screenshot_2.png?raw=true</image>
     </screenshot>
     <screenshot type="default">
-      <image>https://github.com/Ishidawg/reshade-installer-linux/blob/main/assets/screenshot_3.png?raw=true</image>
+      <image>https://github.com/Ishidawg/ReshadeInstaller/blob/main/assets/screenshot_3.png?raw=true</image>
     </screenshot>
 
   </screenshots>
 
   <!-- I have only the repo for now, but I will do an landing page to show it's features soon -->
-  <url type="homepage">https://github.com/Ishidawg/reshade-installer-linux</url>
-  <url type="bugtracker">https://github.com/Ishidawg/reshade-installer-linux/issues</url>
+  <url type="homepage">https://github.com/Ishidawg/ReshadeInstaller</url>
+  <url type="bugtracker">https://github.com/Ishidawg/ReshadeInstaller/issues</url>
   
   <releases>
     <release version="1.0.9" date="2024-03-20"/>
