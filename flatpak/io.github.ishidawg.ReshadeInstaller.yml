@@ -16,27 +16,7 @@ finish-args:
 
 modules:
   
-  # I've read requirements and see that share=network is not within the rules... ofc
-  # - name: python-dependencies
-  #  buildsystem: simple
-  #  build-commands:
-  #    - pip install --prefix=/app PySide6 shiboken6
-  #  build-options:
-  #    build-args:
-  #      - --share=network
-  
-  - name: python-dependencies
-    buildsystem: simple
-    build-commands:
-      - pip3 install --prefix=/app --no-deps --no-build-isolation .
-    
-    sources:
-      - type: file
-        path: python3-requirements.json
-
-    modules:
-      - python3-requirements.json
-
+  - ../python3-requirements.json
 
   - name: reshade-installer
     buildsystem: simple
@@ -48,14 +28,14 @@ modules:
       - mkdir -p /app/share/reshade-installer
       - mkdir -p /app/bin
       - mkdir -p /app/share/applications
-      - mkdir -p /app/share/icons/hicolor/128x128/apps
+      - mkdir -p /app/share/icons/hicolor/256x256/apps
 
       - cp -r . /app/share/reshade-installer/
 
       - cp flatpak/reshade-installer.sh /app/bin/reshade-installer
       - chmod +x /app/bin/reshade-installer
 
-      - cp assets/logo128.png /app/share/icons/hicolor/128x128/apps/io.github.ishidawg.ReshadeInstaller.png
+      - cp assets/logo256.png /app/share/icons/hicolor/256x256/apps/io.github.ishidawg.ReshadeInstaller.png
       
       - cp flatpak/io.github.ishidawg.ReshadeInstaller.desktop /app/share/applications/
 
