@@ -15,18 +15,36 @@ finish-args:
     - --filesystem=host
 
 modules:
-
+  
+  # I've read requirements and see that share=network is not within the rules... ofc
+  # - name: python-dependencies
+  #  buildsystem: simple
+  #  build-commands:
+  #    - pip install --prefix=/app PySide6 shiboken6
+  #  build-options:
+  #    build-args:
+  #      - --share=network
+  
   - name: python-dependencies
     buildsystem: simple
     build-commands:
-      - pip install --prefix=/app PySide6 shiboken6
-    build-options:
-      build-args:
-        - --share=network
+      - pip3 install --prefix=/app --no-deps --no-build-isolation .
+    
+    sources:
+      - type: file
+        path: python3-requirements.json
+
+    modules:
+      - python3-requirements.json
+
 
   - name: reshade-installer
     buildsystem: simple
     build-commands:
+      - mkdir -p /app/share/licenses/io.github.ishidawg.ReshadeInstaller
+      - install -D -m 644 LICENSE /app/share/licenses/io.github.ishidawg.ReshadeInstaller/LICENSE
+      - install -D -m 644 flatpak/io.github.ishidawg.ReshadeInstaller.metainfo.xml /app/share/metainfo/io.github.ishidawg.ReshadeInstaller.metainfo.xml
+
       - mkdir -p /app/share/reshade-installer
       - mkdir -p /app/bin
       - mkdir -p /app/share/applications

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.ishidawg.ReshadeInstaller</id>
+  
+  <name>Reshade Installer</name>
+  <summary>An unofficial Reshade Installer for Linux.</summary>
+  
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  
+  <description>
+    <p>
+      Reshade Installer is an unofficial tool that can install reshade on many games that runs Proton or Wine. It's more an automation process of a manual and tedious proccess than anything else.
+    </p>
+    <p>It has an cool features that can install reshade on direcX 8.x games like those old windows games like Grand Theft Auto III and so on.</p>
+  </description>
+  
+  <launchable type="desktop-id">io.github.ishidawg.ReshadeInstaller.desktop</launchable>
+  
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Ishidawg/reshade-installer-linux/main/assets/screenshot1.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Ishidawg/reshade-installer-linux/main/assets/screenshot2.png</image>
+    </screenshot>
+  </screenshots>
+
+  <!-- I have only the repo for now, but I will do an landing page to show it's features soon -->
+  <url type="homepage">https://github.com/Ishidawg/reshade-installer-linux</url>
+  <url type="bugtracker">https://github.com/Ishidawg/reshade-installer-linux/issues</url>
+  
+  <releases>
+    <release version="1.0.9" date="2024-03-20"/>
+  </releases>
+  
+  <content_rating type="oars-1.1"/>
+</component>

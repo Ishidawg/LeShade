@@ -10,3 +10,4 @@ __pycache__/*
 AppDir
 AppDir/*
 appimagetool-x86_64.AppImage
+flatpak-pip-generator.py
