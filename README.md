@@ -20,7 +20,7 @@ Reshade on linux works because it overrides wine dll `d3dcompiler_47.dll` _(that
 
 **Heroic Games Launcher environment variabel for Direct3D 8.x**
 <div align="center">
-    <img alt="Heroic games launcher" src="https://i.imgur.com/NTC0UhA.png" width="800" />
+    <img alt="Heroic games launcher" src="https://i.imgur.com/Ymj68nY.png" width="800" />
 </div>
 
 
@@ -52,6 +52,7 @@ The project of course is not currently done, look at monstrosity of GUI... Also 
  - [x] Add OpenGL, DirectX 10/11/12
  - [x] Add suport to DirectX 8 games with d3d8to9
  - [x] Flatpak
+ - [ ] Add to flathub
  - [ ] add an Uninstall feature
  - [ ] Improve shaders download so the user can select many more shader repositories
  
