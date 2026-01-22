@@ -19,11 +19,15 @@
   
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/Ishidawg/reshade-installer-linux/main/assets/screenshot1.png</image>
+      <image>https://github.com/Ishidawg/reshade-installer-linux/blob/main/assets/screenshot_1.png?raw=true</image>
     </screenshot>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/Ishidawg/reshade-installer-linux/main/assets/screenshot2.png</image>
+      <image>https://github.com/Ishidawg/reshade-installer-linux/blob/main/assets/screenshot_2.png?raw=true</image>
     </screenshot>
+    <screenshot type="default">
+      <image>https://github.com/Ishidawg/reshade-installer-linux/blob/main/assets/screenshot_3.png?raw=true</image>
+    </screenshot>
+
   </screenshots>
 
   <!-- I have only the repo for now, but I will do an landing page to show it's features soon -->
