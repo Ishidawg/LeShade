@@ -115,7 +115,7 @@ class InstallationWorker(QObject):
 
       context = ssl.create_default_context(cafile = certifi.where())
 
-      req = urllib.request.Request(final_url, header = {'User-Agent': 'Chrome/120.0.0.0'})
+      req = urllib.request.Request(final_url, headers = {'User-Agent': 'Chrome/120.0.0.0'})
 
       with urllib.request.urlopen(req, context = context) as res:
           with open(target_file, 'wb') as out_file:
@@ -135,7 +135,7 @@ class InstallationWorker(QObject):
 
       context = ssl.create_default_context(cafile = certifi.where())
 
-      req = urllib.request.Request(URL_D3D8TO9, header = {'User-Agent': 'Chrome/120.0.0.0'})
+      req = urllib.request.Request(URL_D3D8TO9, headers = {'User-Agent': 'Chrome/120.0.0.0'})
 
       with urllib.request.urlopen(req, context = context) as res:
           with open(target_file, 'wb') as out_file:
