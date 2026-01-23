@@ -45,6 +45,20 @@
                     "sha256": "f4221a52dfb81f24a0d20cc4f8981cb6edd810d5a9fb28287ce10d342573a0e4"
                 }
             ]
+        },
+        {
+            "name": "certifi",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} certifi --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/12/90/3c9ff0512038035f59d279d01e1e956d26840d8d61b753630944e61263a8/certifi-2024.12.14-py3-none-any.whl",
+                    "sha256": "5c18115594b2a3f761be545b7367c3b88b2db5d7620dbe45c43d9435b2447990"
+                }
+            ]
         }
     ]
 }
