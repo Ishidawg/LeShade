@@ -10,9 +10,6 @@ import urllib.request
 import ssl
 import certifi
 
-# I know that this is a force security, probably a security issue to force download withous SSL...
-# ssl._create_default_https_context = ssl._create_unverified_context
-
 MACHINE_TYPES = {
   0x014C: "32-bit",
   0x8664: "64-bit",
@@ -111,8 +108,6 @@ class InstallationWorker(QObject):
     final_url = f"{URL_COMPILER}/{subfolder}/d3dcompiler_47.dll"
 
     try:
-      # urllib.request.urlretrieve(final_url, target_file)
-
       context = ssl.create_default_context(cafile = certifi.where())
 
       req = urllib.request.Request(final_url, headers = {'User-Agent': 'Chrome/120.0.0.0'})
@@ -122,7 +117,7 @@ class InstallationWorker(QObject):
                 out_file.write(res.read())
 
     except Exception as e:
-      pass
+        self.emit(f"Error: {e}")
 
   def _d3d8_wrapper(self, game_dir):
     target_file = game_dir / "d3d8.dll"
@@ -131,8 +126,6 @@ class InstallationWorker(QObject):
       return
 
     try:
-      # urllib.request.urlretrieve(URL_D3D8TO9, target_file)
-
       context = ssl.create_default_context(cafile = certifi.where())
 
       req = urllib.request.Request(URL_D3D8TO9, headers = {'User-Agent': 'Chrome/120.0.0.0'})
@@ -142,7 +135,7 @@ class InstallationWorker(QObject):
                 out_file.write(res.read())
 
     except Exception as e:
-      pass
+        self.emit(f"Error: {error}")
 
   # Jhen code snippet (https://github.com/Dzavoy)
   # Indentify binary achitecture, so user do not have to do it manually.
@@ -166,3 +159,4 @@ class InstallationWorker(QObject):
       machine: int = struct.unpack("<H", machine_bytes)[0]
 
     return MACHINE_TYPES.get(machine, "unknown")
+

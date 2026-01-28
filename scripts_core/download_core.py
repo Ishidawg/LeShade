@@ -13,7 +13,6 @@ START_PATH = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.Dow
 CACHE_PATH = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation)
 PATTERN = "ReShade_Setup*.exe"
 LOCAL_RESHADE_DIR = os.path.join(CACHE_PATH, "reshade_extracted")
-#LOCAL_RESHADE_DIR = './reshade'
 
 class ReshadeDraft:
   def __init__(self):
@@ -69,8 +68,7 @@ class ReshadeDraftBuilder(QObject):
       else:
         self.find_reshade()
     except Exception as error:
-      pass
-
+        self.emit(f"Error: {error}")
 
   # Public methods
   def download_reshade(self, url: str):
@@ -95,7 +93,7 @@ class ReshadeDraftBuilder(QObject):
     try:
       self.draft.reshade_path = self._find_reshade(START_PATH, PATTERN)
     except Exception as error:
-      pass
+        self.emit(f"Error: {error}")
 
     return self
 
@@ -128,14 +126,13 @@ class ReshadeDraftBuilder(QObject):
 
         req = urllib.request.Request(url, headers = {'User-Agent': 'Chrome/120.0.0.0'})
 
-
         with urllib.request.urlopen(req, context = context) as res:
             with open(destination, 'wb') as out_file:
                 out_file.write(res.read())
 
         self.reshade_temp_path = self._find_reshade(START_PATH, PATTERN)
       except Exception as e:
-        print(f"ERROR: {e}")
+        self.emit(f"ERROR: {e}")
         return None
 
   def _unzip_reshade(self, reshade_path):

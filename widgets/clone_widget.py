@@ -135,3 +135,4 @@ class CloneShaderWidget(QWidget):
     self.p_bar.setValue(0)
     self.p_bar.setFormat(f"Error: {err}")
     self.cloning_finished.emit(False)
+

@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject, Signal, QStandardPaths
+from PySide6.QtCore import QObject, Signal
 import os
 import shutil
 import zipfile
@@ -75,8 +75,6 @@ class CloneWorker(QObject):
         zip_path = os.path.join(shaders_temp_dir, f"{repo_name}.zip")
         extract_path = os.path.join(shaders_temp_dir, repo_name)
         os.makedirs(extract_path, exist_ok = True)
-        # if os.path.exists(extract_path):
-        #  shutil.rmtree(extract_path)
 
         try:
           # Need to replace git with a python native because MINT 22.2 does not download
@@ -88,21 +86,10 @@ class CloneWorker(QObject):
               with open(zip_path, 'wb') as out_file:
                   out_file.write(res.read())
 
-          # urllib.request.urlretrieve(zip_url, zip_path)
-
           self.status_update.emit(f"Extracting {repo_name}...")
 
           with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_path)
-
-          # extracted_folder_name = self._find_extracted_folder(TEMP_DIR, repo_key)
-
-          # if extracted_folder_name:
-          # full_extracted_path = os.path.join(TEMP_DIR, extracted_folder_name)
-          # shutil.move(full_extracted_path, extract_path)
-
-          # if os.path.exists(zip_path):
-          #  os.remove(zip_path)
 
           self.status_update.emit(f"Installing {repo_name} files")
           self._organize_files(extract_path, shaders_dest, textures_dest)
@@ -115,27 +102,14 @@ class CloneWorker(QObject):
         percentage = int((current_repo / total_repos) * 100)
         self.progress_update.emit(percentage)
 
-      # if os.path.exists(TEMP_DIR):
-      #  shutil.rmtree(TEMP_DIR, ignore_errors=True)
-
       self.status_update.emit("Remove temp directory")
       if shaders_temp_dir and os.path.exists(shaders_temp_dir):
         shutil.rmtree(shaders_temp_dir, ignore_errors = True)
-
 
       self.status_update.emit("All shaders installed!")
       self.finished.emit()
     except Exception as e:
       self.error.emit(str(e))
-
-  def _find_extracted_folder(self, base_path, keyword):
-    for item in os.listdir(base_path):
-      full_path = os.path.join(base_path, item)
-
-      if os.path.isdir(full_path):
-        if item == keyword: continue
-        return item
-    return None
 
   def _organize_files(self, source_root, shaders_dest, textures_dest):
     for root, dirs, files in os.walk(source_root):
@@ -150,3 +124,4 @@ class CloneWorker(QObject):
 
         elif file_lower.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tga')):
           shutil.copy2(src_file, os.path.join(textures_dest, file))
+

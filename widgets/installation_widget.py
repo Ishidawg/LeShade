@@ -184,3 +184,4 @@ class InstallationWidget(QWidget):
     self.p_bar.setFormat("Error")
     self.p_bar.setToolTip(f"Detail: {err_msg}")
     self.installation_finished.emit(False)
+

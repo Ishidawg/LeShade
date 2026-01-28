@@ -91,3 +91,4 @@ class StartWidget(QWidget):
     self.p_bar.setValue(0)
     self.p_bar.setFormat(f"Error: {err}")
     self.process_finished.emit(False)
+
