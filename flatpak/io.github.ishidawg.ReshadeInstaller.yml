@@ -1,8 +1,13 @@
 app-id: io.github.ishidawg.ReshadeInstaller
 
 runtime: org.kde.Platform
-runtime-version: '6.7'
+runtime-version: '6.10'
 sdk: org.kde.Sdk
+
+base: io.qt.PySide6.BaseApp
+base-version: '6.10'
+cleanup-commands:
+  - /app/cleanup-BaseApp.sh
 
 command: reshade-installer
 
@@ -12,33 +17,35 @@ finish-args:
     - --socket=wayland
     - --share=network
     - --device=dri
-    - --filesystem=host
+    - --filesystem=home
+    - --filesystem=/mnt
+    - --filesystem=/run/media
 
 modules:
   
-  - ../python3-requirements.json
+  # Need certifi lib so I can download all the files (.exe, .dll, .fx, .png....) using urllib
+  - name: python3-certifi
+    buildsystem: simple
+    build-commands:
+      - pip3 install --verbose --prefix=/app certifi-2026.1.4-py3-none-any.whl
+    
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/e6/ad/3cc14f097111b4de0040c83a525973216457bbeeb63739ef1ed275c1c021/certifi-2026.1.4-py3-none-any.whl
+        sha256: 9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c
 
   - name: reshade-installer
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/share/licenses/io.github.ishidawg.ReshadeInstaller
       - install -D -m 644 LICENSE /app/share/licenses/io.github.ishidawg.ReshadeInstaller/LICENSE
       - install -D -m 644 flatpak/io.github.ishidawg.ReshadeInstaller.metainfo.xml /app/share/metainfo/io.github.ishidawg.ReshadeInstaller.metainfo.xml
 
       - mkdir -p /app/share/reshade-installer
-      - mkdir -p /app/bin
-      - mkdir -p /app/share/applications
-      - mkdir -p /app/share/icons/hicolor/256x256/apps
-
       - cp -r . /app/share/reshade-installer/
-
-      - cp flatpak/reshade-installer.sh /app/bin/reshade-installer
-      - chmod +x /app/bin/reshade-installer
-
-      - cp assets/logo256.png /app/share/icons/hicolor/256x256/apps/io.github.ishidawg.ReshadeInstaller.png
-      
-      - cp flatpak/io.github.ishidawg.ReshadeInstaller.desktop /app/share/applications/
-
+      - install -Dm755 flatpak/reshade-installer.sh /app/bin/reshade-installer
+      - install -Dm644 assets/logo256.png /app/share/icons/hicolor/256x256/apps/io.github.ishidawg.ReshadeInstaller.png
+      - install -Dm644 flatpak/io.github.ishidawg.ReshadeInstaller.desktop /app/share/applications/
+ 
     sources:
       - type: dir
         path: ..
