@@ -25,7 +25,6 @@ REPO_INFO = {
 }
 
 CACHE_PATH = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation)
-# TEMP_DIR = "./reshade/temp_clones"
 TEMP_DIR = os.path.join(CACHE_PATH, "reshade_temp_clones")
 
 class CloneWorker(QObject):
@@ -75,14 +74,14 @@ class CloneWorker(QObject):
         zip_path = os.path.join(TEMP_DIR, f"{repo_name}.zip")
         extract_path = os.path.join(TEMP_DIR, repo_name)
 
-        if os.path.exists(extract_path):
-          shutil.rmtree(extract_path)
+        # if os.path.exists(extract_path):
+        #  shutil.rmtree(extract_path)
 
         try:
           # Need to replace git with a python native because MINT 22.2 does not download
           context = ssl.create_default_context(cafile = certifi.where())
 
-          req = urllib.request.Request(zip_url, headers = {'User-Agent': 'Chrome/120.0.0.0'})
+          req = urllib.request.Request(zip_url, headers = {'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11 Chrome/120.0.0.0'})
 
           with urllib.request.urlopen(req, context = context) as res:
               with open(zip_path, 'wb') as out_file:
@@ -101,8 +100,8 @@ class CloneWorker(QObject):
             full_extracted_path = os.path.join(TEMP_DIR, extracted_folder_name)
             shutil.move(full_extracted_path, extract_path)
 
-          if os.path.exists(zip_path):
-            os.remove(zip_path)
+          # if os.path.exists(zip_path):
+          #  os.remove(zip_path)
 
           self.status_update.emit(f"Installing {repo_name} files")
           self._organize_files(extract_path, shaders_dest, textures_dest)
@@ -115,8 +114,8 @@ class CloneWorker(QObject):
         percentage = int((current_repo / total_repos) * 100)
         self.progress_update.emit(percentage)
 
-      if os.path.exists(TEMP_DIR):
-        shutil.rmtree(TEMP_DIR, ignore_errors=True)
+      # if os.path.exists(TEMP_DIR):
+      #  shutil.rmtree(TEMP_DIR, ignore_errors=True)
 
       self.status_update.emit("All shaders installed!")
       self.finished.emit()
