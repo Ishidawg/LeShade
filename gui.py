@@ -21,6 +21,11 @@ from widgets.wrapper_widget import WrapperWidget
 
 # Import constant
 from scripts_core.download_core import LOCAL_RESHADE_DIR
+
+# Manager related stuff
+# from scripts_core.manager_core import create_manager
+import scripts_core.manager_core
+
 # l:    label
 # c:    container
 # ly:   layout
@@ -114,6 +119,8 @@ class MainWindow(QMainWindow):
             # reshade_path = "./reshade"
             reshade_path = LOCAL_RESHADE_DIR
 
+            scripts_core.manager_core.create_manager()
+
             installation_widget = self.widgets[1]
             installation_widget.set_reshade_source(reshade_path)
             self.change_widget(1)
@@ -139,8 +146,8 @@ class MainWindow(QMainWindow):
 
             try:
                 clone_widget.cloning_finished.disconnect()
-            except (RuntimeError, TypeError):
-                pass
+            except (RuntimeError, TypeError) as e:
+                print(e)
 
             clone_widget.cloning_finished.connect(self.on_cloning_finished)
 
@@ -156,15 +163,14 @@ class MainWindow(QMainWindow):
             game_api = installation_widget.selected_api
 
             self.current_api = game_api
-            print(self.current_api)
+
+            scripts_core.manager_core.add_game(game_exe_path, game_dir)
 
             # pass to clone widget
             clone_widget = self.widgets[2]
             clone_widget.set_game_directory(game_dir)
 
             self.change_widget(1)
-        else:
-            pass
 
     def on_cloning_finished(self, success):
         if success:
