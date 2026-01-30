@@ -39,14 +39,14 @@ class InstallationWidget(QWidget):
 
         # Create layout and containers
         ly = QVBoxLayout()
-        ly.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        ly.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Creates only a layout instead of container to fix widgets not appearing in GTK
         ly_browse = QHBoxLayout()
 
         c_api = QWidget()
         ly_api = QGridLayout(c_api)
-        ly_api.setAlignment(Qt.AlignCenter | Qt.AlignmentFlag.AlignCenter)
+        ly_api.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ly_api.setSpacing(15)
 
         # Widgets
@@ -76,7 +76,7 @@ class InstallationWidget(QWidget):
         # Progress bar
         self.p_bar = QProgressBar()
         self.p_bar.setTextVisible(True)
-        self.p_bar.setAlignment(Qt.AlignCenter | Qt.AlignmentFlag.AlignCenter)
+        self.p_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.p_bar.setRange(0, 100)
         self.p_bar.setValue(0)
 

@@ -1,11 +1,6 @@
-import sys
-import os
-import struct
-
 from PySide6.QtWidgets import (
     QApplication,
     QLabel,
-    QMainWindow,
     QVBoxLayout,
     QHBoxLayout,
     QWidget,
@@ -23,13 +18,13 @@ class WrapperWidget(QWidget):
         self.clipboard = QApplication.clipboard()
 
         ly = QVBoxLayout()
-        ly.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        ly.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         ly_steam_command = QHBoxLayout()
-        ly_steam_command.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        ly_steam_command.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         ly_other_command = QHBoxLayout()
-        ly_other_command.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        ly_other_command.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # Description
         l_description = QLabel(

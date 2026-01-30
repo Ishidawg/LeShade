@@ -33,11 +33,11 @@ class CloneShaderWidget(QWidget):
 
         # Create layout
         ly = QVBoxLayout()
-        ly.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        ly.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         c_checkboxes = QWidget()
         ly_checkboxes = QVBoxLayout(c_checkboxes)
-        ly_checkboxes.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        ly_checkboxes.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # Label
         l_description = QLabel("Select shaders you want to install:")
@@ -64,7 +64,7 @@ class CloneShaderWidget(QWidget):
         self.p_bar = QProgressBar()
         self.p_bar.setFixedWidth(400)
         self.p_bar.setTextVisible(True)
-        self.p_bar.setAlignment(Qt.AlignCenter)
+        self.p_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.p_bar.setRange(0, 100)
         self.p_bar.setValue(0)
 

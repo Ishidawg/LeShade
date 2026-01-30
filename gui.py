@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         c_top_text = QWidget()
         c_top_text.setContentsMargins(0, 0, 0, 40)
         ly_top_text = QVBoxLayout(c_top_text)
-        ly_top_text.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        ly_top_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         l_title = QLabel("LeShade")
         l_title.setStyleSheet("font-size: 28pt; font-weight: 600; padding: 0")
@@ -97,8 +97,7 @@ class MainWindow(QMainWindow):
         b_bottom_buttons = QWidget()
         b_bottom_buttons.setContentsMargins(0, 0, 0, 10)
         ly_bottom_buttons = QHBoxLayout(b_bottom_buttons)
-        ly_bottom_buttons.setAlignment(
-            Qt.AlignBottom | Qt.AlignmentFlag.AlignCenter)
+        ly_bottom_buttons.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.b_next = QPushButton("Next", self)
         self.b_back = QPushButton("Back", self)

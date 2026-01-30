@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QVBoxLayout,
-    QHBoxLayout,
     QWidget,
 )
 
@@ -67,18 +66,22 @@ class UninstallWidget(QWidget):
 
     def uninstall_reshade(self, widget_list, dir_list):
         # current_game = widget_list.currentItem().text()
-        current_row = widget_list.currentRow()
-        game_path = dir_list[current_row]
 
-        # Remove files and directories
-        shutil.rmtree(f"{game_path}/Textures")
-        shutil.rmtree(f"{game_path}/Shaders")
+        try:
+            current_row = widget_list.currentRow()
+            game_path = dir_list[current_row]
 
-        # Remove game form list
-        widget_list.takeItem(current_row)
+            # Remove files and directories
+            shutil.rmtree(f"{game_path}/Textures")
+            shutil.rmtree(f"{game_path}/Shaders")
 
-        # Update manager.json
-        scripts_core.manager_core.update_manager(current_row)
+            # Remove game form list
+            widget_list.takeItem(current_row)
 
-        print(current_row)
-        print(game_path)
+            # Update manager.json
+            scripts_core.manager_core.update_manager(current_row)
+
+            print(current_row)
+            print(game_path)
+        except IndexError as e:
+            print(e)
