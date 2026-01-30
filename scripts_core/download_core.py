@@ -75,7 +75,7 @@ class ReshadeDraftBuilder(QObject):
             else:
                 self.find_reshade()
         except Exception as error:
-            self.emit(f"Error: {error}")
+            print(error)
 
     # Public methods
     def download_reshade(self, url: str):
@@ -83,7 +83,7 @@ class ReshadeDraftBuilder(QObject):
             self._download_reshade(url)
 
         except Exception as error:
-            pass
+            print(error)
 
         return self
 
@@ -92,7 +92,7 @@ class ReshadeDraftBuilder(QObject):
             self._unzip_reshade(reshade_path)
 
         except Exception as error:
-            pass
+            print(error)
 
         return self
 
@@ -100,12 +100,12 @@ class ReshadeDraftBuilder(QObject):
         try:
             self.draft.reshade_path = self._find_reshade(START_PATH, PATTERN)
         except Exception as error:
-            self.emit(f"Error: {error}")
+            print(error)
 
         return self
 
     # Private methods
-    def _find_reshade(self, start_path: Path, exe_pattern: str):
+    def _find_reshade(self, start_path, exe_pattern: str):
         start = Path(start_path)
         pattern = f'{exe_pattern}'
 
@@ -141,7 +141,7 @@ class ReshadeDraftBuilder(QObject):
                 self.reshade_temp_path = self._find_reshade(
                     START_PATH, PATTERN)
             except Exception as e:
-                self.emit(f"ERROR: {e}")
+                print(e)
                 return None
 
     def _unzip_reshade(self, reshade_path):

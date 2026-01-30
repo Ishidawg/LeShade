@@ -1,5 +1,4 @@
-from PySide6.QtCore import QObject, QThread, Signal
-from zipfile import ZipFile
+from PySide6.QtCore import QObject,  Signal
 from pathlib import Path
 import os
 import struct
@@ -120,7 +119,7 @@ class InstallationWorker(QObject):
                     out_file.write(res.read())
 
         except Exception as e:
-            self.emit(f"Error: {e}")
+            print(e)
 
     def _d3d8_wrapper(self, game_dir):
         target_file = game_dir / "d3d8.dll"
@@ -139,7 +138,7 @@ class InstallationWorker(QObject):
                     out_file.write(res.read())
 
         except Exception as e:
-            self.emit(f"Error: {error}")
+            print(e)
 
     # Jhen code snippet (https://github.com/Dzavoy)
     # Indentify binary achitecture, so user do not have to do it manually.
