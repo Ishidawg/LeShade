@@ -14,10 +14,12 @@ from PySide6.QtCore import Qt, QThread, Signal, QStandardPaths
 from PySide6.QtGui import QFont, QIcon
 
 # Import widgets
+from widgets import uninstall_widget
 from widgets.start_widget import StartWidget
 from widgets.installation_widget import InstallationWidget
 from widgets.clone_widget import CloneShaderWidget
 from widgets.wrapper_widget import WrapperWidget
+from widgets.uninstall_widget import UninstallWidget
 
 # Import constant
 from scripts_core.download_core import LOCAL_RESHADE_DIR
@@ -51,6 +53,7 @@ class MainWindow(QMainWindow):
         S_SECOND = InstallationWidget()
         S_THIRD = CloneShaderWidget()
         S_WRAPPER = WrapperWidget()
+        self.S_UNINSTALL = UninstallWidget()
 
         self.is_start_ready = False
         S_FIRST.process_finished.connect(self.on_start_finished)
@@ -81,12 +84,13 @@ class MainWindow(QMainWindow):
         ly_top_text = QVBoxLayout(c_top_text)
         ly_top_text.setAlignment(Qt.AlignTop | Qt.AlignmentFlag.AlignCenter)
 
-        l_title = QLabel("Reshade Installer")
-        l_title.setStyleSheet("font-size: 22pt;")
+        l_title = QLabel("LeShade")
+        l_title.setStyleSheet("font-size: 28pt; font-weight: 600; padding: 0")
         l_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        l_subtitle = QLabel("Intended for proton games")
-        l_subtitle.setStyleSheet("font-size: 12pt; font-weight: 100;")
+        l_subtitle = QLabel("reshade manager")
+        l_subtitle.setStyleSheet(
+            "font-size: 12pt; font-weight: 100; padding: 0; margin: 0")
         l_subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Fixed button container and thy self
@@ -99,6 +103,10 @@ class MainWindow(QMainWindow):
         self.b_next = QPushButton("Next", self)
         self.b_back = QPushButton("Back", self)
 
+        self.b_uninstall = QPushButton("Uninstall", self)
+        self.b_home = QPushButton("Home", self)
+        self.b_home.hide()
+
         # AddWidgets
         self.ly_main.addWidget(c_top_text)
         self.ly_main.addWidget(self.current_widget)
@@ -107,20 +115,25 @@ class MainWindow(QMainWindow):
         # Fixed text
         ly_top_text.addWidget(l_title)
         ly_top_text.addWidget(l_subtitle)
+
+        ly_bottom_buttons.addWidget(self.b_uninstall)
         ly_bottom_buttons.addWidget(self.b_back)
         ly_bottom_buttons.addWidget(self.b_next)
+        ly_bottom_buttons.addWidget(self.b_home)
 
         self.b_next.clicked.connect(self.on_next_clicked)
         self.b_back.clicked.connect(lambda: self.change_widget(-1))
+        self.b_uninstall.clicked.connect(self.switch_to_uninstall)
+        self.b_home.clicked.connect(self.switch_to_home)
         self.update_buttons()
 
     def on_next_clicked(self):
         if self.widget_index == 0:  # Start Widget
-            # reshade_path = "./reshade"
             reshade_path = LOCAL_RESHADE_DIR
 
             scripts_core.manager_core.create_manager()
 
+            self.b_back.setEnabled(False)
             installation_widget = self.widgets[1]
             installation_widget.set_reshade_source(reshade_path)
             self.change_widget(1)
@@ -239,6 +252,35 @@ class MainWindow(QMainWindow):
                 self.b_next.setEnabled(self.is_start_ready)
             else:
                 self.b_next.setEnabled(True)
+
+    def switch_to_uninstall(self):
+        self.current_widget.hide()
+        self.ly_main.removeWidget(self.current_widget)
+        self.current_widget = self.S_UNINSTALL
+
+        self.ly_main.insertWidget(1, self.current_widget)
+        self.current_widget.show()
+
+        self.b_next.hide()
+        self.b_back.hide()
+        self.b_uninstall.hide()
+        self.b_home.show()
+
+    def switch_to_home(self):
+        self.current_widget.hide()
+        self.ly_main.removeWidget(self.current_widget)
+        self.current_widget = self.widgets[0]
+
+        self.ly_main.insertWidget(1, self.current_widget)
+        self.current_widget.show()
+
+        self.b_home.hide()
+        self.b_next.show()
+        self.b_back.show()
+        self.b_uninstall.show()
+
+        self.b_back.setEnabled(False)
+        self.widget_index = 0
 
 
 if __name__ == "__main__":

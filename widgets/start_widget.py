@@ -33,7 +33,7 @@ class StartWidget(QWidget):
 
         # Label
         l_description = QLabel(
-            "This is a unofficial reshade installer for linux, intented to be used with proton applications, but it may also work with wine games.")
+            "LeShade is a manager for reshade installations on linux. It's a native tool that can install and uninstall reshade across many games that uses proton or WINE.")
         l_description.setWordWrap(True)
         l_description.setAlignment(Qt.AlignmentFlag.AlignCenter)
         l_description.setStyleSheet("font-size: 12pt; font-weight: 100;")

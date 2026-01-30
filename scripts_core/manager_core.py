@@ -49,3 +49,30 @@ def format_game_name(game_name):
     game_basename = os.path.basename(game_name)
     game_name = os.path.splitext(game_basename)[0]
     return game_name
+
+
+def read_manager_content(key):
+    game_content = []
+
+    with open(MANAGER_PATH, "r") as file:
+        current_file = json.load(file)
+
+    for item in current_file:
+        game_content.append(item.get(key))
+
+    return game_content
+
+
+def update_manager(index):
+    new_data = []
+
+    with open(MANAGER_PATH, "r") as file:
+        current_file = json.load(file)
+
+    for game in current_file:
+        new_data.append(game)
+
+    new_data.remove(new_data[index])
+
+    with open(MANAGER_PATH, "w") as file:
+        json.dump(new_data, file, indent=4)
