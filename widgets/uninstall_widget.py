@@ -1,3 +1,4 @@
+import os
 import shutil
 
 from PySide6.QtWidgets import (
@@ -40,6 +41,7 @@ class UninstallWidget(QWidget):
 
         self.game_list = QListWidget(self)
         self.add_items(self.games, self.game_list)
+
         # Button
         self.b_uninstall = QPushButton("Uninstall")
         self.b_uninstall.clicked.connect(
@@ -70,14 +72,23 @@ class UninstallWidget(QWidget):
             current_row = widget_list.currentRow()
             game_path = dir_list[current_row]
 
-            # Remove files and directories
-            shutil.rmtree(f"{game_path}/Textures")
-            shutil.rmtree(f"{game_path}/Shaders")
+            shaders_dir = os.path.join(game_path, "Shaders")
+            textures_dir = os.path.join(game_path, "Textures")
 
-            # Remove game form list
+            files_tbr = ["opengl32.dll", "d3d8.dll", "d3d9.dll",
+                         "d3d10.dll", "d3d11.dll", "dxgi.dll", "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini"]
+
+            if os.path.exists(shaders_dir) and os.path.exists(textures_dir):
+                shutil.rmtree(shaders_dir)
+                shutil.rmtree(textures_dir)
+
+            for file in files_tbr:
+                if file in os.listdir(game_path):
+                    os.remove(os.path.join(game_path, file))
+
+            # Remove game from list
             widget_list.takeItem(current_row)
 
-            # Update manager.json
             scripts_core.manager_core.update_manager(current_row)
 
             print(current_row)
