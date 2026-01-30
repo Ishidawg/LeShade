@@ -51,7 +51,6 @@ class MainWindow(QMainWindow):
         S_SECOND = InstallationWidget()
         S_THIRD = CloneShaderWidget()
         S_WRAPPER = WrapperWidget()
-        self.S_UNINSTALL = UninstallWidget()
 
         self.is_start_ready = False
         S_FIRST.process_finished.connect(self.on_start_finished)
@@ -60,6 +59,8 @@ class MainWindow(QMainWindow):
         self.widget_index = 0
 
         self.current_widget = self.widgets[0]
+
+        self.is_uninstall = False
 
         self.current_api = None
 
@@ -170,25 +171,26 @@ class MainWindow(QMainWindow):
         if success:
             # Grab game_dir and executable path
             installation_widget = self.widgets[1]
-            game_exe_path = installation_widget.line_edit.text()
-            game_dir = os.path.dirname(game_exe_path)
+            self.game_exe_path = installation_widget.line_edit.text()
+            self.game_dir = os.path.dirname(self.game_exe_path)
             game_api = installation_widget.selected_api
 
             self.current_api = game_api
 
-            scripts_core.manager_core.add_game(game_exe_path, game_dir)
-
             # pass to clone widget
             clone_widget = self.widgets[2]
-            clone_widget.set_game_directory(game_dir)
+            clone_widget.set_game_directory(self.game_dir)
 
             self.change_widget(1)
 
     def on_cloning_finished(self, success):
-        if success:
+        if success and self.widget_index > 1:
+            scripts_core.manager_core.add_game(
+                self.game_exe_path, self.game_dir)
 
             if self.current_api == "D3D 8":
                 self.change_widget(1)
+                self.b_back.setEnabled(False)
 
             self.b_next.setText("Close")
             self.b_next.setEnabled(True)
@@ -252,20 +254,31 @@ class MainWindow(QMainWindow):
             else:
                 self.b_next.setEnabled(True)
 
+        if self.is_uninstall:
+            self.b_next.hide()
+            self.b_back.hide()
+            self.b_uninstall.hide()
+            self.b_home.show()
+        else:
+            self.b_next.show()
+            self.b_back.show()
+            self.b_uninstall.show()
+            self.b_home.hide()
+
     def switch_to_uninstall(self):
+        self.is_uninstall = True
         self.current_widget.hide()
         self.ly_main.removeWidget(self.current_widget)
-        self.current_widget = self.S_UNINSTALL
+        self.current_widget = UninstallWidget()
 
         self.ly_main.insertWidget(1, self.current_widget)
         self.current_widget.show()
 
-        self.b_next.hide()
-        self.b_back.hide()
-        self.b_uninstall.hide()
-        self.b_home.show()
+        self.update_buttons()
 
     def switch_to_home(self):
+        self.is_uninstall = False
+        self.widget_index = 0
         self.current_widget.hide()
         self.ly_main.removeWidget(self.current_widget)
         self.current_widget = self.widgets[0]
@@ -273,13 +286,7 @@ class MainWindow(QMainWindow):
         self.ly_main.insertWidget(1, self.current_widget)
         self.current_widget.show()
 
-        self.b_home.hide()
-        self.b_next.show()
-        self.b_back.show()
-        self.b_uninstall.show()
-
-        self.b_back.setEnabled(False)
-        self.widget_index = 0
+        self.update_buttons()
 
 
 if __name__ == "__main__":
