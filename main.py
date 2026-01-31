@@ -2,7 +2,6 @@ import sys
 
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
-    QHBoxLayout,
     QMainWindow,
     QApplication,
     QStackedLayout,
@@ -10,9 +9,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from widgets.pages.page_install import PageInstall
 from widgets.widget_title import WidgetTitle
 from widgets.pages.page_start import PageStart
+from widgets.pages.page_download import PageDownload
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 
 
@@ -39,7 +38,7 @@ class MainWindow(QMainWindow):
         # Instance widgets and set widget
         self.action_buttons = WidgetBottomButtons()
         self.page_start = PageStart()
-        self.page_install = PageInstall()
+        self.page_download = PageDownload()
 
         self.layout_dynamic.addWidget(self.page_start)
 
@@ -57,7 +56,7 @@ class MainWindow(QMainWindow):
     def on_install_clicked(self, value):
         if value:
             self.layout_dynamic.removeWidget(self.page_start)
-            self.layout_dynamic.addWidget(self.page_install)
+            self.layout_dynamic.addWidget(self.page_download)
             self.action_buttons.btn_back.show()
             self.action_buttons.btn_next.show()
 

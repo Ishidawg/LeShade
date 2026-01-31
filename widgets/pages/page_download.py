@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, Slot
 
 
-class PageInstall(QWidget):
+class PageDownload(QWidget):
     download = Signal(bool)
     version = Signal(str)
     release = Signal(str)
