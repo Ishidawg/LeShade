@@ -9,13 +9,11 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import Qt, Signal, Slot
-# from scripts_core.script_download import DownloadWorker
+from scripts_core.script_download import DownloadWorker
 
 
 class PageDownload(QWidget):
     download = Signal(bool)
-    version = Signal(str)
-    release = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -68,6 +66,5 @@ class PageDownload(QWidget):
     @Slot(bool)
     def click_download(self):
         self.download.emit(True)
-        self.version.emit(self.reshade_version.currentText())
-        self.release.emit(self.reshade_release.currentText())
-        # DownloadWorker()
+        DownloadWorker(self.reshade_version.currentText(),
+                       self.reshade_release.currentText())

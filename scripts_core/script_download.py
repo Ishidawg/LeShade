@@ -10,8 +10,6 @@ import urllib.request
 import ssl
 import certifi
 
-from widgets.pages.page_download import PageDownload
-
 # URL examples
 # https://reshade.me/downloads/ReShade_Setup_6.7.1.exe
 # https://reshade.me/downloads/ReShade_Setup_6.7.1_Addon.exe
@@ -28,22 +26,18 @@ LOCAL_RESHADE_DIR = os.path.join(CACHE_PATH, "reshade_extracted")
 class DownloadWorker(QObject):
     download_finish = Signal(bool)
 
-    def __init__(self):
+    def __init__(self, version, release):
         super().__init__()
 
-        self.page_download = PageDownload()
-
         self.reshade_url = ""
-        self.version = ""
-        self.release = ""
+        self.version = version
+        self.release = release
 
-        self.page_download.version.connect(self.get_version)
-        self.page_download.release.connect(self.get_release)
+        self.build_url()
+        self.download_reshade()
 
+    def build_url(self):
         try:
-            self.get_version()
-            self.get_release()
-
             if self.version == "addon":
                 self.reshade_url = f"https://reshade.me/downloads/ReShade_Setup_{self.release}_Addon.exe"
             else:
@@ -51,6 +45,7 @@ class DownloadWorker(QObject):
         except Exception as e:
             print(e)
 
+    def download_reshade(self):
         if self.reshade_url != "":
             try:
                 file_name = self.reshade_url.split('/')[-1]
@@ -66,11 +61,3 @@ class DownloadWorker(QObject):
 
             except Exception as e:
                 print(e)
-
-    @Slot(str)
-    def get_version(self, value):
-        self.version = value
-
-    @Slot(str)
-    def get_release(self, value):
-        self.release = value
