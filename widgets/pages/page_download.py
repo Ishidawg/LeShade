@@ -17,7 +17,8 @@ class PageDownload(QWidget):
         super().__init__()
 
         self.reshade_versions = ["addon", "non-addon"]
-        self.reshade_releases = ["6.7.1", "6.7.0"]
+        self.reshade_releases = ["6.7.1", "6.7.0",
+                                 "6.6.2", "6.6.1", "6.6.0", "6.5.1", "6.5.0"]
 
         # create layout
         layout = QVBoxLayout()
