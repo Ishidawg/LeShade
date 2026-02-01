@@ -5,9 +5,11 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QProgressBar
 )
 
 from PySide6.QtCore import Qt, Signal, Slot
+# from scripts_core.script_download import DownloadWorker
 
 
 class PageDownload(QWidget):
@@ -45,6 +47,12 @@ class PageDownload(QWidget):
         self.btn_download = QPushButton("Download")
         self.btn_download.clicked.connect(self.click_download)
 
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+
         # add widgets
         layout.addWidget(label_description)
 
@@ -53,6 +61,7 @@ class PageDownload(QWidget):
         layout.addLayout(layout_selection)
 
         layout.addWidget(self.btn_download)
+        layout.addWidget(self.progress_bar)
 
         self.setLayout(layout)
 
@@ -61,3 +70,4 @@ class PageDownload(QWidget):
         self.download.emit(True)
         self.version.emit(self.reshade_version.currentText())
         self.release.emit(self.reshade_release.currentText())
+        # DownloadWorker()
