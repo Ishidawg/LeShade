@@ -64,19 +64,22 @@ class PageDownload(QWidget):
 
         self.setLayout(layout)
 
-    def start_download(self):
+    def start_download(self) -> None:
         self.download_thread: QThread = QThread()
         self.download_worker: DownloadWorker = DownloadWorker(
             self.reshade_version.currentText(), self.reshade_release.currentText())
 
         self.download_thread.moveToThread(self.download_thread)
+
+        # start and at the end, finished, are built-in thread signals
         self.download_thread.started.connect(self.start_animation)
         self.download_thread.started.connect(self.download_worker.run)
 
         # reshade_found and reshade_error
         # both are signals from scrips_download_re.py
+        self.download_worker.reshade_status.connect(self.update_text)
         self.download_worker.reshade_found.connect(self.on_success)
-        self.download_worker.reshade_error.connect(self.on_error)
+        self.download_worker.reshade_found.connect(self.on_error)
 
         self.download_worker.reshade_found.connect(self.download_thread.quit)
         self.download_worker.reshade_found.connect(
@@ -85,18 +88,23 @@ class PageDownload(QWidget):
 
         self.download_thread.start()
 
-    def start_animation(self):
+    def start_animation(self) -> None:
         self.progress_bar.setRange(0, 0)
 
-    def on_success(self, value):
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(100)
-        self.download_finished.emit(True)
+    def update_text(self, value):
+        self.progress_bar.setFormat(value)
 
-    def on_error(self, value):
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.download_finished.emit(False)
+    def on_success(self, value) -> None:
+        if value:
+            self.progress_bar.setRange(0, 100)
+            self.progress_bar.setValue(100)
+            self.download_finished.emit(True)
+
+    def on_error(self, value) -> None:
+        if not value:
+            self.progress_bar.setRange(0, 100)
+            self.progress_bar.setValue(0)
+            self.download_finished.emit(False)
 
     @Slot(bool)
     def click_download(self) -> None:

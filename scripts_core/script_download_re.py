@@ -24,7 +24,7 @@ CACHE_PATH: str = QStandardPaths.writableLocation(
 
 class DownloadWorker(QObject):
     reshade_found: Signal = Signal(bool)
-    reshade_error: Signal = Signal(str)
+    reshade_status: Signal = Signal(str)
 
     def __init__(self, version: str, release: str):
         super().__init__()
@@ -42,23 +42,28 @@ class DownloadWorker(QObject):
 
     def run(self) -> None:
         self.search_reshade_on_download_dir()
+        self.reshade_status.emit("Searching for local reshade")
         self.perhaps_dir = self.prevent_download()
 
         if self.perhaps_dir in self.local_reshade:
             self.reshade_dir = self.find_reshade()
+            self.reshade_status.emit("Reshade already downloaded!")
             self.reshade_found.emit(True)
 
         if not self.reshade_dir:
             self.download_reshade()
             self.reshade_dir = self.find_reshade()
+            self.reshade_status.emit("Reshade downloaded!")
             self.reshade_found.emit(True)
         elif self.reshade_dir:
             if self.perhaps_dir not in self.local_reshade:
                 self.download_reshade()
                 self.reshade_dir = self.find_reshade()
+                self.reshade_status.emit("Reshade downloaded!")
                 self.reshade_found.emit(True)
         else:
-            self.reshade_error.emit("Reshade was not found")
+            self.reshade_status.emit("Reshade was not found!")
+            self.reshade_found.emit(False)
 
         # debug matters
         print(f"dir: {self.reshade_dir.split("/")[-1]}")
