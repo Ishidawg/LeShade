@@ -10,8 +10,8 @@ from PySide6.QtCore import Qt, Signal, Slot
 
 
 class PageStart(QWidget):
-    install = Signal(bool)
-    uninstall = Signal(bool)
+    install: Signal = Signal(bool)
+    uninstall: Signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -44,9 +44,9 @@ class PageStart(QWidget):
         self.setLayout(layout)
 
     @Slot(bool)
-    def click_install(self):
+    def click_install(self) -> None:
         self.install.emit(True)
 
     @Slot(bool)
-    def click_uninstall(self):
+    def click_uninstall(self) -> None:
         self.uninstall.emit(True)

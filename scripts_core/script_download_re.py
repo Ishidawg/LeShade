@@ -39,7 +39,6 @@ class DownloadWorker(QObject):
         self.perhaps_dir: str = ''
 
         self.build_url()
-        self.run()
 
     def run(self) -> None:
         self.search_reshade_on_download_dir()
@@ -47,6 +46,7 @@ class DownloadWorker(QObject):
 
         if self.perhaps_dir in self.local_reshade:
             self.reshade_dir = self.find_reshade()
+            self.reshade_found.emit(True)
 
         if not self.reshade_dir:
             self.download_reshade()
@@ -60,6 +60,7 @@ class DownloadWorker(QObject):
         else:
             self.reshade_error.emit("Reshade was not found")
 
+        # debug matters
         print(f"dir: {self.reshade_dir.split("/")[-1]}")
         print(f"url: {self.reshade_url.split("/")[-1]}")
 

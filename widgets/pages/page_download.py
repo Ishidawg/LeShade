@@ -8,11 +8,13 @@ from PySide6.QtWidgets import (
     QProgressBar
 )
 
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Signal, Slot, QThread
 from scripts_core.script_download_re import DownloadWorker
 
 
 class PageDownload(QWidget):
+    download_finished: Signal = Signal(bool)
+
     def __init__(self):
         super().__init__()
 
@@ -62,7 +64,40 @@ class PageDownload(QWidget):
 
         self.setLayout(layout)
 
+    def start_download(self):
+        self.download_thread: QThread = QThread()
+        self.download_worker: DownloadWorker = DownloadWorker(
+            self.reshade_version.currentText(), self.reshade_release.currentText())
+
+        self.download_thread.moveToThread(self.download_thread)
+        self.download_thread.started.connect(self.start_animation)
+        self.download_thread.started.connect(self.download_worker.run)
+
+        # reshade_found and reshade_error
+        # both are signals from scrips_download_re.py
+        self.download_worker.reshade_found.connect(self.on_success)
+        self.download_worker.reshade_error.connect(self.on_error)
+
+        self.download_worker.reshade_found.connect(self.download_thread.quit)
+        self.download_worker.reshade_found.connect(
+            self.download_worker.deleteLater)
+        self.download_thread.finished.connect(self.download_thread.deleteLater)
+
+        self.download_thread.start()
+
+    def start_animation(self):
+        self.progress_bar.setRange(0, 0)
+
+    def on_success(self, value):
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(100)
+        self.download_finished.emit(True)
+
+    def on_error(self, value):
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.download_finished.emit(False)
+
     @Slot(bool)
     def click_download(self) -> None:
-        DownloadWorker(self.reshade_version.currentText(),
-                       self.reshade_release.currentText())
+        self.start_download()
