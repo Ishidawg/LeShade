@@ -1,4 +1,5 @@
 import os
+import glob
 from pathlib import Path
 from PySide6.QtCore import (
     QObject,
@@ -27,28 +28,33 @@ class DownloadWorker(QObject):
 
     def __init__(self, version, release):
         super().__init__()
+        self.local_reshade = []
 
         self.reshade_url = ""
         self.version = version
         self.release = release
         self.reshade_dir = ""
+        self.maybe_dir = ""
 
         self.build_url()
         self.run()
 
     def run(self):
+        self.search_reshade()
+        self.maybe_dir = self.prevent_download()
         self.reshade_dir = self.find_reshade()
 
-        if self.reshade_dir != "":
-            self.reshade_found.emit(True)
-        else:
+        if not self.reshade_dir:
             self.download_reshade()
             self.reshade_dir = self.find_reshade()
-
-            if self.reshade_dir != "":
+            self.reshade_found.emit(True)
+        elif self.reshade_dir:
+            if self.maybe_dir not in self.local_reshade:
+                self.download_reshade()
+                self.reshade_dir = self.find_reshade()
                 self.reshade_found.emit(True)
-            else:
-                self.reshade_error.emit("Reshade was not found!")
+        else:
+            self.reshade_error.emit("Reshade was not found")
 
     def build_url(self):
         try:
@@ -59,11 +65,23 @@ class DownloadWorker(QObject):
         except Exception as e:
             print(e)
 
+    def prevent_download(self):
+        file_name = self.reshade_url.split("/")[-1]
+        maybe_dir = os.path.join(DOWNLOAD_PATH, file_name)
+
+        return maybe_dir
+
+    def search_reshade(self):
+        self.local_reshade = glob.glob(os.path.join(
+            DOWNLOAD_PATH, PATTERN), recursive=True)
+        print(self.local_reshade)
+
     def find_reshade(self):
         matches = ""
 
         try:
             matches = list(Path(DOWNLOAD_PATH).rglob(PATTERN))
+
         except Exception as e:
             print(e)
 
