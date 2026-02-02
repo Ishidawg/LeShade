@@ -42,10 +42,13 @@ class MainWindow(QMainWindow):
         self.page_download: PageDownload = PageDownload()
         self.page_installation: PageInstallation = PageInstallation()
 
-        self.pages: list[QWidget] = [
-            self.page_download, self.page_installation]
+        self.pages: list[QWidget] = [self.page_start,
+                                     self.page_download, self.page_installation]
         self.pages_index: int = 0
         self.current_page: QWidget = self.pages[0]
+
+        self.is_home: bool = False
+        self.is_installation: bool = False
 
         print(f"len: {len(self.pages)}")
         print(f"idx: {self.pages_index}")
@@ -66,21 +69,31 @@ class MainWindow(QMainWindow):
         self.layout_main.addWidget(widget_dinamic)
         self.layout_main.addWidget(self.action_buttons)
 
-    def on_home_clicked(self):
+    def on_home_clicked(self) -> None:
+        self.pages_index = 0
+        self.update_buttons()
         # TODO: need to create a function
+        self.is_home = True
         self.layout_dynamic.removeWidget(self.current_page)
         self.layout_dynamic.addWidget(self.page_start)
-        self.action_buttons.btn_home.hide()
-        self.action_buttons.btn_next.hide()
-        self.action_buttons.btn_back.hide()
 
-    def on_back_clicked(self):
+    def on_back_clicked(self) -> None:
         self.change_page(0)
 
-    def on_next_clicked(self):
+    def on_next_clicked(self) -> None:
         self.change_page(1)
 
-    def change_page(self, direction: int = 1):
+    def update_buttons(self) -> None:
+        if self.pages_index == 0:
+            self.action_buttons.btn_home.hide()
+            self.action_buttons.btn_next.hide()
+            self.action_buttons.btn_back.hide()
+        elif self.pages_index == 1:
+            self.action_buttons.btn_home.show()
+            self.action_buttons.btn_next.show()
+            self.action_buttons.btn_back.show()
+
+    def change_page(self, direction: int = 1) -> None:
         self.layout_dynamic.removeWidget(self.current_page)
 
         print(self.current_page)
@@ -89,19 +102,15 @@ class MainWindow(QMainWindow):
                 if self.pages_index > 0:
                     self.pages_index -= 1
                     print("-")
-                    print(f"len: {len(self.pages)}")
-                    print(f"idx: {self.pages_index}")
-
             case 1:
                 if self.pages_index < len(self.pages) - 1:
                     self.pages_index += 1
-                print("+")
-                print(f"len: {len(self.pages)}")
-                print(f"idx: {self.pages_index}")
+                    print("+")
             case _:
                 print("Error trying to change pages")
 
         self.current_page = self.pages[self.pages_index]
+        self.update_buttons()
         print(self.current_page)
 
         # TODO: implement a method to do this, could call insert_page
@@ -114,14 +123,17 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def on_install_clicked(self, value: bool) -> None:
         if value:
+            self.change_page(1)
+            # self.update_buttons()
             # TODO: implement a method to do this
-            self.pages_index = 1
-            self.current_page = self.pages[0]
-            self.layout_dynamic.removeWidget(self.page_start)
-            self.layout_dynamic.addWidget(self.current_page)
-            self.action_buttons.btn_home.show()
-            self.action_buttons.btn_back.show()
-            self.action_buttons.btn_next.show()
+            # self.is_installation = True
+            # self.pages_index = 1
+            # self.current_page = self.pages[0]
+            # self.layout_dynamic.removeWidget(self.page_start)
+            # self.layout_dynamic.addWidget(self.current_page)
+            # self.action_buttons.btn_home.show()
+            # self.action_buttons.btn_back.show()
+            # self.action_buttons.btn_next.show()
 
     @Slot(bool)
     def on_uninstall_clicked(self, value: bool) -> None:
