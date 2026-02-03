@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import (
+    QFileDialog,
     QGridLayout,
     QLineEdit,
     QRadioButton,
@@ -9,7 +10,10 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import Qt, Signal, Slot, QStandardPaths
+
+HOME = QStandardPaths.writableLocation(
+    QStandardPaths.StandardLocation.HomeLocation)
 
 
 class PageInstallation(QWidget):
@@ -62,6 +66,9 @@ class PageInstallation(QWidget):
         layout_api.addWidget(self.radio_vulkan, 1, 2)
         layout.addLayout(layout_api)
 
+        # Connect functions and signals (if there's)
+        self.browse_button.clicked.connect(self.on_browse_clicked)
+
         # self.btn_install = QPushButton("Install")
         # self.btn_uninstall = QPushButton("Uninstall")
 
@@ -69,6 +76,15 @@ class PageInstallation(QWidget):
         # self.btn_uninstall.clicked.connect(self.click_uninstall)
 
         self.setLayout(layout)
+
+    def on_browse_clicked(self):
+        file_name: tuple[str, str] = QFileDialog.getOpenFileName(
+            self, "Select game executable", HOME, options=QFileDialog.Option.DontUseNativeDialog)
+
+        if file_name:
+            print("BUCETA")
+            print(file_name)
+            self.browse_input.setText(file_name[0])
 
     @Slot(bool)
     def click_install(self) -> None:

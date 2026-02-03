@@ -45,25 +45,7 @@ class DownloadWorker(QObject):
         self.reshade_status.emit("Searching for local reshade")
         self.perhaps_dir = self.prevent_download()
 
-        if self.perhaps_dir in self.local_reshade:
-            self.reshade_dir = self.find_reshade()
-            self.reshade_status.emit("Reshade already downloaded!")
-            self.reshade_found.emit(True)
-
-        if not self.reshade_dir:
-            self.download_reshade()
-            self.reshade_dir = self.find_reshade()
-            self.reshade_status.emit("Reshade downloaded!")
-            self.reshade_found.emit(True)
-        elif self.reshade_dir:
-            if self.perhaps_dir not in self.local_reshade:
-                self.download_reshade()
-                self.reshade_dir = self.find_reshade()
-                self.reshade_status.emit("Reshade downloaded!")
-                self.reshade_found.emit(True)
-        else:
-            self.reshade_status.emit("Reshade was not found!")
-            self.reshade_found.emit(False)
+        self.ensure_reshade()
 
         # debug matters
         print(f"dir: {self.reshade_dir.split("/")[-1]}")
@@ -77,6 +59,28 @@ class DownloadWorker(QObject):
                 self.reshade_url = f"https://reshade.me/downloads/ReShade_Setup_{self.release}.exe"
         except Exception as e:
             raise RuntimeError(f"Failed to build url: {e}") from e
+
+    def ensure_reshade(self) -> None:
+        if self.perhaps_dir in self.local_reshade:
+            self.update_status(False, True, "Reshade already downloaded!")
+            return
+
+        if not self.reshade_dir:
+            self.update_status(True, True, "Reshade downloaded!")
+            return
+
+        if self.reshade_dir and self.perhaps_dir not in self.local_reshade:
+            self.update_status(True, True, "Reshade downloaded!")
+        else:
+            self.update_status(False, False, "Reshade was not found!")
+
+    def update_status(self, download: bool, found: bool, message: str) -> None:
+        if download:
+            self.download_reshade()
+
+        self.reshade_dir = self.find_reshade()
+        self.reshade_status.emit(message)
+        self.reshade_found.emit(found)
 
     def prevent_download(self) -> str:
         file_name: str = self.reshade_url.split("/")[-1]
