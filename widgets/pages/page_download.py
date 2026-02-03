@@ -91,16 +91,16 @@ class PageDownload(QWidget):
     def start_animation(self) -> None:
         self.progress_bar.setRange(0, 0)
 
-    def update_text(self, value):
+    def update_text(self, value: str) -> None:
         self.progress_bar.setFormat(value)
 
-    def on_success(self, value) -> None:
+    def on_success(self, value: bool) -> None:
         if value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(100)
             self.download_finished.emit(True)
 
-    def on_error(self, value) -> None:
+    def on_error(self, value: bool) -> None:
         if not value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(0)
