@@ -23,6 +23,8 @@ class PageInstallation(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.game_path: str = ""
+
         # create layout
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -82,9 +84,8 @@ class PageInstallation(QWidget):
             self, "Select game executable", HOME, options=QFileDialog.Option.DontUseNativeDialog)
 
         if file_name:
-            print("BUCETA")
-            print(file_name)
             self.browse_input.setText(file_name[0])
+            self.game_path = file_name[0]
 
     @Slot(bool)
     def click_install(self) -> None:

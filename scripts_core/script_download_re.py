@@ -11,6 +11,8 @@ import urllib.request
 import ssl
 import certifi
 
+from scripts_core.script_prepare_re import unzip_reshade
+
 # URL examples
 # https://reshade.me/downloads/ReShade_Setup_6.7.1.exe
 # https://reshade.me/downloads/ReShade_Setup_6.7.1_Addon.exe
@@ -26,7 +28,7 @@ class DownloadWorker(QObject):
     reshade_found: Signal = Signal(bool)
     reshade_status: Signal = Signal(str)
 
-    def __init__(self, version: str, release: str):
+    def __init__(self, version: str | None = None, release: str | None = None):
         super().__init__()
         self.local_reshade: list[str] = []
 
@@ -48,8 +50,9 @@ class DownloadWorker(QObject):
         self.ensure_reshade()
 
         # debug matters
-        print(f"dir: {self.reshade_dir.split("/")[-1]}")
-        print(f"url: {self.reshade_url.split("/")[-1]}")
+        # print(self.reshade_dir)
+        # print(f"dir: {self.reshade_dir.split("/")[-1]}")
+        # print(f"url: {self.reshade_url.split("/")[-1]}")
 
     def build_url(self) -> None:
         try:
@@ -81,6 +84,13 @@ class DownloadWorker(QObject):
         self.reshade_dir = self.find_reshade()
         self.reshade_status.emit(message)
         self.reshade_found.emit(found)
+
+        if found:
+            print("Yeeee")
+            self.unzip_reshade()
+
+    def unzip_reshade(self) -> None:
+        unzip_reshade(self.reshade_dir)
 
     def prevent_download(self) -> str:
         file_name: str = self.reshade_url.split("/")[-1]

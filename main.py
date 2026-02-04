@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
 
         self.download_finished: bool = False
 
-        print(f"len: {len(self.pages)}")
-        print(f"idx: {self.pages_index}")
+        # print(f"len: {len(self.pages)}")
+        # print(f"idx: {self.pages_index}")
 
         self.layout_dynamic.addWidget(self.page_start)
 
@@ -89,26 +89,28 @@ class MainWindow(QMainWindow):
                 self.action_buttons.btn_next.setEnabled(True)
             self.action_buttons.btn_next.show()
             self.action_buttons.btn_back.show()
+        elif self.pages_index == 2:
+            pass
 
     def change_page(self, direction: int = 1) -> None:
         self.layout_dynamic.removeWidget(self.current_page)
 
-        print(self.current_page)
+        # print(self.current_page)
         match direction:
             case 0:
                 if self.pages_index > 0:
                     self.pages_index -= 1
-                    print("-")
+                    # print("-")
             case 1:
                 if self.pages_index < len(self.pages) - 1:
                     self.pages_index += 1
-                    print("+")
+                    # print("+")
             case _:
                 print("Error trying to change pages")
 
         self.current_page = self.pages[self.pages_index]
         self.update_buttons()
-        print(self.current_page)
+        # print(self.current_page)
 
         # TODO: implement a method to do this, could call insert_page
         self.layout_dynamic.removeWidget(self.current_page)
