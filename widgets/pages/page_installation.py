@@ -1,3 +1,5 @@
+import os
+
 from PySide6.QtWidgets import (
     QFileDialog,
     QGridLayout,
@@ -12,18 +14,21 @@ from PySide6.QtWidgets import (
 
 from PySide6.QtCore import Qt, Signal, Slot, QStandardPaths
 
+from scripts_core.script_installation import InstallationWorker
+
 HOME = QStandardPaths.writableLocation(
     QStandardPaths.StandardLocation.HomeLocation)
 
 
 class PageInstallation(QWidget):
-    install: Signal = Signal(bool)
-    uninstall: Signal = Signal(bool)
+    can_install = Signal(bool)
+    install_finished = Signal(bool)
 
     def __init__(self):
         super().__init__()
 
         self.game_path: str = ""
+        self.game_api: str = ""
 
         # create layout
         layout = QVBoxLayout()
@@ -53,6 +58,8 @@ class PageInstallation(QWidget):
         self.radio_vulkan = QRadioButton("Vulkan/D3D 12")
         self.radio_vulkan.setChecked(True)
 
+        self.btn_install = QPushButton("Install")
+
         # add widgets
         layout.addWidget(label_exe)
 
@@ -68,29 +75,53 @@ class PageInstallation(QWidget):
         layout_api.addWidget(self.radio_vulkan, 1, 2)
         layout.addLayout(layout_api)
 
+        layout.addWidget(self.btn_install)
+
         # Connect functions and signals (if there's)
         self.browse_button.clicked.connect(self.on_browse_clicked)
-
-        # self.btn_install = QPushButton("Install")
-        # self.btn_uninstall = QPushButton("Uninstall")
-
-        # self.btn_install.clicked.connect(self.click_install)
-        # self.btn_uninstall.clicked.connect(self.click_uninstall)
+        self.btn_install.clicked.connect(self.on_install_clicked)
 
         self.setLayout(layout)
 
-    def on_browse_clicked(self):
+    def on_browse_clicked(self) -> None:
         file_name: tuple[str, str] = QFileDialog.getOpenFileName(
             self, "Select game executable", HOME, options=QFileDialog.Option.DontUseNativeDialog)
 
         if file_name:
             self.browse_input.setText(file_name[0])
             self.game_path = file_name[0]
+            print(self.game_path)
 
-    @Slot(bool)
-    def click_install(self) -> None:
-        self.install.emit(True)
+    def on_install_clicked(self):
+        self.api_selection()
+        self.installation()
+        self.install_test = InstallationWorker(self.game_path, self.game_api)
 
-    @Slot(bool)
-    def click_uninstall(self) -> None:
-        self.uninstall.emit(True)
+    def api_selection(self) -> None:
+        available_api: dict = {
+            self.radio_opengl: self.radio_opengl.text(),
+            self.radio_d3d8: self.radio_d3d8.text(),
+            self.radio_d3d9: self.radio_d3d9.text(),
+            self.radio_d3d10: self.radio_d3d10.text(),
+            self.radio_d3d11: self.radio_d3d11.text(),
+            self.radio_vulkan: self.radio_vulkan.text()
+        }
+
+        for key, value in available_api.items():
+            if key.isChecked():
+                self.game_api = value
+                print(self.game_api)
+                break
+
+    def installation(self) -> None:
+        self.api_selection()
+
+        if not self.game_path or not os.path.exists(self.game_path):
+            self.can_install.emit(False)
+            return
+
+        if not self.game_api:
+            self.can_install.emit(False)
+            return
+
+        self.can_install.emit(True)

@@ -44,7 +44,6 @@ class DownloadWorker(QObject):
 
     def run(self) -> None:
         self.search_reshade_on_download_dir()
-        self.reshade_status.emit("Searching for local reshade")
         self.perhaps_dir = self.prevent_download()
 
         self.ensure_reshade()
@@ -79,6 +78,7 @@ class DownloadWorker(QObject):
 
     def update_status(self, download: bool, found: bool, message: str) -> None:
         if download:
+            self.reshade_status.emit("Downloading...")
             self.download_reshade()
 
         self.reshade_dir = self.find_reshade()
@@ -86,7 +86,6 @@ class DownloadWorker(QObject):
         self.reshade_found.emit(found)
 
         if found:
-            print("Yeeee")
             self.unzip_reshade()
 
     def unzip_reshade(self) -> None:
@@ -114,7 +113,7 @@ class DownloadWorker(QObject):
         return str(matches[0])
 
     def download_reshade(self) -> None:
-        if self.reshade_url != "":
+        if self.reshade_url:
             try:
                 file_name: str = self.reshade_url.split('/')[-1]
                 directory: str = os.path.join(DOWNLOAD_PATH, file_name)
