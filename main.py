@@ -48,6 +48,7 @@ class MainWindow(QMainWindow):
         self.current_page: QWidget = self.pages[0]
 
         self.download_finished: bool = False
+        self.install_finished: bool = False
 
         # print(f"len: {len(self.pages)}")
         # print(f"idx: {self.pages_index}")
@@ -60,6 +61,8 @@ class MainWindow(QMainWindow):
         self.action_buttons.btn_back.clicked.connect(self.on_back_clicked)
         self.action_buttons.btn_next.clicked.connect(self.on_next_clicked)
         self.page_download.download_finished.connect(self.on_download_finished)
+        self.page_installation.install_finished.connect(
+            self.on_install_finished)
 
         # add widgets
         self.layout_main.addWidget(WidgetTitle())
@@ -80,6 +83,9 @@ class MainWindow(QMainWindow):
         self.change_page(1)
 
     def update_buttons(self) -> None:
+        self.action_buttons.btn_back.setEnabled(False)
+        self.action_buttons.btn_next.setEnabled(False)
+
         if self.pages_index == 0:
             self.action_buttons.btn_next.hide()
             self.action_buttons.btn_back.hide()
@@ -90,12 +96,13 @@ class MainWindow(QMainWindow):
             self.action_buttons.btn_next.show()
             self.action_buttons.btn_back.show()
         elif self.pages_index == 2:
-            pass
+            if self.install_finished:
+                self.action_buttons.btn_back.setEnabled(True)
+                self.action_buttons.btn_next.setEnabled(True)
 
     def change_page(self, direction: int = 1) -> None:
         self.layout_dynamic.removeWidget(self.current_page)
 
-        # print(self.current_page)
         match direction:
             case 0:
                 if self.pages_index > 0:
@@ -132,6 +139,12 @@ class MainWindow(QMainWindow):
     def on_download_finished(self, value: bool) -> None:
         if value:
             self.download_finished = True
+            self.update_buttons()
+
+    @Slot(bool)
+    def on_install_finished(self, value: bool) -> None:
+        if value:
+            self.install_finished = True
             self.update_buttons()
 
 

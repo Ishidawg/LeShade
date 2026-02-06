@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QGridLayout,
     QLineEdit,
+    QProgressBar,
     QRadioButton,
     QWidget,
     QVBoxLayout,
@@ -12,7 +13,7 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 
-from PySide6.QtCore import Qt, Signal, Slot, QStandardPaths
+from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
 
 from scripts_core.script_installation import InstallationWorker
 
@@ -21,7 +22,6 @@ HOME = QStandardPaths.writableLocation(
 
 
 class PageInstallation(QWidget):
-    can_install = Signal(bool)
     install_finished = Signal(bool)
 
     def __init__(self):
@@ -58,6 +58,12 @@ class PageInstallation(QWidget):
         self.radio_vulkan = QRadioButton("Vulkan/D3D 12")
         self.radio_vulkan.setChecked(True)
 
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+
         self.btn_install = QPushButton("Install")
 
         # add widgets
@@ -75,6 +81,7 @@ class PageInstallation(QWidget):
         layout_api.addWidget(self.radio_vulkan, 1, 2)
         layout.addLayout(layout_api)
 
+        layout.addWidget(self.progress_bar)
         layout.addWidget(self.btn_install)
 
         # Connect functions and signals (if there's)
@@ -92,10 +99,43 @@ class PageInstallation(QWidget):
             self.game_path = file_name[0]
             # print(self.game_path)
 
-    def on_install_clicked(self):
-        self.api_selection()
+    def start_installation(self) -> None:
+        self.install_thread: QThread = QThread()
+        self.install_worker: InstallationWorker = InstallationWorker(
+            self.game_path, self.game_api)
+
+        self.install_thread.moveToThread(self.install_thread)
+
+        # start and ath the end, finished, are built-in thread signals
+        self.install_thread.started.connect(self.install_worker.run)
+
+        # install_progress and install_finished
+        # both are signals from script_installation.py
+        self.install_worker.install_progress.connect(self.update_progress)
+        self.install_worker.install_finished.connect(self.on_sucess)
+        self.install_worker.install_finished.connect(self.on_error)
+
+        self.install_worker.install_finished.connect(self.install_thread.quit)
+        self.install_worker.install_finished.connect(
+            self.install_worker.deleteLater)
+        self.install_thread.finished.connect(self.install_thread.deleteLater)
+
+        self.install_thread.start()
+
+    @Slot(bool, int)
+    def on_install_clicked(self) -> None:
         self.installation()
-        self.install_test = InstallationWorker(self.game_path, self.game_api)
+
+    def update_progress(self, value: int) -> None:
+        self.progress_bar.setValue(value)
+
+    def on_sucess(self, value: bool) -> None:
+        if value:
+            self.install_finished.emit(value)
+
+    def on_error(self, value: bool) -> None:
+        if not value:
+            self.install_finished.emit(value)
 
     def api_selection(self) -> None:
         available_api: dict = {
@@ -110,18 +150,16 @@ class PageInstallation(QWidget):
         for key, value in available_api.items():
             if key.isChecked():
                 self.game_api = value
-                # print(self.game_api)
                 break
 
+    @Slot(bool, int)
     def installation(self) -> None:
         self.api_selection()
 
         if not self.game_path or not os.path.exists(self.game_path):
-            self.can_install.emit(False)
             return
 
         if not self.game_api:
-            self.can_install.emit(False)
             return
 
-        self.can_install.emit(True)
+        self.start_installation()

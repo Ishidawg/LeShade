@@ -1,11 +1,9 @@
 import os
 import struct
 import shutil
-import glob
 from pathlib import Path
 from PySide6.QtCore import (
     QObject,
-    QStandardPaths,
     Signal
 )
 
@@ -24,6 +22,8 @@ MACHINE_TYPES = {
 
 
 class InstallationWorker(QObject):
+    install_progress: Signal = Signal(int)
+    install_finished: Signal = Signal(bool)
 
     def __init__(self, game_path: str, game_api: str):
         super().__init__()
@@ -37,23 +37,35 @@ class InstallationWorker(QObject):
         self.shader_dir: str = os.path.join(self.game_path_parent, 'Shaders')
         self.texture_dir: str = os.path.join(self.game_path_parent, 'Textures')
 
-        self.run()
-
     def run(self) -> None:
+        self.install_progress.emit(0)
         self.game_arch = self.get_executable_architecture(
             Path(self.game_path))
+        self.install_progress.emit(40)
         self.ready_reshade_dll()
+        self.install_progress.emit(60)
 
         # d3d8 wrapper and hlsl compiler
         download_hlsl_compiler(self.game_path_parent, self.game_arch)
         if self.game_api == "D3D 8":
+            self.install_progress.emit(90)
             download_d3d8to9(self.game_path_parent)
+
+        self.status_update()
+
+    def status_update(self) -> None:
+        if self.game_path and self.game_api and self.game_arch and self.reshade_path:
+            self.install_progress.emit(100)
+            self.install_finished.emit(True)
+        else:
+            self.install_progress.emit(0)
+            self.install_finished.emit(False)
 
     def ready_reshade_dll(self) -> None:
         self.prepare_dll()
         self.create_reshade_directories()
 
-    def create_reshade_directories(self):
+    def create_reshade_directories(self) -> None:
         os.makedirs(os.path.join(self.game_path_parent,
                     self.shader_dir), exist_ok=True)
         os.makedirs(os.path.join(self.game_path_parent,
