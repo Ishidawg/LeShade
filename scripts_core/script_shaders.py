@@ -151,11 +151,14 @@ class ShadersWorker(QObject):
                     src_file: str = os.path.join(root, file)
 
                     if file_lower.endswith(('.fx', '.fxh')):
-                        shutil.copy2(src_file, os.path.join(shaders_dir, file))
+                        if not Path(os.path.join(shaders_dir, file)).exists():
+                            shutil.copy2(
+                                src_file, os.path.join(shaders_dir, file))
 
                     if file_lower.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tga')):
-                        shutil.copy2(src_file, os.path.join(
-                            textures_dir, file))
+                        if not Path(os.path.join(textures_dir, file)).exists():
+                            shutil.copy2(src_file, os.path.join(
+                                textures_dir, file))
 
                 self.clone_finished.emit(True)
             except Exception as e:
