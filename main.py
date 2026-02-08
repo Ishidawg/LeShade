@@ -9,10 +9,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from widgets.pages.page_installation import PageInstallation
 from widgets.widget_title import WidgetTitle
 from widgets.pages.page_start import PageStart
 from widgets.pages.page_download import PageDownload
+from widgets.pages.page_installation import PageInstallation
+from widgets.pages.page_clone import PageClone
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 
 
@@ -41,9 +42,10 @@ class MainWindow(QMainWindow):
         self.page_start: PageStart = PageStart()
         self.page_download: PageDownload = PageDownload()
         self.page_installation: PageInstallation = PageInstallation()
+        self.page_clone: PageClone = PageClone()
 
         self.pages: list[QWidget] = [self.page_start,
-                                     self.page_download, self.page_installation]
+                                     self.page_download, self.page_installation, self.page_clone]
         self.pages_index: int = 0
         self.current_page: QWidget = self.pages[0]
 
