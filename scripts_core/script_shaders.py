@@ -78,7 +78,6 @@ class ShadersWorker(QObject):
 
     def run(self) -> None:
         self.clean_temp()
-        # self.install_shaders()
         asyncio.run(self.install_shaders())
         self.organize_files(self.game_path, self.shader_dir, self.texture_dir)
         self.clean_temp()

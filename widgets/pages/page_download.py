@@ -72,7 +72,6 @@ class PageDownload(QWidget):
         self.download_worker.moveToThread(self.download_thread)
 
         # start and at the end, finished, are built-in thread signals
-        # self.download_thread.started.connect(self.start_animation)
         self.download_thread.started.connect(self.download_worker.run)
 
         # reshade_found and reshade_error
@@ -98,13 +97,13 @@ class PageDownload(QWidget):
         if value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(100)
-            self.download_finished.emit(True)
+            self.download_finished.emit(value)
 
     def on_error(self, value: bool) -> None:
         if not value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(0)
-            self.download_finished.emit(False)
+            self.download_finished.emit(value)
 
     @Slot(bool)
     def click_download(self) -> None:

@@ -1,4 +1,3 @@
-import os
 from PySide6.QtWidgets import (
     QCheckBox,
     QLabel,
@@ -9,12 +8,13 @@ from PySide6.QtWidgets import (
     QWidget
 )
 
-from PySide6.QtCore import QThread, Qt
+from PySide6.QtCore import QThread, Qt, Signal
 
 from scripts_core.script_shaders import ShadersWorker
 
 
 class PageClone(QWidget):
+    clone_finished: Signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -114,6 +114,7 @@ class PageClone(QWidget):
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(100)
             self.progress_bar.setFormat("Installation finished!")
+            self.clone_finished.emit(value)
 
             for checkbox in self.cxb_list:
                 checkbox.setChecked(False)
@@ -122,3 +123,4 @@ class PageClone(QWidget):
         if not value:
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("Failed shader proccess")
+            self.clone_finished.emit(value)

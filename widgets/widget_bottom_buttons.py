@@ -19,7 +19,7 @@ class WidgetBottomButtons(QWidget):
         self.btn_back = QPushButton("Back")
         self.btn_next = QPushButton("Next")
 
-        self.btn_back.setEnabled(False)
+        self.btn_back.setEnabled(True)
         self.btn_next.setEnabled(False)
 
         self.btn_back.hide()

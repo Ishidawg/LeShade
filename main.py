@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
 
         self.download_finished: bool = False
         self.install_finished: bool = False
+        self.clone_finished: bool = False
 
         self.layout_dynamic.addWidget(self.page_start)
 
@@ -64,6 +65,7 @@ class MainWindow(QMainWindow):
             self.on_install_finished)
         self.page_installation.current_game_directory.connect(
             self.get_game_directory)
+        self.page_clone.clone_finished.connect(self.on_clone_finished)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
         self.game_directory: str = ''
@@ -83,7 +85,6 @@ class MainWindow(QMainWindow):
     def on_home_clicked(self) -> None:
         self.pages_index = 0
         self.update_buttons()
-        # TODO: need to create a function
         self.layout_dynamic.removeWidget(self.current_page)
         self.layout_dynamic.addWidget(self.page_start)
 
@@ -94,22 +95,31 @@ class MainWindow(QMainWindow):
         self.change_page(1)
 
     def update_buttons(self) -> None:
-        self.action_buttons.btn_back.setEnabled(False)
         self.action_buttons.btn_next.setEnabled(False)
 
         if self.pages_index == 0:
-            self.action_buttons.btn_next.hide()
-            self.action_buttons.btn_back.hide()
+            self.change_button_visibilty(False)
         elif self.pages_index == 1:
             if self.download_finished:
-                self.action_buttons.btn_back.setEnabled(True)
-                self.action_buttons.btn_next.setEnabled(True)
-            self.action_buttons.btn_next.show()
-            self.action_buttons.btn_back.show()
+                self.enable_next_button()
+            self.change_button_visibilty(True)
         elif self.pages_index == 2:
             if self.install_finished:
-                self.action_buttons.btn_back.setEnabled(True)
-                self.action_buttons.btn_next.setEnabled(True)
+                self.enable_next_button()
+        elif self.pages_index == 3:
+            if self.clone_finished:
+                self.enable_next_button()
+
+    def change_button_visibilty(self, show: bool) -> None:
+        if show:
+            self.action_buttons.btn_back.show()
+            self.action_buttons.btn_next.show()
+        else:
+            self.action_buttons.btn_back.hide()
+            self.action_buttons.btn_next.hide()
+
+    def enable_next_button(self) -> None:
+        self.action_buttons.btn_next.setEnabled(True)
 
     def change_page(self, direction: int = 1) -> None:
         self.layout_dynamic.removeWidget(self.current_page)
@@ -126,9 +136,9 @@ class MainWindow(QMainWindow):
 
         self.current_page = self.pages[self.pages_index]
         self.update_buttons()
-        # print(self.current_page)
+        self.insert_page()
 
-        # TODO: implement a method to do this, could call insert_page
+    def insert_page(self) -> None:
         self.layout_dynamic.removeWidget(self.current_page)
         self.layout_dynamic.removeWidget(self.page_start)
         self.layout_dynamic.removeWidget(self.page_download)
@@ -147,13 +157,19 @@ class MainWindow(QMainWindow):
     @Slot(bool)
     def on_download_finished(self, value: bool) -> None:
         if value:
-            self.download_finished = True
+            self.download_finished = value
             self.update_buttons()
 
     @Slot(bool)
     def on_install_finished(self, value: bool) -> None:
         if value:
-            self.install_finished = True
+            self.install_finished = value
+            self.update_buttons()
+
+    @Slot(bool)
+    def on_clone_finished(self, value: bool) -> None:
+        if value:
+            self.clone_finished = value
             self.update_buttons()
 
 
