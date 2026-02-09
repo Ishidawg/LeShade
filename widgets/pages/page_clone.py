@@ -65,7 +65,6 @@ class PageClone(QWidget):
         self.progress_bar.setValue(0)
 
         self.btn_install = QPushButton("Install")
-        self.btn_install.clicked.connect(self.on_install)
 
         # add widgets
         layout.addWidget(label_description)
@@ -74,22 +73,24 @@ class PageClone(QWidget):
         layout.addWidget(self.btn_install)
         self.setLayout(layout)
 
-    def on_install(self) -> None:
+    def on_install(self, game_dir: str) -> None:
+        print("fodase 2")
         self.start_animation()
         self.append_selections(self.selections)
-        self.start_clone()
+        self.start_clone(game_dir)
 
     def append_selections(self, selections: list[str]):
         for checkbox in self.cxb_list:
             if checkbox.isChecked():
                 selections.append(checkbox.text())
 
-    def start_clone(self) -> None:
+    def start_clone(self, game_dir: str) -> None:
         if not self.selections:
             return
 
         self.clone_thread: QThread = QThread()
-        self.clone_worker: ShadersWorker = ShadersWorker(self.selections)
+        self.clone_worker: ShadersWorker = ShadersWorker(
+            self.selections, game_dir)
 
         self.clone_thread.moveToThread(self.clone_thread)
 

@@ -24,6 +24,7 @@ MACHINE_TYPES = {
 class InstallationWorker(QObject):
     install_progress: Signal = Signal(int)
     install_finished: Signal = Signal(bool)
+    current_game_path: Signal = Signal(str)
 
     def __init__(self, game_path: str, game_api: str):
         super().__init__()
@@ -60,6 +61,7 @@ class InstallationWorker(QObject):
         if self.game_path and self.game_api and self.game_arch and self.reshade_path:
             self.install_progress.emit(100)
             self.install_finished.emit(True)
+            self.current_game_path.emit(self.game_path_parent)
         else:
             self.install_progress.emit(0)
             self.install_finished.emit(False)

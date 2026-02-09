@@ -52,9 +52,6 @@ class MainWindow(QMainWindow):
         self.download_finished: bool = False
         self.install_finished: bool = False
 
-        # print(f"len: {len(self.pages)}")
-        # print(f"idx: {self.pages_index}")
-
         self.layout_dynamic.addWidget(self.page_start)
 
         # Connect signals (if there is signals)
@@ -65,11 +62,23 @@ class MainWindow(QMainWindow):
         self.page_download.download_finished.connect(self.on_download_finished)
         self.page_installation.install_finished.connect(
             self.on_install_finished)
+        self.page_installation.current_game_directory.connect(
+            self.get_game_directory)
+
+        # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
+        self.game_directory: str = ''
+        self.page_clone.btn_install.clicked.connect(self.on_clone)
 
         # add widgets
         self.layout_main.addWidget(WidgetTitle())
         self.layout_main.addWidget(widget_dinamic)
         self.layout_main.addWidget(self.action_buttons)
+
+    def get_game_directory(self, value: str) -> None:
+        self.game_directory = value
+
+    def on_clone(self) -> None:
+        self.page_clone.on_install(self.game_directory)
 
     def on_home_clicked(self) -> None:
         self.pages_index = 0
@@ -109,11 +118,9 @@ class MainWindow(QMainWindow):
             case 0:
                 if self.pages_index > 0:
                     self.pages_index -= 1
-                    # print("-")
             case 1:
                 if self.pages_index < len(self.pages) - 1:
                     self.pages_index += 1
-                    # print("+")
             case _:
                 print("Error trying to change pages")
 

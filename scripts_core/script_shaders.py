@@ -63,10 +63,10 @@ REPO_SHADERS = {
 class ShadersWorker(QObject):
     clone_finished: Signal = Signal(bool)
 
-    def __init__(self, selections: list[str]):
+    def __init__(self, selections: list[str], game_dir):
         super().__init__()
 
-        self.game_path: str = "/home/ishidaw/SteamDirectory/steamapps/common/DARK SOULS REMASTERED"
+        self.game_path: str = game_dir
         self.selected_repos: list[str] = selections
         self.total_repos: int = 0
 
@@ -76,6 +76,7 @@ class ShadersWorker(QObject):
         self.texture_dir: str = os.path.join(self.game_path, "Textures")
 
     def run(self) -> None:
+        self.clean_temp()
         self.install_shaders()
         self.organize_files(self.game_path, self.shader_dir, self.texture_dir)
         self.clean_temp()

@@ -22,7 +22,8 @@ HOME = QStandardPaths.writableLocation(
 
 
 class PageInstallation(QWidget):
-    install_finished = Signal(bool)
+    install_finished: Signal = Signal(bool)
+    current_game_directory: Signal = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -113,6 +114,7 @@ class PageInstallation(QWidget):
         self.install_worker.install_progress.connect(self.update_progress)
         self.install_worker.install_finished.connect(self.on_sucess)
         self.install_worker.install_finished.connect(self.on_error)
+        self.install_worker.current_game_path.connect(self.get_game_dir)
 
         self.install_worker.install_finished.connect(self.install_thread.quit)
         self.install_worker.install_finished.connect(
@@ -120,6 +122,10 @@ class PageInstallation(QWidget):
         self.install_thread.finished.connect(self.install_thread.deleteLater)
 
         self.install_thread.start()
+
+    @Slot(str)
+    def get_game_dir(self, value: str) -> None:
+        self.current_game_directory.emit(value)
 
     @Slot(bool, int)
     def on_install_clicked(self) -> None:
