@@ -90,12 +90,11 @@ class InstallationWorker(QObject):
         ini_data: str = """
             [GENERAL]
             EffectSearchPaths=.\\Shaders
-            IntermediateCachePath=C:\\users\\steamuser\\AppData\\Local\\Temp\\ReShade
             NoDebugInfo=1
             NoEffectCache=0
             NoReloadOnInit=0
             PerformanceMode=0
-            PreprocessorDefinitions=
+            PreprocessorDefinitions=RESHADE_DEPTH_LINEARIZATION_FAR_PLANE=1000.0,RESHADE_DEPTH_INPUT_IS_UPSIDE_DOWN=0,RESHADE_DEPTH_INPUT_IS_REVERSED=0,RESHADE_DEPTH_INPUT_IS_LOGARITHMIC=0
             PresetPath=.\\ReShadePreset.ini
             PresetShortcutKeys=
             PresetShortcutPaths=
