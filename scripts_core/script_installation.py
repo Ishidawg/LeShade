@@ -66,7 +66,7 @@ class InstallationWorker(QObject):
             self.install_progress.emit(100)
             self.install_finished.emit(True)
             self.current_game_path.emit(self.game_path_parent)
-            self.clean_cache()
+            # self.clean_cache()
         else:
             self.install_progress.emit(0)
             self.install_finished.emit(False)

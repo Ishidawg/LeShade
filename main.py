@@ -14,6 +14,7 @@ from widgets.pages.page_start import PageStart
 from widgets.pages.page_download import PageDownload
 from widgets.pages.page_installation import PageInstallation
 from widgets.pages.page_clone import PageClone
+from widgets.pages.page_dx8 import PageDX8
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 
 
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
         self.page_download: PageDownload = PageDownload()
         self.page_installation: PageInstallation = PageInstallation()
         self.page_clone: PageClone = PageClone()
+        self.page_dx8: PageDX8 = PageDX8()
 
         self.pages: list[QWidget] = [self.page_start,
                                      self.page_download, self.page_installation, self.page_clone]
@@ -52,6 +54,7 @@ class MainWindow(QMainWindow):
         self.download_finished: bool = False
         self.install_finished: bool = False
         self.clone_finished: bool = False
+        self.is_dx8: bool = False
 
         self.layout_dynamic.addWidget(self.page_start)
 
@@ -65,6 +68,7 @@ class MainWindow(QMainWindow):
             self.on_install_finished)
         self.page_installation.current_game_directory.connect(
             self.get_game_directory)
+        self.page_installation.is_dx8.connect(self.get_is_dx8)
         self.page_clone.clone_finished.connect(self.on_clone_finished)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
@@ -78,6 +82,15 @@ class MainWindow(QMainWindow):
 
     def get_game_directory(self, value: str) -> None:
         self.game_directory = value
+
+    def get_is_dx8(self, value: bool) -> None:
+        if value:
+            self.is_dx8 = value
+            return
+
+        if not value:
+            self.is_dx8 = value
+            return
 
     def on_clone(self) -> None:
         self.page_clone.on_install(self.game_directory)
@@ -96,6 +109,13 @@ class MainWindow(QMainWindow):
 
     def update_buttons(self) -> None:
         self.action_buttons.btn_next.setEnabled(False)
+        self.update_next_button()
+
+        # 0 - Page Start
+        # 1 - Page Download
+        # 2 - Page Installation
+        # 3 - Page Clone
+        # 4 - Page DX8
 
         if self.pages_index == 0:
             self.change_button_visibilty(False)
@@ -109,6 +129,33 @@ class MainWindow(QMainWindow):
         elif self.pages_index == 3:
             if self.clone_finished:
                 self.enable_next_button()
+
+                if self.is_dx8:
+                    self.manage_dx8_page(True)
+                else:
+                    self.manage_dx8_page(False)
+
+        elif self.pages_index == 4:
+            self.enable_next_button()
+
+    def manage_dx8_page(self, append:  bool) -> None:
+        if append:
+            self.pages.append(self.page_dx8)
+            return
+
+        if not append and len(self.pages) == 5:
+            self.pages.pop()
+            return
+
+    def update_next_button(self) -> None:
+        if self.pages_index == 3 and not self.is_dx8 or self.pages_index == 4:
+            self.action_buttons.btn_next.setText("Close")
+            self.action_buttons.btn_next.clicked.disconnect()
+            self.action_buttons.btn_next.clicked.connect(self.close)
+        else:
+            self.action_buttons.btn_next.setText("Next")
+            self.action_buttons.btn_next.clicked.disconnect()
+            self.action_buttons.btn_next.clicked.connect(self.on_next_clicked)
 
     def change_button_visibilty(self, show: bool) -> None:
         if show:

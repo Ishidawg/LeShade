@@ -24,6 +24,7 @@ HOME = QStandardPaths.writableLocation(
 class PageInstallation(QWidget):
     install_finished: Signal = Signal(bool)
     current_game_directory: Signal = Signal(str)
+    is_dx8: Signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -123,6 +124,12 @@ class PageInstallation(QWidget):
 
         self.install_thread.start()
 
+    def is_api_dx8(self) -> None:
+        if self.game_api == self.radio_d3d8.text():
+            self.is_dx8.emit(True)
+        else:
+            self.is_dx8.emit(False)
+
     @Slot(str)
     def get_game_dir(self, value: str) -> None:
         self.current_game_directory.emit(value)
@@ -171,4 +178,5 @@ class PageInstallation(QWidget):
             self.progress_bar.setFormat("Error: no api selected")
             return
 
+        self.is_api_dx8()
         self.start_installation()
