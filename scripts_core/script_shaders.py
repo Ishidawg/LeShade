@@ -79,7 +79,8 @@ class ShadersWorker(QObject):
     def run(self) -> None:
         self.clean_temp()
         asyncio.run(self.install_shaders())
-        self.organize_files(self.game_path, self.shader_dir, self.texture_dir)
+        self.organize_files(self.shader_temp_directory,
+                            self.shader_dir, self.texture_dir)
         self.clean_temp()
 
     def clean_temp(self) -> None:
@@ -141,13 +142,26 @@ class ShadersWorker(QObject):
         except Exception as e:
             raise IOError(f"Download shaders failed: {e}") from e
 
-    def organize_files(self, game_path: str, shaders_dir: str, textures_dir: str) -> None:
+    def organize_files(self, shader_temp_dir: str, shaders_dir: str, textures_dir: str) -> None:
         try:
-            for root, dirs, files in os.walk(game_path):
+            for root, dirs, files in os.walk(shader_temp_dir):
                 if ".git" in root:
                     continue
 
                 try:
+                    for dir in dirs:
+                        src_dir: str = os.path.join(root, dir)
+
+                        if dir == "Shaders":
+                            shutil.copytree(
+                                src_dir, shaders_dir, dirs_exist_ok=True)
+
+                        if dir == "Textures":
+                            shutil.copytree(
+                                src_dir, textures_dir, dirs_exist_ok=True)
+
+                    # I will leave it here, maybe I will need it someday, who knows...
+                    '''
                     for file in files:
                         file_lower: str = file.lower()
                         src_file: str = os.path.join(root, file)
@@ -161,7 +175,7 @@ class ShadersWorker(QObject):
                             if not Path(os.path.join(textures_dir, file)).exists():
                                 shutil.copy2(src_file, os.path.join(
                                     textures_dir, file))
-
+                    '''
                 except Exception as e:
                     raise IOError(f"Failed to organize files: {e}") from e
             self.clone_finished.emit(True)
