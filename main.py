@@ -1,6 +1,8 @@
 import sys
 import os
 
+from enum import IntEnum
+
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -17,6 +19,14 @@ from widgets.pages.page_installation import PageInstallation
 from widgets.pages.page_clone import PageClone
 from widgets.pages.page_dx8 import PageDX8
 from widgets.widget_bottom_buttons import WidgetBottomButtons
+
+
+class Pages(IntEnum):
+    START = 0
+    DOWNLOAD = 1
+    INSTALLATION = 2
+    CLONE = 3
+    WRAPPER = 4
 
 
 class MainWindow(QMainWindow):
@@ -113,26 +123,29 @@ class MainWindow(QMainWindow):
         # 3 - Page Clone
         # 4 - Page DX8
 
-        if self.pages_index == 0:
-            self.change_button_visibilty(False)
-        elif self.pages_index == 1:
-            if self.download_finished:
-                self.enable_next_button()
-            self.change_button_visibilty(True)
-        elif self.pages_index == 2:
-            if self.install_finished:
-                self.enable_next_button()
-        elif self.pages_index == 3:
-            if self.clone_finished:
-                self.enable_next_button()
+        match self.pages_index:
+            case Pages.START:
+                self.change_button_visibilty(False)
+            case Pages.DOWNLOAD:
+                if self.download_finished:
+                    self.enable_next_button()
+                self.change_button_visibilty(True)
+            case Pages.INSTALLATION:
+                if self.install_finished:
+                    self.enable_next_button()
+            case Pages.CLONE:
+                if self.clone_finished:
+                    self.enable_next_button()
 
-                if self.is_dx8:
-                    self.manage_dx8_page(True)
-                else:
-                    self.manage_dx8_page(False)
-
-        elif self.pages_index == 4:
-            self.enable_next_button()
+                    if self.is_dx8:
+                        self.manage_dx8_page(True)
+                    else:
+                        self.manage_dx8_page(False)
+            case Pages.WRAPPER:
+                self.enable_next_button()
+            case _:
+                raise ValueError(
+                    "The page that your trying to access does not exist")
 
     def manage_dx8_page(self, append:  bool) -> None:
         if append:
