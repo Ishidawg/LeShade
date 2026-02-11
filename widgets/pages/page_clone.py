@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QWidget
 )
 
-from PySide6.QtCore import QThread, Qt, Signal
+from PySide6.QtCore import QThread, Qt, Signal, Slot
 
 from scripts_core.script_shaders import ShadersWorker
 
@@ -112,6 +112,7 @@ class PageClone(QWidget):
     def start_animation(self) -> None:
         self.progress_bar.setRange(0, 0)
 
+    @Slot(bool)
     def on_success(self, value: bool) -> None:
         if value:
             self.progress_bar.setRange(0, 100)
@@ -122,6 +123,7 @@ class PageClone(QWidget):
             for checkbox in self.cxb_list:
                 checkbox.setChecked(False)
 
+    @Slot(bool)
     def on_error(self, value: bool) -> None:
         if not value:
             self.progress_bar.setValue(0)

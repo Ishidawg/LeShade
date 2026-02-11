@@ -130,22 +130,23 @@ class PageInstallation(QWidget):
         else:
             self.is_dx8.emit(False)
 
-    @Slot(str)
     def get_game_dir(self, value: str) -> None:
         self.current_game_directory.emit(value)
 
-    @Slot(bool, int)
     def on_install_clicked(self) -> None:
         self.installation()
 
+    @Slot(int)
     def update_progress(self, value: int) -> None:
         self.progress_bar.setValue(value)
 
+    @Slot(bool)
     def on_sucess(self, value: bool) -> None:
         if value:
             self.progress_bar.setFormat("Installation finished!")
             self.install_finished.emit(value)
 
+    @Slot(bool)
     def on_error(self, value: bool) -> None:
         if not value:
             self.progress_bar.setFormat("Error while installing")
@@ -166,7 +167,6 @@ class PageInstallation(QWidget):
                 self.game_api = value
                 break
 
-    @Slot(bool, int)
     def installation(self) -> None:
         self.api_selection()
 

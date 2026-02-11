@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import Qt, Signal
 
 
 class PageStart(QWidget):
@@ -43,10 +43,8 @@ class PageStart(QWidget):
 
         self.setLayout(layout)
 
-    @Slot(bool)
     def click_install(self) -> None:
         self.install.emit(True)
 
-    @Slot(bool)
     def click_uninstall(self) -> None:
         self.uninstall.emit(True)

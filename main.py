@@ -81,25 +81,12 @@ class MainWindow(QMainWindow):
         self.layout_main.addWidget(widget_dinamic)
         self.layout_main.addWidget(self.action_buttons)
 
-    def get_game_directory(self, value: str) -> None:
-        self.game_directory = value
-        self.format_game_name(self.game_directory)
-
     def format_game_name(self, game_dir) -> None:
         if game_dir:
             game_base_name = os.path.basename(game_dir)
             self.game_name = os.path.splitext(game_base_name)[0]
 
             self.page_dx8 = PageDX8(self.game_name)
-
-    def get_is_dx8(self, value: bool) -> None:
-        if value:
-            self.is_dx8 = value
-            return
-
-        if not value:
-            self.is_dx8 = value
-            return
 
     def on_clone(self) -> None:
         self.page_clone.on_install(self.game_directory)
@@ -227,6 +214,21 @@ class MainWindow(QMainWindow):
         if value:
             self.clone_finished = value
             self.update_buttons()
+
+    @Slot(bool)
+    def get_is_dx8(self, value: bool) -> None:
+        if value:
+            self.is_dx8 = value
+            return
+
+        if not value:
+            self.is_dx8 = value
+            return
+
+    @Slot(str)
+    def get_game_directory(self, value: str) -> None:
+        self.game_directory = value
+        self.format_game_name(self.game_directory)
 
 
 if __name__ == "__main__":
