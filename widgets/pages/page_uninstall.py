@@ -63,7 +63,7 @@ class PageUninstall(QWidget):
             textures_dir: str = os.path.join(game_path, "Textures")
 
             files_tbr: list[str] = ["opengl32.dll", "d3d8.dll", "d3d9.dll",
-                                    "d3d10.dll", "d3d11.dll", "dxgi.dll", "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini"]
+                                    "d3d10.dll", "d3d11.dll", "dxgi.dll", "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
 
             if os.path.exists(shaders_dir) and os.path.exists(textures_dir):
                 shutil.rmtree(shaders_dir)

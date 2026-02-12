@@ -16,15 +16,19 @@ class WidgetBottomButtons(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignBottom |
                             Qt.AlignmentFlag.AlignCenter)
 
+        self.btn_home = QPushButton("Home")
         self.btn_back = QPushButton("Back")
         self.btn_next = QPushButton("Next")
 
+        self.btn_home.setEnabled(True)
         self.btn_back.setEnabled(True)
         self.btn_next.setEnabled(False)
 
+        self.btn_home.hide()
         self.btn_back.hide()
         self.btn_next.hide()
 
+        layout.addWidget(self.btn_home)
         layout.addWidget(self.btn_back)
         layout.addWidget(self.btn_next)
 

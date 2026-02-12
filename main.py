@@ -78,6 +78,7 @@ class MainWindow(QMainWindow):
         # Connect signals (if there is signals)
         self.page_start.install.connect(self.on_install_clicked)
         self.page_start.uninstall.connect(self.on_uninstall_clicked)
+        self.action_buttons.btn_home.clicked.connect(self.on_home_clicked)
         self.action_buttons.btn_back.clicked.connect(self.on_back_clicked)
         self.action_buttons.btn_next.clicked.connect(self.on_next_clicked)
         self.page_download.download_finished.connect(self.on_download_finished)
@@ -106,6 +107,10 @@ class MainWindow(QMainWindow):
 
     def on_clone(self) -> None:
         self.page_clone.on_install(self.game_directory)
+
+    def on_home_clicked(self) -> None:
+        self.manage_uninstall_page(False)
+        self.action_buttons.btn_home.hide()
 
     def on_back_clicked(self) -> None:
         self.change_page(0)
@@ -159,6 +164,16 @@ class MainWindow(QMainWindow):
             self.pages.pop()
             return
 
+    def manage_uninstall_page(self, value: bool) -> None:
+        if value:
+            self.page_uninstall: PageUninstall = PageUninstall()
+            self.insert_page(self.page_uninstall)
+            return
+
+        if not value:
+            self.insert_page(self.current_page)
+            return
+
     def update_next_button(self) -> None:
         if self.pages_index == Pages.CLONE and not self.is_dx8 or self.pages_index == Pages.WRAPPER:
             self.action_buttons.btn_next.setText("Close")
@@ -201,6 +216,7 @@ class MainWindow(QMainWindow):
         self.layout_dynamic.removeWidget(self.current_page)
         self.layout_dynamic.removeWidget(self.page_start)
         self.layout_dynamic.removeWidget(self.page_download)
+        self.layout_dynamic.removeWidget(self.page_uninstall)
 
         if page:
             self.layout_dynamic.addWidget(page)
@@ -219,9 +235,9 @@ class MainWindow(QMainWindow):
 
     @Slot(bool)
     def on_uninstall_clicked(self, value: bool) -> None:
-        self.page_uninstall: PageUninstall = PageUninstall()
-        self.insert_page(self.page_uninstall)
-        print(f"Clicked {value}")
+        if value:
+            self.manage_uninstall_page(True)
+            self.action_buttons.btn_home.show()
 
     @Slot(bool)
     def on_download_finished(self, value: bool) -> None:
