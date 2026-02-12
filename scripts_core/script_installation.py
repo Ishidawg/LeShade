@@ -12,7 +12,8 @@ from scripts_core.script_download_dll import (
     download_hlsl_compiler
 )
 
-from scripts_core.script_prepare_re import EXTRACT_PATH
+
+from utils.utils import EXTRACT_PATH
 
 MACHINE_TYPES = {
     0x014C: "32-bit",

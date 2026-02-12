@@ -23,7 +23,7 @@ from widgets.pages.page_dx8 import PageDX8
 from widgets.pages.page_uninstall import PageUninstall
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 
-from scripts_core.script_prepare_re import EXTRACT_PATH
+from utils.utils import EXTRACT_PATH, format_game_name
 from scripts_core.script_manager import create_manager, add_game
 
 
@@ -100,13 +100,6 @@ class MainWindow(QMainWindow):
         self.layout_main.addWidget(WidgetTitle())
         self.layout_main.addWidget(widget_dinamic)
         self.layout_main.addWidget(self.action_buttons)
-
-    def format_game_name(self, game_dir) -> None:
-        if game_dir:
-            game_base_name = os.path.basename(game_dir)
-            self.game_name = os.path.splitext(game_base_name)[0]
-
-            self.page_dx8 = PageDX8(self.game_name)
 
     def on_clone(self) -> None:
         self.page_clone.on_install(self.game_directory)
@@ -276,7 +269,7 @@ class MainWindow(QMainWindow):
     @Slot(str)
     def get_game_directory(self, value: str) -> None:
         self.game_directory = value
-        self.format_game_name(self.game_directory)
+        self.page_dx8 = PageDX8(format_game_name(self.game_directory))
 
     @Slot()
     def closeEvent(self, event) -> None:

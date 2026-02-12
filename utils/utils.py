@@ -1,6 +1,13 @@
+import os
 import urllib.request
 import ssl
 import certifi
+
+from PySide6.QtCore import QStandardPaths
+
+CACHE_PATH: str = QStandardPaths.writableLocation(
+    QStandardPaths.StandardLocation.CacheLocation)
+EXTRACT_PATH: str = os.path.join(CACHE_PATH, "reshade_extracted")
 
 
 def generic_download(url: str, directory: str) -> None:
@@ -15,3 +22,9 @@ def generic_download(url: str, directory: str) -> None:
                 file.write(res.read())
     except Exception as e:
         raise IOError(f"Failed to download: {e}") from e
+
+
+def format_game_name(game_dir: str) -> str:
+    game_base_name = os.path.basename(game_dir)
+    game_name = os.path.splitext(game_base_name)[0]
+    return game_name

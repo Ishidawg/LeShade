@@ -1,10 +1,7 @@
 import os
-from PySide6.QtCore import QStandardPaths
 from zipfile import BadZipfile, ZipFile
 
-CACHE_PATH: str = QStandardPaths.writableLocation(
-    QStandardPaths.StandardLocation.CacheLocation)
-EXTRACT_PATH: str = os.path.join(CACHE_PATH, "reshade_extracted")
+from utils.utils import EXTRACT_PATH
 
 # Prepare reshade will contains any functions to help script_download_.re.py
 

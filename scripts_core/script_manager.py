@@ -5,6 +5,8 @@ from pathlib import Path
 
 from PySide6.QtCore import QStandardPaths
 
+from utils.utils import format_game_name
+
 CONFIG_PATH = QStandardPaths.writableLocation(
     QStandardPaths.StandardLocation.ConfigLocation)
 LESHADE_PATH = os.path.join(CONFIG_PATH, "leshade")
@@ -45,12 +47,6 @@ def add_game(game_dir: str) -> None:
 
     with open(MANAGER_PATH, "w") as file:
         json.dump(current_data, file, indent=4)
-
-
-def format_game_name(game_name_param: str) -> str:
-    game_basename: str = os.path.basename(game_name_param)
-    game_name: str = os.path.splitext(game_basename)[0]
-    return game_name
 
 
 def read_manager_content(key: str) -> list[str]:
