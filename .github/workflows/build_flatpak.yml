@@ -19,7 +19,7 @@ jobs:
       - name: Build Flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-            bundle: ReshadeInstaller-x86_64.flatpak
+            bundle: LeShade-x86_64.flatpak
             manifest-path: flatpak/io.github.ishidawg.LeShade.yml
             arch: x86_64
             cache: true
