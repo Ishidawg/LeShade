@@ -1,4 +1,4 @@
 #!/bin/bash
 
 export PYTHONPATH=$PYTHONPATH:/app/share/leshade
-python3 /app/share/reshade-installer/main.py "$@"
+python3 /app/share/leshade/main.py "$@"
