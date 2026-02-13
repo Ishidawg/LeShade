@@ -31,31 +31,31 @@ jobs:
     - name: Create Executable
       run: |
         pyinstaller --noconfirm --onedir --windowed --clean \
-          --name "ReshadeInstaller" \
+          --name "LeShade" \
           --add-data "assets:assets" \
           --icon "assets/logo.png" \
-          gui.py
+          main.py
 
     - name: Create AppDir structure
       run: |
         mkdir -p AppDir/usr/bin
         mkdir -p AppDir/usr/lib
         
-        cp -r dist/ReshadeInstaller/* AppDir/usr/bin/
+        cp -r dist/LeShade/* AppDir/usr/bin/
         
-        cp assets/logo.png AppDir/reshade-installer.png
+        cp assets/logo.png AppDir/leshade.png
         
-        echo "[Desktop Entry]" > AppDir/reshade-installer.desktop
-        echo "Type=Application" >> AppDir/reshade-installer.desktop
-        echo "Name=Reshade Installer" >> AppDir/reshade-installer.desktop
-        echo "Exec=ReshadeInstaller" >> AppDir/reshade-installer.desktop
-        echo "Icon=reshade-installer" >> AppDir/reshade-installer.desktop
-        echo "Categories=Utility;Game;" >> AppDir/reshade-installer.desktop
-        echo "Terminal=false" >> AppDir/reshade-installer.desktop
+        echo "[Desktop Entry]" > AppDir/leshade.desktop
+        echo "Type=Application" >> AppDir/leshade.desktop
+        echo "Name=LeShade" >> AppDir/leshade.desktop
+        echo "Exec=LeShade" >> AppDir/leshade.desktop
+        echo "Icon=leshade" >> AppDir/leshade.desktop
+        echo "Categories=Utility;Game;" >> AppDir/leshade.desktop
+        echo "Terminal=false" >> AppDir/leshade.desktop
         
-        ln -sr AppDir/usr/bin/ReshadeInstaller AppDir/AppRun
+        ln -sr AppDir/usr/bin/LeShade AppDir/AppRun
 
-    - name: Bundle libxcb-cursor0 TO WORKS ON MINT 22
+    - name: Bundle libxcb-cursor0
       run: |
         find /usr/lib -name "libxcb-cursor.so.0" -exec cp {} AppDir/usr/lib/ \;
         find /usr/lib -name "libxcb-xinerama.so.0" -exec cp {} AppDir/usr/lib/ \;
@@ -70,5 +70,5 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ReshadeInstaller-AppImage
+        name: LeShade-AppImage
         path: "*.AppImage"

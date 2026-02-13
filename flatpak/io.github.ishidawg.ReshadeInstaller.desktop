@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Reshade Installer
-Exec=reshade-installer
-Icon=io.github.ishidawg.ReshadeInstaller
-Categories=Utility;Game;
-Comment=An unofficial Reshade Installer for Linux.
-Terminal=false

@@ -1,21 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.ishidawg.ReshadeInstaller</id>
+  <id>io.github.ishidawg.LeShade</id>
   
-  <name>Reshade Installer</name>
-  <summary>An unofficial Reshade Installer for Linux.</summary>
+  <name>LeShade</name>
+  <summary>A ReShade manager for linux. </summary>
   
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   
   <description>
     <p>
-      Reshade Installer is an unofficial tool that can install reshade on many games that runs Proton or Wine. It's more an automation process of a manual and tedious proccess than anything else.
+      LeShade is a ReShade manager for linux, like a mod manager but for reshade. It's intended to be used with Wine and Proton applications.
     </p>
-    <p>It has an cool features that can install reshade on direcX 8.x games like those old windows games like Grand Theft Auto III and so on.</p>
+    <p>It's features include:</p>
+    <ul>
+      <li>Direct3D 8.x support</li>
+      <li>ReShade with addon and non-addon support</li>
+      <li>ReShade with a specific release version support</li>
+      <li>Uninstall ReShade from previous installations</li>
+      <li>Many repositories</li>
+    </ul>
   </description>
   
-  <launchable type="desktop-id">io.github.ishidawg.ReshadeInstaller.desktop</launchable>
+  <launchable type="desktop-id">io.github.ishidawg.LeShade.desktop</launchable>
   
   <screenshots>
     <screenshot type="default">
@@ -31,8 +38,8 @@
   </screenshots>
 
   <!-- I have only the repo for now, but I will do an landing page to show it's features soon -->
-  <url type="homepage">https://github.com/Ishidawg/ReshadeInstaller</url>
-  <url type="bugtracker">https://github.com/Ishidawg/ReshadeInstaller/issues</url>
+  <url type="homepage">https://github.com/Ishidawg/LeShade</url>
+  <url type="bugtracker">https://github.com/Ishidawg/LeShade/issues</url>
   
   <releases>
     <release version="1.0.9" date="2024-03-20"/>
