@@ -36,8 +36,10 @@ class InstallationWorker(QObject):
         self.reshade_path: str = EXTRACT_PATH
         self.game_path_parent: str = str(Path(game_path).resolve().parent)
 
-        self.shader_dir: str = os.path.join(self.game_path_parent, 'Shaders')
-        self.texture_dir: str = os.path.join(self.game_path_parent, 'Textures')
+        self.shader_dir: str = os.path.join(
+            self.game_path_parent, 'reshade-shaders/Shaders')
+        self.texture_dir: str = os.path.join(
+            self.game_path_parent, 'reshade-shaders/Textures')
 
         self.reshade_ini: str = os.path.join(
             self.game_path_parent, "ReShade.ini")
@@ -92,7 +94,7 @@ class InstallationWorker(QObject):
 
         ini_data: str = """
             [GENERAL]
-            EffectSearchPaths=.\\Shaders
+            EffectSearchPaths=.\\reshade-shaders\\Shaders
             NoDebugInfo=1
             NoEffectCache=0
             NoReloadOnInit=0
@@ -104,7 +106,7 @@ class InstallationWorker(QObject):
             PresetTransitionDuration=1000
             SkipLoadingDisabledEffects=0
             StartupPresetPath=
-            TextureSearchPaths=.\\Textures
+            TextureSearchPaths=.\\reshade-shaders\\Textures
         """
 
         with open(self.reshade_ini) as file:

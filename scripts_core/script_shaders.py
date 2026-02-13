@@ -71,8 +71,10 @@ class ShadersWorker(QObject):
 
         self.shader_temp_directory: str = os.path.join(
             self.game_path, ".shaders_temp")
-        self.shader_dir: str = os.path.join(self.game_path, "Shaders")
-        self.texture_dir: str = os.path.join(self.game_path, "Textures")
+        self.shader_dir: str = os.path.join(
+            self.game_path, "reshade-shaders/Shaders")
+        self.texture_dir: str = os.path.join(
+            self.game_path, "reshade-shaders/Textures")
 
     def run(self) -> None:
         self.clean_temp()
