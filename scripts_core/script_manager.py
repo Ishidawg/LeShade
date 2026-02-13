@@ -1,41 +1,45 @@
 import json
 import os
 
+from pathlib import Path
+
 from PySide6.QtCore import QStandardPaths
 
-HOME_PATH = QStandardPaths.writableLocation(
-    QStandardPaths.StandardLocation.HomeLocation)
-LESHADE_PATH = os.path.join(HOME_PATH, ".leshade")
+from utils.utils import format_game_name
+
+CONFIG_PATH = QStandardPaths.writableLocation(
+    QStandardPaths.StandardLocation.ConfigLocation)
+LESHADE_PATH = os.path.join(CONFIG_PATH, "leshade")
 MANAGER_PATH = os.path.join(LESHADE_PATH, "manager.json")
 
 os.makedirs(LESHADE_PATH, exist_ok=True)
 
 
-def create_manager():
-    try:
-        open(MANAGER_PATH, "x")
-    except FileExistsError as e:
-        print(e)
+def create_manager() -> None:
+    if not Path(MANAGER_PATH).exists():
+        try:
+            with open(MANAGER_PATH, "w") as file:
+                file.write("[]")
+        except FileExistsError as e:
+            print(e)
 
 
-def add_game(game_name, game_path):
-    current_data = []
-    game_name = format_game_name(game_name)
+def add_game(game_dir: str) -> None:
+    current_data: list[dict] = []
+    game_name: str = format_game_name(game_dir)
 
     if os.path.exists(MANAGER_PATH):
         try:
             with open(MANAGER_PATH, "r") as file:
                 current_data = json.load(file)
 
-                if not isinstance(current_data, list):
-                    current_data = [current_data] if current_data else []
         except Exception as e:
             print(e)
             current_data = []
 
-    new_entry = {
+    new_entry: dict = {
         "game": game_name,
-        "dir": game_path
+        "dir": game_dir
     }
 
     if new_entry not in current_data:
@@ -45,17 +49,13 @@ def add_game(game_name, game_path):
         json.dump(current_data, file, indent=4)
 
 
-def format_game_name(game_name):
-    game_basename = os.path.basename(game_name)
-    game_name = os.path.splitext(game_basename)[0]
-    return game_name
+def read_manager_content(key: str) -> list[str]:
+    game_content: list[str] = []
 
-
-def read_manager_content(key):
-    game_content = []
+    create_manager()
 
     with open(MANAGER_PATH, "r") as file:
-        current_file = json.load(file)
+        current_file: tuple = json.load(file)
 
     for item in current_file:
         game_content.append(item.get(key))
@@ -63,8 +63,8 @@ def read_manager_content(key):
     return game_content
 
 
-def update_manager(index):
-    new_data = []
+def update_manager(index) -> None:
+    new_data: list[str] = []
 
     with open(MANAGER_PATH, "r") as file:
         current_file = json.load(file)
