@@ -19,8 +19,7 @@ LeShade is a reshade manager for linux, thinks of a mod manager, but specificall
 - Many shaders repositories
 
 ## Usage
-The program it self is very intuitive, so if you already used a mod manager or even the reshade installer *"à la"* Wizard you will no likely not have any problems. Even though I have made a [video guide](https://youtu.be/tM0oJEPixzk).
-You can download the AppImage or Flatpak version on [release page](https://github.com/Ishidawg/LeShade/releases).
+The program it self is very intuitive, so if you already used a mod manager or even the reshade installer *"à la"* Wizard you will no likely not have any problems. Even though I have made a [video guide](https://youtu.be/ge8558huYfE). You can download the AppImage or Flatpak version on [release page](https://github.com/Ishidawg/LeShade/releases).
 
 **AppImage Instructions:**
 1. Select `LeShade-x86_64.AppImage` that you have download
@@ -28,10 +27,10 @@ You can download the AppImage or Flatpak version on [release page](https://githu
 3. Done!
 
 **Flatpak Instructions:**
-4. Open the terminal
-5. Go to the folder that you have downloaded LeShade (eg: `cd ~/Downloads`)
-6. Execute on terminal: `flatpak install ./LeShade-x86_64-x86_64.flatpak`
-7. Done!
+1. Open the terminal
+2. Go to the folder that you have downloaded LeShade (eg: `cd ~/Downloads`)
+3. Execute on terminal: `flatpak install ./LeShade-x86_64-x86_64.flatpak`
+4. Done!
 
 **Direct3D 8.0 instructions:**
 If you are installing ReShade on game that uses Direct3D 8.0, you **must** add the environment variables on your game launcher *(Steam, Heroic Games Lancher, Lutris, Faugus Launcher)*. Here are two examples of how you can do to set those on Steam and Heroic.
