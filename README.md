@@ -29,7 +29,7 @@ The program it self is very intuitive, so if you already used a mod manager or e
 **Flatpak Instructions:**
 1. Open the terminal
 2. Go to the folder that you have downloaded LeShade (eg: `cd ~/Downloads`)
-3. Execute on terminal: `flatpak install ./LeShade-x86_64-x86_64.flatpak`
+3. Execute on terminal: `flatpak install ./LeShade-x86_64.flatpak`
 4. Done!
 
 **Direct3D 8.0 instructions:**
