@@ -11,7 +11,7 @@
 *This project started as a university project, and I already mentioned that in the [old readme file](https://github.com/Ishidawg/LeShade/blob/main/OLD-README.md). The project grew and became a passion project, and now I think it's good to have a new readme file.*
 
 LeShade is a reshade manager for linux, thinks of a mod manager, but specifically for reshade. It include features like:
-- Common APIs support *(DX9, DX10, DX11, DX1/Vulkan, OpenGL)*
+- Common APIs support *(DX9, DX10, DX11, DX12/Vulkan, OpenGL)*
 - Direct3D 8.x support
 - ReShade with **addon** and **non-addon** versions
 - ReShade with release versions support
@@ -48,6 +48,15 @@ LeShade is built with PySide6 with default Qt widgets, so you can expect a **sea
 
 I have tested each build *(AppImage and Flatpak)* on *Oracle Virtual* with those 3 distros: *Ubuntu 25.10, Ubuntu 24.04.3, Linux Mint 22.2*. Also, have tested on *CachyOS non-vm*. You can take a look into this [pull resquest](https://github.com/Ishidawg/LeShade/pull/9).
 The logo was made by me on *Inkscape*.
+
+### Files
+LeShade createas folder on the `config`with a json file called `manager.json`. It stores the path and the name of the game so it can be used to show the game name on uninstall list as well to uninstall the game properly by using the path stored inside the file.
+
+There is a key difference between where the `leshade/manager.json` will be on your computer depending on the version that you're using.
+
+For the appImage version, as it uses system dependencies, you will find the file into: `~/.config/leshade/manager.json`.
+
+For flatpak version, due to sandbox system that the package uses, you will find the file into: `~/.var/app/io.github.ishidawg.LeShade/config/leshade/manager.json`.
 
 ## Contributing
 If you want to contribute to LeShade, feel free to clone the repository, do the changes you want to do, and create pull requests. Every kind of contributions are very welcome!
