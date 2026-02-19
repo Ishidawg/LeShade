@@ -24,9 +24,9 @@ def create_manager() -> None:
             print(e)
 
 
-def add_game(game_dir: str) -> None:
+def add_game(game_dir: str, game_exe_path: str) -> None:
     current_data: list[dict] = []
-    game_name: str = format_game_name(game_dir)
+    game_name: str = format_game_name(game_exe_path)
 
     if os.path.exists(MANAGER_PATH):
         try:

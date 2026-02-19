@@ -24,6 +24,7 @@ HOME = QStandardPaths.writableLocation(
 class PageInstallation(QWidget):
     install_finished: Signal = Signal(bool)
     current_game_directory: Signal = Signal(str)
+    current_executable_path: Signal = Signal(str)
     is_dx8: Signal = Signal(bool)
 
     def __init__(self):
@@ -102,6 +103,7 @@ class PageInstallation(QWidget):
         if file_name:
             self.browse_input.setText(file_name[0])
             self.game_path = file_name[0]
+            self.current_executable_path.emit(self.game_path)
 
     def start_installation(self) -> None:
         self.install_thread: QThread = QThread()

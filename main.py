@@ -90,12 +90,17 @@ class MainWindow(QMainWindow):
             self.on_install_finished)
         self.page_installation.current_game_directory.connect(
             self.get_game_directory)
+        self.page_installation.current_executable_path.connect(
+            self.get_game_executable_path)
         self.page_installation.is_dx8.connect(self.get_is_dx8)
         self.page_clone.clone_finished.connect(self.on_clone_finished)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
         self.game_directory: str = ''
         self.page_clone.btn_install.clicked.connect(self.on_clone)
+
+        # So I can set the correct name at uninstall list
+        self.game_exe_path: str = ''
 
         # add widgets
         self.layout_main.addWidget(WidgetTitle())
@@ -140,7 +145,8 @@ class MainWindow(QMainWindow):
                 if self.clone_finished:
                     self.enable_next_button()
 
-                    add_game(self.game_directory)
+                    # Add game to the uninstall list widget
+                    add_game(self.game_directory, self.game_exe_path)
 
                     if self.is_dx8:
                         self.manage_dx8_page(True)
@@ -270,7 +276,11 @@ class MainWindow(QMainWindow):
     @Slot(str)
     def get_game_directory(self, value: str) -> None:
         self.game_directory = value
-        self.page_dx8 = PageDX8(format_game_name(self.game_directory))
+        self.page_dx8 = PageDX8(format_game_name(self.game_exe_path))
+
+    @Slot(str)
+    def get_game_executable_path(self, value: str) -> None:
+        self.game_exe_path = value
 
     @Slot()
     def closeEvent(self, event) -> None:
