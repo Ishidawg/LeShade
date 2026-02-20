@@ -44,7 +44,7 @@ class PageClone(QWidget):
         self.cxb_prod80 = QCheckBox("Prod80")
         self.cxb_quint = QCheckBox("qUINT")
         self.cxb_immerse = QCheckBox("iMMERSE")
-        self.cxb_mlut = QCheckBox("MLUT")
+        self.cxb_mlut = QCheckBox("MLUT - This repo have over 2GB")
         self.cxb_insane = QCheckBox("Insane shaders")
         self.cxb_retro_arch = QCheckBox("RS Retro Arch")
         self.cxb_crt_royale = QCheckBox("CRT Royale")

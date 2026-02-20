@@ -43,7 +43,14 @@ def add_game(game_dir: str, game_exe_path: str, have_hlsl: bool | None) -> None:
         "hlsl_compiler": have_hlsl
     }
 
-    if new_entry not in current_data:
+    # This list serves only to compare the games that are into mananger.json with the new entry
+    game_name_manager: list[str] = []
+
+    if current_data:
+        for entry in current_data:
+            game_name_manager.append(str(entry.get("game")))
+
+    if new_entry.get("game") not in game_name_manager:
         current_data.append(new_entry)
 
     with open(MANAGER_PATH, "w") as file:
