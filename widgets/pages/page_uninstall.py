@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import Qt
-from scripts_core.script_manager import update_manager, read_manager_content
+from scripts_core.script_manager import read_hlsl_flag, update_manager, read_manager_content
 
 
 class PageUninstall(QWidget):
@@ -35,14 +35,17 @@ class PageUninstall(QWidget):
         self.add_items(self.games, self.game_list)
 
         self.btn_uninstall = QPushButton("Uninstall")
-        self.btn_uninstall.clicked.connect(
-            lambda: self.uninstall_reshade(self.game_list, self.games_dir))
+
+        self.btn_uninstall.clicked.connect(self.on_uninstall_clicked)
 
         # add widgets
         layout.addWidget(label_description)
         layout.addWidget(self.game_list)
         layout.addWidget(self.btn_uninstall)
         self.setLayout(layout)
+
+    def on_uninstall_clicked(self) -> None:
+        self.uninstall_reshade(self.game_list, self.games_dir)
 
     def add_items(self, games: list[str], widget_list: QListWidget):
         index: int = 1
@@ -61,8 +64,11 @@ class PageUninstall(QWidget):
 
             shaders_dir: str = os.path.join(game_path, "reshade-shaders")
 
-            files_tbr: list[str] = ["opengl32.dll", "d3d8.dll", "d3d9.dll",
-                                    "d3d10.dll", "d3d11.dll", "dxgi.dll", "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
+            have_hlsl_compiler: str = read_hlsl_flag(
+                current_row, "hlsl_compiler")
+
+            files_tbr: list[str] = ["opengl32.dll", "d3d8.dll", "d3d9.dll", "d3d10.dll", "d3d11.dll", "dxgi.dll",
+                                    "" if have_hlsl_compiler else "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
 
             if os.path.exists(shaders_dir):
                 shutil.rmtree(shaders_dir)
@@ -71,9 +77,15 @@ class PageUninstall(QWidget):
                 if file in os.listdir(game_path):
                     os.remove(os.path.join(game_path, file))
 
-            # Remove game from list
+            # Remove game from list and reset
             widget_list.takeItem(current_row)
+            widget_list.updateEditorData()
+            widget_list.update()
+            widget_list.reset()
 
+            # update the values so we can get the correct game_path
             update_manager(current_row)
+            self.games = read_manager_content("game")
+            self.games_dir = read_manager_content("dir")
         except IndexError as e:
             print(e)

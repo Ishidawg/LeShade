@@ -104,6 +104,8 @@ class MainWindow(QMainWindow):
         self.page_installation.current_executable_path.connect(
             self.get_game_executable_path)
         self.page_installation.is_dx8.connect(self.get_is_dx8)
+        self.page_installation.already_have_hlsl_compiler.connect(
+            self.get_hlsl_compiler)
         self.page_clone.clone_finished.connect(self.on_clone_finished)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
@@ -112,6 +114,9 @@ class MainWindow(QMainWindow):
 
         # So I can set the correct name at uninstall list
         self.game_exe_path: str = ''
+
+        # This variable is usefull so I know if the game directory already have hlsl compiler, then I do not overwrite neither delete it at uninstall process
+        self.have_hlsl: bool | None = None
 
         # add widgets
         self.layout_main.addWidget(WidgetTitle())
@@ -157,7 +162,8 @@ class MainWindow(QMainWindow):
                     self.enable_next_button()
 
                     # Add game to the uninstall list widget
-                    add_game(self.game_directory, self.game_exe_path)
+                    add_game(self.game_directory,
+                             self.game_exe_path, self.have_hlsl)
 
                     if self.is_dx8:
                         self.manage_dx8_page(True)
@@ -292,6 +298,10 @@ class MainWindow(QMainWindow):
     @Slot(str)
     def get_game_executable_path(self, value: str) -> None:
         self.game_exe_path = value
+
+    @Slot(bool)
+    def get_hlsl_compiler(self, value: bool | None) -> None:
+        self.have_hlsl = value
 
     @Slot()
     def closeEvent(self, event) -> None:

@@ -26,6 +26,7 @@ class InstallationWorker(QObject):
     install_progress: Signal = Signal(int)
     install_finished: Signal = Signal(bool)
     current_game_path: Signal = Signal(str)
+    have_hlsl_compiler: Signal = Signal(bool)
 
     def __init__(self, game_path: str, game_api: str):
         super().__init__()
@@ -44,6 +45,8 @@ class InstallationWorker(QObject):
         self.reshade_ini: str = os.path.join(
             self.game_path_parent, "ReShade.ini")
 
+        self.hlsl_compiler: bool | None = None
+
     def run(self) -> None:
         self.install_progress.emit(0)
         self.game_arch = self.get_executable_architecture(
@@ -53,7 +56,16 @@ class InstallationWorker(QObject):
         self.install_progress.emit(60)
 
         # d3d8 wrapper and hlsl compiler
-        download_hlsl_compiler(self.game_path_parent, self.game_arch)
+        self.hlsl_compiler = download_hlsl_compiler(
+            self.game_path_parent, self.game_arch)
+
+        # means that game folder already had the d3dcompiler_47.dll
+        # self.have_hlsl_compiler.emit(self.have_hlsl_compiler) This throws and error like: _pythonToCppCopy: Cannot copy-convert 0x7ff9643809d0 (PySide6.QtCore.SignalInstance) to C++.
+        if self.hlsl_compiler:
+            self.have_hlsl_compiler.emit(True)
+        else:
+            self.have_hlsl_compiler.emit(False)
+
         if self.game_api == "D3D 8":
             self.install_progress.emit(90)
             download_d3d8to9(self.game_path_parent)

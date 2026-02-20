@@ -26,6 +26,7 @@ class PageInstallation(QWidget):
     current_game_directory: Signal = Signal(str)
     current_executable_path: Signal = Signal(str)
     is_dx8: Signal = Signal(bool)
+    already_have_hlsl_compiler: Signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -115,12 +116,13 @@ class PageInstallation(QWidget):
         # start and ath the end, finished, are built-in thread signals
         self.install_thread.started.connect(self.install_worker.run)
 
-        # install_progress and install_finished
-        # both are signals from script_installation.py
+        # install_progress, install_finished, current_game_path and have_hlsl_compiler
+        # are signals from script_installation.py
         self.install_worker.install_progress.connect(self.update_progress)
         self.install_worker.install_finished.connect(self.on_sucess)
         self.install_worker.install_finished.connect(self.on_error)
         self.install_worker.current_game_path.connect(self.get_game_dir)
+        self.install_worker.have_hlsl_compiler.connect(self.get_hlsl_compiler)
 
         self.install_worker.install_finished.connect(self.install_thread.quit)
         self.install_worker.install_finished.connect(
@@ -137,6 +139,9 @@ class PageInstallation(QWidget):
 
     def get_game_dir(self, value: str) -> None:
         self.current_game_directory.emit(value)
+
+    def get_hlsl_compiler(self, value: bool) -> None:
+        self.already_have_hlsl_compiler.emit(value)
 
     def on_install_clicked(self) -> None:
         self.installation()
