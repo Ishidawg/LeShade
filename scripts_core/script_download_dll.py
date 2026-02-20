@@ -20,7 +20,7 @@ def download_d3d8to9(game_path: str) -> None:
     generic_download(URL_D3D8TO9, directory)
 
 
-def download_hlsl_compiler(game_path: str, game_arch: str) -> None | bool:
+def download_hlsl_compiler(game_path: str, game_arch: str) -> bool:
     directory: str = os.path.join(game_path, "d3dcompiler_47.dll")
 
     if Path(directory).exists():
