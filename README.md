@@ -82,8 +82,7 @@ Response.
 Description of what you have fixed.
 ```
 ### Sources:
-- `d3dcompiler.dll` *64bit* from [Lutris](https://lutris.net/files/tools/dll/d3dcompiler_47.dll).
-- `d3dcompiler.dll` *32bit* from [Mozzila](https://download-installer.cdn.mozilla.net/pub/firefox/releases/62.0.3/win32/ach/Firefox%20Setup%2062.0.3.exe).
+- `d3dcompiler_47.dll` *64bit* and *32bit* from [WindowsSDK 10.0.26100.0](https://learn.microsoft.com/en-us/windows/apps/windows-sdk/downloads)
 - `d3d8to9.dll` from [crosire](https://github.com/crosire/d3d8to9?tab=readme-ov-file).
 - [AppImage](https://github.com/crosire/d3d8to9?tab=readme-ov-file) Tool to build my one of my packages.
 
