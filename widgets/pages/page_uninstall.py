@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import Qt
-from scripts_core.script_manager import update_manager, read_manager_content
+from scripts_core.script_manager import read_hlsl_flag, update_manager, read_manager_content
 
 
 class PageUninstall(QWidget):
@@ -61,8 +61,17 @@ class PageUninstall(QWidget):
 
             shaders_dir: str = os.path.join(game_path, "reshade-shaders")
 
-            files_tbr: list[str] = ["opengl32.dll", "d3d8.dll", "d3d9.dll",
-                                    "d3d10.dll", "d3d11.dll", "dxgi.dll", "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
+            have_hlsl_compiler: str = read_hlsl_flag(
+                current_row, "hlsl_compiler")
+
+            files_tbr: list[str] = []
+
+            if have_hlsl_compiler:
+                files_tbr = ["opengl32.dll", "d3d8.dll", "d3d9.dll",
+                             "d3d10.dll", "d3d11.dll", "dxgi.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
+            else:
+                files_tbr = ["opengl32.dll", "d3d8.dll", "d3d9.dll",
+                             "d3d10.dll", "d3d11.dll", "dxgi.dll", "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
 
             if os.path.exists(shaders_dir):
                 shutil.rmtree(shaders_dir)

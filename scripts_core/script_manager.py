@@ -24,7 +24,7 @@ def create_manager() -> None:
             print(e)
 
 
-def add_game(game_dir: str, game_exe_path: str) -> None:
+def add_game(game_dir: str, game_exe_path: str, have_hlsl: bool | None) -> None:
     current_data: list[dict] = []
     game_name: str = format_game_name(game_exe_path)
 
@@ -39,7 +39,8 @@ def add_game(game_dir: str, game_exe_path: str) -> None:
 
     new_entry: dict = {
         "game": game_name,
-        "dir": game_dir
+        "dir": game_dir,
+        "hlsl_compiler": have_hlsl
     }
 
     if new_entry not in current_data:
@@ -63,7 +64,19 @@ def read_manager_content(key: str) -> list[str]:
     return game_content
 
 
-def update_manager(index) -> None:
+def read_hlsl_flag(index: int, key: str) -> str:
+    temp_data: list[str] = []
+
+    with open(MANAGER_PATH, "r") as file:
+        current_file = json.load(file)
+
+    for hlsl_flag in current_file:
+        temp_data.append(hlsl_flag.get(key))
+
+    return temp_data[index]
+
+
+def update_manager(index: int) -> None:
     new_data: list[str] = []
 
     with open(MANAGER_PATH, "r") as file:
