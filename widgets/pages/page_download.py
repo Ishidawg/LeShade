@@ -96,6 +96,7 @@ class PageDownload(QWidget):
 
     @Slot(bool)
     def on_success(self, value: bool) -> None:
+        self.btn_download.setEnabled(True)
         if value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(100)
@@ -103,6 +104,7 @@ class PageDownload(QWidget):
 
     @Slot(bool)
     def on_error(self, value: bool) -> None:
+        self.btn_download.setEnabled(True)
         if not value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(0)
@@ -111,3 +113,4 @@ class PageDownload(QWidget):
     def click_download(self) -> None:
         self.start_animation()
         self.start_download()
+        self.btn_download.setEnabled(False)

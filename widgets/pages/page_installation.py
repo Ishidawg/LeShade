@@ -145,6 +145,7 @@ class PageInstallation(QWidget):
 
     def on_install_clicked(self) -> None:
         self.installation()
+        self.btn_install.setEnabled(False)
 
     @Slot(int)
     def update_progress(self, value: int) -> None:
@@ -152,12 +153,14 @@ class PageInstallation(QWidget):
 
     @Slot(bool)
     def on_sucess(self, value: bool) -> None:
+        self.btn_install.setEnabled(True)
         if value:
             self.progress_bar.setFormat("Installation finished!")
             self.install_finished.emit(value)
 
     @Slot(bool)
     def on_error(self, value: bool) -> None:
+        self.btn_install.setEnabled(True)
         if not value:
             self.progress_bar.setFormat("Error while installing")
             self.install_finished.emit(value)

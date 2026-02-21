@@ -80,6 +80,7 @@ class PageClone(QWidget):
         self.start_animation()
         self.append_selections(self.selections)
         self.start_clone(game_dir)
+        self.btn_install.setEnabled(False)
 
     def append_selections(self, selections: list[str]):
         for checkbox in self.cxb_list:
@@ -114,6 +115,7 @@ class PageClone(QWidget):
 
     @Slot(bool)
     def on_success(self, value: bool) -> None:
+        self.btn_install.setEnabled(True)
         if value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(100)
@@ -125,6 +127,7 @@ class PageClone(QWidget):
 
     @Slot(bool)
     def on_error(self, value: bool) -> None:
+        self.btn_install.setEnabled(True)
         if not value:
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("Failed shader proccess")
