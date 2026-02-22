@@ -11,12 +11,15 @@
 *This project started as a university project, and I already mentioned that in the [old readme file](https://github.com/Ishidawg/LeShade/blob/main/OLD-README.md). The project grew and became a passion project, and now I think it's good to have a new readme file.*
 
 LeShade is a reshade manager for linux, thinks of a mod manager, but specifically for reshade. It include features like:
-- Common APIs support *(DX9, DX10, DX11, DX12/Vulkan, OpenGL)*
+- Common APIs support *(DX9, DX10, DX11, DX12, OpenGL)*
 - Direct3D 8.x support
 - ReShade with **addon** and **non-addon** versions
 - ReShade with release versions support
 - Uninstall ReShade per game basis from previous installations
 - Many shaders repositories
+
+### Why did Vulkan is not on the Common APIs support?
+If you plan to install _ReShade_ on a _Vulkan_ game on Linux, I suggest you to use [VkBasalt](https://github.com/DadSchoorse/vkBasalt). When using ReShade on a game that uses Vulkan, you can't just rename a `.dll` and place it on games directory, it uses a global directory for ReShade, usually on `C:\ProgramData\ReShade` and have those `.dll` into that directory, with the `.json` files that has the path mentioned in a registry key so ReShade can work with Vulkan api. On Linux this is not the case, I did the manuall steps and even tried to install `VulkanRT-X64-1.4.341.0-Installer.exe` with _protontricks_ and _WINEPREFIX_ but no success. You can try to add it yourself and even download the runtimes from Vulkan and replace the `vulkan-1.dll` inside `System32` to see if you have more luck than I have, but I don't thik so. If you are an developer that knows hows to fixed it, be welcome to contribute to the project. Unfortunatly, I can't support ReShade on games that uses Vulkan on windows, and by Vulkan I mean **native**, not DXVK, this is fine.
 
 ## Usage
 The program it self is very intuitive, so if you already used a mod manager or even the reshade installer *"à la"* Wizard you will no likely not have any problems. Even though I have made a [video guide](https://youtu.be/ge8558huYfE). You can download the AppImage or Flatpak version on [release page](https://github.com/Ishidawg/LeShade/releases).
@@ -50,7 +53,7 @@ I have tested each build *(AppImage and Flatpak)* on *Oracle Virtual* with those
 The logo was made by me on *Inkscape*.
 
 ### Files
-LeShade createas folder on the `config`with a json file called `manager.json`. It stores the path and the name of the game so it can be used to show the game name on uninstall list as well to uninstall the game properly by using the path stored inside the file.
+LeShade creates folder on the `config`with a json file called `manager.json`. It stores the path and the name of the game so it can be used to show the game name on uninstall list as well to uninstall the game properly by using the path stored inside the file.
 
 There is a key difference between where the `leshade/manager.json` will be on your computer depending on the version that you're using.
 
