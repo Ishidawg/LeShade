@@ -60,8 +60,8 @@ class PageInstallation(QWidget):
         self.radio_d3d9 = QRadioButton("D3D 9")
         self.radio_d3d10 = QRadioButton("D3D 10")
         self.radio_d3d11 = QRadioButton("D3D 11")
-        self.radio_vulkan = QRadioButton("Vulkan/D3D 12")
-        self.radio_vulkan.setChecked(True)
+        self.radio_d3d12 = QRadioButton("D3D 12")
+        self.radio_d3d12.setChecked(True)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setTextVisible(True)
@@ -84,7 +84,7 @@ class PageInstallation(QWidget):
         layout_api.addWidget(self.radio_d3d9, 0, 2)
         layout_api.addWidget(self.radio_d3d10, 1, 0)
         layout_api.addWidget(self.radio_d3d11, 1, 1)
-        layout_api.addWidget(self.radio_vulkan, 1, 2)
+        layout_api.addWidget(self.radio_d3d12, 1, 2)
         layout.addLayout(layout_api)
         layout.addSpacing(10)
 
@@ -172,7 +172,7 @@ class PageInstallation(QWidget):
             self.radio_d3d9: self.radio_d3d9.text(),
             self.radio_d3d10: self.radio_d3d10.text(),
             self.radio_d3d11: self.radio_d3d11.text(),
-            self.radio_vulkan: self.radio_vulkan.text()
+            self.radio_d3d12: self.radio_d3d12.text()
         }
 
         for key, value in available_api.items():
