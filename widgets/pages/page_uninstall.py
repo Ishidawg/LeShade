@@ -1,6 +1,7 @@
 import shutil
 import os
 
+from PySide6.QtGui import QRegion
 from PySide6.QtWidgets import (
     QLabel,
     QListWidget,
@@ -80,7 +81,7 @@ class PageUninstall(QWidget):
             # Remove game from list and reset
             widget_list.takeItem(current_row)
             widget_list.updateEditorData()
-            widget_list.update()
+            widget_list.update(QRegion(str(widget_list)))
             widget_list.reset()
 
             # update the values so we can get the correct game_path
