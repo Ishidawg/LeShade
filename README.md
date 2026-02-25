@@ -37,6 +37,14 @@ The program it self is very intuitive, so if you already used a mod manager or e
 3. Execute on terminal: `flatpak install ./LeShade-x86_64.flatpak`
 4. Done!
 
+### Arch Linux instructions:
+I have uploaded a leshade-git package to the AUR that get always the latests commit.
+
+**Leshade-git:**
+1. Open the terminal
+2. `paru -S leshade-git` or `yay -S leshade-git`
+3. Done!
+
 **Direct3D 8.0 instructions:**
 If you are installing ReShade on game that uses Direct3D 8.0, you **must** add the environment variables on your game launcher *(Steam, Heroic Games Lancher, Lutris, Faugus Launcher)*. Here are two examples of how you can do to set those on Steam and Heroic.
 <div align="center">
