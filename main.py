@@ -308,7 +308,7 @@ class MainWindow(QMainWindow):
         self.clean_cache()
 
 
-if __name__ == "__main__":
+def main() -> None:
     app = QApplication(sys.argv)
 
     app.setOrganizationName("Ishidawg")
@@ -323,3 +323,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
