@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leshade"
+version = "2.3"
+description = "An ReShade manager for linux."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = ["PySide6"]
+
+[project.scripts]
+leshade = "main:main"
+
+[tool.setuptools]
+py-modules = ["main"]
+packages = ["scripts_core", "utils", "widgets"]
+
+[tool.setuptools.package-data]
+"*" = ["assets/*", "d3dcompiler_dll/*"]
