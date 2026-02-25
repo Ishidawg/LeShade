@@ -313,12 +313,17 @@ def main() -> None:
 
     app.setOrganizationName("Ishidawg")
     app.setApplicationName("LeShade")
+    app.setDesktopFileName("io.github.ishidawg.LeShade")
 
     local_dir: str = get_localdir()
     icon_path: str = os.path.join(local_dir, "assets", "logo.png")
 
+    sys_icon_path: str = "/usr/share/icons/hicolor/256x256/apps/leshade.png"
+
     if os.path.exists(icon_path):
         app.setWindowIcon(QIcon(icon_path))
+    else:
+        app.setWindowIcon(QIcon(sys_icon_path))
 
     window = MainWindow()
     window.show()
