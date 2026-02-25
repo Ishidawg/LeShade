@@ -16,7 +16,7 @@ leshade = "main:main"
 
 [tool.setuptools]
 py-modules = ["main"]
-packages = ["scripts_core", "utils", "widgets"]
+packages = ["scripts_core", "utils", "widgets", "widgets.pages"]
 
 [tool.setuptools.package-data]
-"*" = ["assets/*", "d3dcompiler_dll/*"]
+"*" = ["assets/*"]
