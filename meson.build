@@ -6,7 +6,7 @@ project(
   license_files: 'LICENSE',
 )
 
-app_dir = '/opt/leshade'
+app_dir = get_option('datadir') / 'leshade'
 
 install_data('main.py', install_dir: app_dir, install_mode: 'rwxr-xr-x')
 
