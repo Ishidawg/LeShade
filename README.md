@@ -38,7 +38,12 @@ The program it self is very intuitive, so if you already used a mod manager or e
 4. Done!
 
 ### Arch Linux instructions:
-I have uploaded a leshade-git package to the AUR that get always the latests commit.
+You have some options on AUR, the `leshade-git` package that get always the latests commit and the `leshade-bin` _(thanks to [@italoghost](https://github.com/italoghost))_ that get's the latest release _(not commit)_.
+
+**Leshade-bin:**
+1. Open the terminal
+2. `paru -S leshade-bin` or `yay -S leshade-bin`
+3. Done!
 
 **Leshade-git:**
 1. Open the terminal
