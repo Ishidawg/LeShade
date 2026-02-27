@@ -29,6 +29,9 @@ from widgets.widget_bottom_buttons import WidgetBottomButtons
 from utils.utils import EXTRACT_PATH, format_game_name
 from scripts_core.script_manager import create_manager, add_game
 
+VERSION = "2.3.8"
+BUILD_TYPE = "Release"
+
 
 def get_localdir():
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(
@@ -55,7 +58,12 @@ class MainWindow(QMainWindow):
 
         WINDOW_SIZE: list[int] = [600, 500]
 
-        self.setWindowTitle("LeShade")
+        window_title: str = f"LeShade {VERSION}"
+
+        if BUILD_TYPE == "Nightly":
+            window_title += " Nightly"
+
+        self.setWindowTitle(window_title)
         self.setMinimumSize(WINDOW_SIZE[0], WINDOW_SIZE[1])
 
         # main widget and main layout (page)
@@ -315,7 +323,7 @@ def main() -> None:
 
     app.setOrganizationName("Ishidawg")
     app.setApplicationName("LeShade")
-    app.setDesktopFileName("io.github.ishidawg.LeShade")
+    # app.setDesktopFileName("io.github.ishidawg.LeShade")
 
     local_dir: str = get_localdir()
     icon_path: str = os.path.join(local_dir, "assets", "logo.png")

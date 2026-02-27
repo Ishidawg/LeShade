@@ -22,6 +22,9 @@ Requires: python3-certifi
 %prep
 %autosetup -n LeShade-%{version}
 
+sed -i "s/^VERSION = .*/VERSION = \"%{version}\"/" main.py
+sed -i "s/^BUILD_TYPE = .*/BUILD_TYPE = \"Release\"/" main.py
+
 %build
 %meson
 %meson_build
