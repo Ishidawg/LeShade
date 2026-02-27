@@ -29,8 +29,8 @@ from widgets.widget_bottom_buttons import WidgetBottomButtons
 from utils.utils import EXTRACT_PATH, format_game_name
 from scripts_core.script_manager import create_manager, add_game
 
-VERSION = "2.3.8"
-BUILD_TYPE = "Release"
+app_version: str = "2.3.8"
+build_type: str = "Release"
 
 
 def get_localdir():
@@ -58,9 +58,9 @@ class MainWindow(QMainWindow):
 
         WINDOW_SIZE: list[int] = [600, 500]
 
-        window_title: str = f"LeShade {VERSION}"
+        window_title: str = f"LeShade {app_version}"
 
-        if BUILD_TYPE == "Nightly":
+        if build_type == "Nightly":
             window_title += " Nightly"
 
         self.setWindowTitle(window_title)
