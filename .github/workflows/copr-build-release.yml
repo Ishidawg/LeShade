@@ -28,12 +28,11 @@ jobs:
 
       - name: Do tarball and versions
         run: |
-          PKG_NAME=$(grep -m1 "^Name:" fedora/leshade.spec | awk '{print $2}')
           PKG_VERSION=$(grep -m1 "^Version:" fedora/leshade.spec | awk '{print $2}')
 
           rpmdev-setuptree
 
-          tar --transform "s|^|LeShade-$PKG_VERSION/|" -czf ~/rpmbuild/SOURCES/$PKG_NAME-$PKG_VERSION.tar.gz .
+          tar --transform "s|^|LeShade-$PKG_VERSION/|" -czf ~/rpmbuild/SOURCES/LeShade-$PKG_VERSION.tar.gz .
 
       - name: sendo to COPR (leshade)
         run: |
