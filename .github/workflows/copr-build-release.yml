@@ -1,16 +1,18 @@
-name: Update Fedora package
+name: Update Fedora release
 
 on:
-  push:
-    tags:
-      - '[0-9]*'
+  release:
+    types: [published]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: fedora::latest
+    container: fedora:latest
 
     steps:
+      - name: Install Git
+        run: dnf install -y git
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -26,15 +28,14 @@ jobs:
 
       - name: Do tarball and versions
         run: |
-          VERSION="${{ github.ref_name }}"
-
-          sed -i "s/^Version:.*/Version: $VERSION/" fedora/leshade.spec
+          PKG_NAME=$(grep -m1 "^Name:" fedora/leshade.spec | awk '{print $2}')
+          PKG_VERSION=$(grep -m1 "^Version:" fedora/leshade.spec | awk '{print $2}')
 
           rpmdev-setuptree
 
-          tar --transform "s|^|LeShade-$VERSION/|" -czf ~/rpmbuild/SOURCES/LeShade-$VERSION.tar.gz .
+          tar --transform "s|^|LeShade-$PKG_VERSION/|" -czf ~/rpmbuild/SOURCES/$PKG_NAME-$PKG_VERSION.tar.gz .
 
-      - name: sendo to COPR
+      - name: sendo to COPR (leshade)
         run: |
           rpmbuild -bs fedora/leshade.spec
           copr-cli build leshade ~/rpmbuild/SRPMS/*.src.rpm

@@ -1,4 +1,4 @@
-name: Update Fedora package
+name: Update Fedora nightly
 
 on:
   push:
@@ -45,4 +45,4 @@ jobs:
       - name: sendo to COPR
         run: |
           rpmbuild -bs fedora/leshade.spec
-          copr-cli build -r fedora-42-x86_64 leshade-git ~/rpmbuild/SRPMS/*.src.rpm
+          copr-cli build leshade-git ~/rpmbuild/SRPMS/*.src.rpm
