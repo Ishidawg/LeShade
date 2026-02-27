@@ -25,11 +25,13 @@ jobs:
 
       - name: Do tarball and versions
         run: |
+          git config --global --add safe.directory '*'
+
           BASE_VERSION=$(grep -m1 "Version:" fedora/leshade.spec | awk '{print $2}')
           DATE=$(date +%d%m%Y)
           HASH=$(git rev-parse --short HEAD)
           COUNT=$(git rev-list --count HEAD)
-          SNAPSHOTS_VERSION="${BASE_VERSION}+git.${DATE}.${COUNT}.${HASH}"
+          SNAPSHOT_VERSION="${BASE_VERSION}+git.${DATE}.${COUNT}.${HASH}"
 
           sed -i "s/^Version:.*/Version: $SNAPSHOT_VERSION/" fedora/leshade.spec
 
