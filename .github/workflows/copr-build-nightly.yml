@@ -10,7 +10,7 @@ jobs:
     container: fedora:latest
 
     steps:
-      - name: Install git
+      - name: Install Git
         run: dnf install -y git
 
       - name: Checkout
@@ -28,21 +28,21 @@ jobs:
 
       - name: Do tarball and versions
         run: |
-          git config --global --add safe.directory '*'
+          BASE_VERSION=$(grep -m1 "^Version:" fedora/leshade-nighlty.spec | awk '{print $2}')
 
-          BASE_VERSION=$(grep -m1 "Version:" fedora/leshade.spec | awk '{print $2}')
           DATE=$(date +%d%m%Y)
           HASH=$(git rev-parse --short HEAD)
           COUNT=$(git rev-list --count HEAD)
+
           SNAPSHOT_VERSION="${BASE_VERSION}+git.${DATE}.${COUNT}.${HASH}"
 
-          sed -i "s/^Version:.*/Version: $SNAPSHOT_VERSION/" fedora/leshade.spec
+          sed -i "s/^Version:.*/Version: $SNAPSHOT_VERSION/" fedora/leshade-nightly.spec
 
           rpmdev-setuptree
 
           tar --transform "s|^|LeShade-$SNAPSHOT_VERSION/|" -czf ~/rpmbuild/SOURCES/LeShade-$SNAPSHOT_VERSION.tar.gz .
 
-      - name: sendo to COPR
+      - name: sendo to COPR (leshade-nightly)
         run: |
-          rpmbuild -bs fedora/leshade.spec
-          copr-cli build leshade-git ~/rpmbuild/SRPMS/*.src.rpm
+          rpmbuild -bs fedora/leshade-nightly.spec
+          copr-cli build leshade-nightly ~/rpmbuild/SRPMS/*.src.rpm
