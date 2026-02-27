@@ -37,6 +37,9 @@ modules:
   - name: leshade
     buildsystem: simple
     build-commands:
+      - PKG_VERSION=$(grep -m1 "version:" meson.build | cut -d"'" -f2) && sed -i "s/^VERSION = .*/VERSION = \"$PKG_VERSION\"/" main.py
+      - sed -i "s/^BUILD_TYPE = .*/BUILD_TYPE = \"Release\"/" main.py
+
       - install -D -m 644 LICENSE /app/share/licenses/io.github.ishidawg.LeShade/LICENSE
       - install -D -m 644 flatpak/io.github.ishidawg.LeShade.metainfo.xml /app/share/metainfo/io.github.ishidawg.LeShade.metainfo.xml
 
