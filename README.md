@@ -50,6 +50,15 @@ You have some options on AUR, the `leshade-git` package that get always the late
 2. `paru -S leshade-git` or `yay -S leshade-git`
 3. Done!
 
+### Fedora instructions:
+I've managed to create a build to _Fedora copr_ with the latest release of LeShade.
+
+**leshade**
+1. Open the terminal
+2. ```sudo dnf copr enable ishidaw/leshade```
+3. ```sudo dnf install leshade```
+4. Done!
+
 **Direct3D 8.0 instructions:**
 If you are installing ReShade on game that uses Direct3D 8.0, you **must** add the environment variables on your game launcher *(Steam, Heroic Games Lancher, Lutris, Faugus Launcher)*. Here are two examples of how you can do to set those on Steam and Heroic.
 <div align="center">
