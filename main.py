@@ -29,7 +29,7 @@ from widgets.widget_bottom_buttons import WidgetBottomButtons
 from utils.utils import EXTRACT_PATH, format_game_name
 from scripts_core.script_manager import create_manager, add_game
 
-app_version: str = "2.3.8"
+app_version: str = "2.3.9"
 build_type: str = "Release"
 
 
