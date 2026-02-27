@@ -28,12 +28,6 @@ jobs:
         pip install certifi
         pip install pyinstaller
 
-    - name: Update Version
-      run: |
-        PKG_VERSION=$(grep -m1 "^Version:" leshade.spec | awk '{print $2}')
-        sed -i "s/^VERSION = .*/VERSION = \"$PKG_VERSION\"/" main.py
-        sed -i "s/^BUILD_TYPE = .*/BUILD_TYPE = \"Release\"/" main.py
-
     - name: Create Executable
       run: |
         pyinstaller --noconfirm --onedir --windowed --clean \
