@@ -7,6 +7,9 @@ License: MIT
 URL: https://github.com/Ishidawg/LeShade
 Source0: LeShade-%{version}.tar.gz
 
+Conflicts: leshade
+Provides: leshade = %{version}
+
 BuildArch: noarch
 BuildRequires: git
 BuildRequires: meson
@@ -29,12 +32,13 @@ Requires: python3-certifi
 %install
 %meson_install
 
+# Need to pass leshade instead of name cuz mason give leshade but the package name is leshade-nightly
 %files
-%{_bindir}/%{name}
-%{_datadir}/%{name}/
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/icons/hicolor/256x256/apps/%{name}.png
-%{_datadir}/licenses/%{name}/LICENSE
+%{_bindir}/leshade
+%{_datadir}/leshade
+%{_datadir}/applications/leshade.desktop
+%{_datadir}/icons/hicolor/256x256/apps/leshade.png
+%{_datadir}/licenses/leshade/LICENSE
 %doc README.md
 
 %changelog

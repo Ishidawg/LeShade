@@ -47,4 +47,4 @@ jobs:
       - name: sendo to COPR (leshade-nightly)
         run: |
           rpmbuild -bs fedora/leshade-nightly.spec
-          copr-cli build leshade-nightly ~/rpmbuild/SRPMS/*.src.rpm
+          copr-cli build -r leshade-nightly ~/rpmbuild/SRPMS/*.src.rpm
