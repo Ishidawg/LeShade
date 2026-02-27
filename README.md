@@ -8,6 +8,7 @@
 	</div>
 	<div>
 		<a href="https://copr.fedorainfracloud.org/coprs/ishidaw/leshade/package/leshade/"><img src="https://copr.fedorainfracloud.org/coprs/ishidaw/leshade/package/leshade/status_image/last_build.png" /></a>
+		<img alt="AUR Version" src="https://img.shields.io/aur/version/leshade-git">
 	</div>
 </div>
 
