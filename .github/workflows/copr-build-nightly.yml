@@ -30,7 +30,7 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/LeShade/LeShade
 
-          BASE_VERSION=$(grep -m1 "^Version:" fedora/leshade-nighlty.spec | awk '{print $2}')
+          BASE_VERSION=$(grep -m1 "^Version:" fedora/leshade-nightly.spec | awk '{print $2}')
 
           DATE=$(date +%d%m%Y)
           HASH=$(git rev-parse --short HEAD)
