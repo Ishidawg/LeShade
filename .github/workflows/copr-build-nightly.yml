@@ -28,6 +28,8 @@ jobs:
 
       - name: Do tarball and versions
         run: |
+          git config --global --add safe.directory /__w/LeShade/LeShade
+
           BASE_VERSION=$(grep -m1 "^Version:" fedora/leshade-nighlty.spec | awk '{print $2}')
 
           DATE=$(date +%d%m%Y)
