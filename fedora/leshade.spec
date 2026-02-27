@@ -1,5 +1,5 @@
 Name: leshade
-Version: 2.3.7
+Version: 2.3.9
 Release: 1%{?dist}
 Summary: Official build for LeShade. An ReShade Manager for Linux.
 
@@ -38,5 +38,5 @@ Requires: python3-certifi
 %doc README.md
 
 %changelog
-* Thu Feb 26 2026 Ishidaw <willianscagol@gmail.com> - 2.3.7-1
-- Trying to build with github actions, LeShade Stable Release 2.3.7
+* Thu Feb 27 2026 Ishidaw <willianscagol@gmail.com> - 2.3.9-1
+- Trying to build with github actions, LeShade Stable Release 2.3.9
