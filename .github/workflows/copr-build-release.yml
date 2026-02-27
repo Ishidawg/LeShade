@@ -2,7 +2,7 @@ name: Update Fedora release
 
 on:
   release:
-    types: [published]
+    types: [published, push]
 
 jobs:
   build:
