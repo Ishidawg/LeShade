@@ -17,7 +17,7 @@ install_subdir('assets', install_dir: app_dir)
 
 install_symlink('leshade',
   install_dir: get_option('bindir'),
-  pointing_to: app_dir / 'main.py'
+  pointing_to: get_option('prefix') / app_dir / 'main.py'
 )
 
 install_data('flatpak/io.github.ishidawg.LeShade.desktop',
