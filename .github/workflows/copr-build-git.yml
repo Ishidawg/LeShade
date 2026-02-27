@@ -10,6 +10,9 @@ jobs:
     container: fedora:latest
 
     steps:
+      - name: Install git
+        run: dnf install -y git
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
