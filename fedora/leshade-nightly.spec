@@ -1,5 +1,5 @@
 Name: leshade-nightly
-Version: 2.3.7
+Version: 2.4.0
 Release: 1%{?dist}
 Summary: Official build for LeShade Nightly. An ReShade Manager for Linux.
 
