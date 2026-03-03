@@ -106,6 +106,9 @@ class PageInstallation(QWidget):
             self.game_path = file_name[0]
             self.current_executable_path.emit(self.game_path)
 
+        self.update_install_button()
+        self.progress_bar.reset()
+
     def start_installation(self) -> None:
         self.install_thread: QThread = QThread()
         self.install_worker: InstallationWorker = InstallationWorker(
@@ -145,7 +148,15 @@ class PageInstallation(QWidget):
 
     def on_install_clicked(self) -> None:
         self.installation()
+        self.update_install_button()
+
         self.btn_install.setEnabled(False)
+
+    def update_install_button(self) -> None:
+        if not self.game_path:
+            self.btn_install.setEnabled(False)
+        else:
+            self.btn_install.setEnabled(True)
 
     @Slot(int)
     def update_progress(self, value: int) -> None:
