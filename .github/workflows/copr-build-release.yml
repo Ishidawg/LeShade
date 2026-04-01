@@ -1,0 +1,43 @@
+name: Update Fedora release
+
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+
+    steps:
+      - name: Install Git
+        run: dnf install -y git
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: dnf install -y copr-cli rpm-build rpmdevtools
+
+      - name: API stuff
+        run: |
+          mkdir -p ~/.config
+          echo "${{ secrets.COPR_CONFIG }}" > ~/.config/copr
+
+      - name: Do tarball and versions
+        run: |
+          PKG_VERSION=$(grep -m1 "^Version:" fedora/leshade.spec | awk '{print $2}')
+
+          rpmdev-setuptree
+
+          tar --transform "s|^|LeShade-$PKG_VERSION/|" -czf ~/rpmbuild/SOURCES/LeShade-$PKG_VERSION.tar.gz .
+
+      - name: sendo to COPR (leshade)
+        run: |
+          rpmbuild -bs fedora/leshade.spec
+          copr-cli build leshade ~/rpmbuild/SRPMS/*.src.rpm
