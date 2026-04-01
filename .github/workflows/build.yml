@@ -1,8 +1,8 @@
-name: Build AppImage
+name: Build AppImage - Playground
 
 on:
   push:
-    branches: ["main"]
+    branches: ["playground"]
   workflow_dispatch:
 
 jobs:

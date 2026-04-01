@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QCheckBox
 )
 
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
@@ -50,6 +51,7 @@ class PageInstallation(QWidget):
 
         self.browse_input = QLineEdit()
         self.browse_button = QPushButton("browse")
+        self.use_native_dialog = QCheckBox("Use native file dialog")
 
         label_api = QLabel("Select game api")
         label_api.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -77,6 +79,7 @@ class PageInstallation(QWidget):
         layout_browse.addWidget(self.browse_input)
         layout_browse.addWidget(self.browse_button)
         layout.addLayout(layout_browse)
+        layout.addWidget(self.use_native_dialog)
         layout.addSpacing(10)
 
         layout_api.addWidget(self.radio_opengl, 0, 0)
@@ -98,8 +101,14 @@ class PageInstallation(QWidget):
         self.setLayout(layout)
 
     def on_browse_clicked(self) -> None:
+        options = (
+            QFileDialog.Option(0)
+            if self.use_native_dialog.checkState() == Qt.CheckState.Checked
+            else QFileDialog.Option.DontUseNativeDialog
+        )
+
         file_name: tuple[str, str] = QFileDialog.getOpenFileName(
-            self, "Select game executable", HOME, options=QFileDialog.Option.DontUseNativeDialog)
+            self, "Select game executable", HOME, "Executables (*.exe)", options=options)
 
         if file_name:
             self.browse_input.setText(file_name[0])

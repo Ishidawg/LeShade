@@ -1,8 +1,8 @@
-name: Build Flatpak
+name: Build Flatpak - Playground
 
 on:
   push:
-    branches: ["main"]
+    branches: ["playground"]
   workflow_dispatch:
 
 jobs:
