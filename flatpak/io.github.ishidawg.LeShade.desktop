@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=LeShade
+Exec=leshade
+Icon=io.github.ishidawg.LeShade
+Categories=Utility;Game;
+Comment=A ReShade manager for linux.
+Terminal=false

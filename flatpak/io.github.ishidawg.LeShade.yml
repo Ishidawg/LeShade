@@ -1,0 +1,51 @@
+app-id: io.github.ishidawg.LeShade
+
+runtime: org.kde.Platform
+runtime-version: '6.9'
+sdk: org.kde.Sdk
+
+base: io.qt.PySide.BaseApp
+base-version: '6.9'
+cleanup-commands:
+  - /app/cleanup-BaseApp.sh
+
+command: leshade
+
+finish-args:
+    - --share=ipc
+    - --socket=fallback-x11
+    - --socket=wayland
+    - --share=network
+    - --device=dri
+    - --filesystem=home
+    - --filesystem=/mnt
+    - --filesystem=/run/media
+
+modules:
+  
+  # Need certifi lib so I can download all the files (.exe, .dll, .fx, .png....) using urllib
+  - name: python3-certifi
+    buildsystem: simple
+    build-commands:
+      - pip3 install --verbose --prefix=/app certifi-2026.1.4-py3-none-any.whl
+    
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/e6/ad/3cc14f097111b4de0040c83a525973216457bbeeb63739ef1ed275c1c021/certifi-2026.1.4-py3-none-any.whl
+        sha256: 9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c
+
+  - name: leshade
+    buildsystem: simple
+    build-commands:
+      - install -D -m 644 LICENSE /app/share/licenses/io.github.ishidawg.LeShade/LICENSE
+      - install -D -m 644 flatpak/io.github.ishidawg.LeShade.metainfo.xml /app/share/metainfo/io.github.ishidawg.LeShade.metainfo.xml
+
+      - mkdir -p /app/share/leshade
+      - cp -r . /app/share/leshade/
+      - install -Dm755 flatpak/leshade.sh /app/bin/leshade
+      - install -Dm644 assets/logo256.png /app/share/icons/hicolor/256x256/apps/io.github.ishidawg.LeShade.png
+      - install -Dm644 flatpak/io.github.ishidawg.LeShade.desktop /app/share/applications/io.github.ishidawg.LeShade.desktop
+ 
+    sources:
+      - type: dir
+        path: ..
