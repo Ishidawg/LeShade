@@ -11,7 +11,6 @@ CACHE_PATH: str = QStandardPaths.writableLocation(
 EXTRACT_PATH: str = os.path.join(CACHE_PATH, "reshade_extracted")
 TAGS_URL: str = "https://github.com/crosire/reshade/tags"
 
-
 def generic_download(url: str, directory: str | None) -> None | str:
     context: ssl.SSLContext = ssl.create_default_context(
         cafile=certifi.where())
@@ -20,7 +19,6 @@ def generic_download(url: str, directory: str | None) -> None | str:
 
     try:
         with urllib.request.urlopen(req, context=context) as res:
-
             if directory:
                 with open(directory, "wb") as file:
                     file.write(res.read())
@@ -36,13 +34,11 @@ def format_game_name(game_dir: str) -> str:
     game_name = os.path.splitext(game_base_name)[0]
     return game_name
 
-
 def get_reshade_tags(after: str | None) -> list[str] | None:
     try:
         if after:
             # Other pages
-            tag_page: str | None = generic_download(
-                f"{TAGS_URL}?after=v{after}", None)
+            tag_page: str | None = generic_download(f"{TAGS_URL}?after=v{after}", None)
         else:
             # First page
             tag_page: str | None = generic_download(TAGS_URL, None)
