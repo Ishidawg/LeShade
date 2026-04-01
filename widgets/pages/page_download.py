@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 from PySide6.QtCore import Qt, Signal, Slot, QThread
 from scripts_core.script_download_re import DownloadWorker
+from utils.utils import get_reshade_tags
 
 
 class PageDownload(QWidget):
@@ -21,6 +22,9 @@ class PageDownload(QWidget):
         self.reshade_versions: list[str] = ["addon", "non-addon"]
         self.reshade_releases: list[str] = ["6.7.1", "6.7.0",
                                             "6.6.2", "6.6.1", "6.6.0", "6.5.1", "6.5.0"]
+
+        self.more: str = "More"
+        self.search_available_versions(None)
 
         # create layout
         layout = QVBoxLayout()
@@ -36,6 +40,7 @@ class PageDownload(QWidget):
 
         self.reshade_version = QComboBox()
         self.reshade_release = QComboBox()
+        self.reshade_release.activated.connect(self.on_release_selected)
 
         for item in self.reshade_versions:
             self.reshade_version.addItem(item)
@@ -114,3 +119,32 @@ class PageDownload(QWidget):
         self.start_animation()
         self.start_download()
         self.btn_download.setEnabled(False)
+
+    def on_release_selected(self, index: int) -> None:
+        # Search for more releases if the user clicked in the "More" item.
+        # It should always be the last item, but might not be present if there was an error when searching the first tags page in reshade's github
+
+        if self.reshade_release.itemText(index) == self.more:
+            self.search_available_versions(self.reshade_releases[-2])
+            # Set the selection to the last known value before "More" was selected
+            self.reshade_release.setCurrentIndex(index - 1)
+
+            # Insert new items before "More"
+            self.reshade_release.insertItems(
+                index, self.reshade_releases[index:-1])
+
+    def search_available_versions(self, after: str | None) -> None:
+        tags: list[str] | None = get_reshade_tags(after)
+
+        if not tags:
+            # Don't change list in case of error. This will keep the hardcoded list as is if it happens on startup.
+            return
+
+        if not after:
+            # Special handling for first page of tags.
+            # Clean hardcoded list and add a "More" entry for manually searching other pages.
+            self.reshade_releases = [self.more]
+
+        for tag in tags:
+            # Make sure the "More" entry is always the last one
+            self.reshade_releases.insert(len(self.reshade_releases) - 1, tag)
