@@ -71,12 +71,13 @@ class PageUninstall(QWidget):
             files_tbr: list[str] = ["opengl32.dll", "d3d8.dll", "d3d9.dll", "d3d10.dll", "d3d11.dll", "dxgi.dll",
                                     "" if have_hlsl_compiler else "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
 
-            if os.path.exists(shaders_dir):
-                shutil.rmtree(shaders_dir)
+            if os.path.exists(game_path):
+                if os.path.exists(shaders_dir):
+                    shutil.rmtree(shaders_dir)
 
-            for file in files_tbr:
-                if file in os.listdir(game_path):
-                    os.remove(os.path.join(game_path, file))
+                for file in files_tbr:
+                    if file in os.listdir(game_path):
+                        os.remove(os.path.join(game_path, file))
 
             # Remove game from list and reset
             widget_list.takeItem(current_row)
