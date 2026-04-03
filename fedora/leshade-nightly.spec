@@ -1,5 +1,5 @@
 Name: leshade-nightly
-Version: 2.4.0
+Version: 2.4.1
 Release: 1%{?dist}
 Summary: Official build for LeShade Nightly. An ReShade Manager for Linux.
 
@@ -42,5 +42,5 @@ Requires: python3-certifi
 %doc README.md
 
 %changelog
-* Thu Feb 26 2026 Ishidaw <willianscagol@gmail.com> - 2.3.7-1
-- Trying to build with github actions, LeShade Nightly Release 2.3.7
+* Wed April 01 2026 Ishidaw <willianscagol@gmail.com> - 2.4.1-1
+- LeShade Nightly Release 2.4.1
