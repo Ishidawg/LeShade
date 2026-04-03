@@ -1,4 +1,5 @@
 import shutil
+import glob
 import os
 
 from PySide6.QtWidgets import (
@@ -68,16 +69,32 @@ class PageUninstall(QWidget):
             have_hlsl_compiler: str = read_hlsl_flag(
                 current_row, "hlsl_compiler")
 
-            files_tbr: list[str] = ["opengl32.dll", "d3d8.dll", "d3d9.dll", "d3d10.dll", "d3d11.dll", "dxgi.dll",
-                                    "" if have_hlsl_compiler else "d3dcompiler_47.dll", "ReShade.ini", "ReShade.log", "ReShadePreset.ini", "ReShade*", "reshade*"]
+            remove_files_complete: list[str] = [
+                "opengl32.dll", "d3d8.dll", "d3d9.dll", "d3d10.dll", "d3d11.dll", "dxgi.dll"]
+            if not have_hlsl_compiler:
+                remove_files_complete.append("d3dcompiler_47.dll")
+
+            remove_files_pattern: list[str] = [
+                "ReShade*.*",
+                "reshade*.*",
+                "renodx*.*"
+            ]
 
             if os.path.exists(game_path):
                 if os.path.exists(shaders_dir):
                     shutil.rmtree(shaders_dir)
 
-                for file in files_tbr:
+                for file in remove_files_complete:
                     if file in os.listdir(game_path):
                         os.remove(os.path.join(game_path, file))
+
+                for pattern in remove_files_pattern:
+                    file_match: str = os.path.join(game_path, pattern)
+                    glob_result: list[str] = glob.glob(file_match)
+
+                    for file_found in glob_result:
+                        if os.path.exists(file_found):
+                            os.remove(file_found)
 
             # Remove game from list and reset
             widget_list.takeItem(current_row)
