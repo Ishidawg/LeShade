@@ -62,9 +62,10 @@ REPO_SHADERS = {
 class ShadersWorker(QObject):
     clone_finished: Signal = Signal(bool)
 
-    def __init__(self, selections: list[str], game_dir):
+    def __init__(self, selections: list[str], renodx_asset, game_dir):
         super().__init__()
 
+        self.selected_renodx_asset: str = renodx_asset
         self.game_path: str = game_dir
         self.selected_repos: list[str] = selections
         self.total_repos: int = 0
@@ -103,6 +104,12 @@ class ShadersWorker(QObject):
         except Exception as e:
             raise IOError(f"Clone reshade failed: {e}") from e
 
+    async def download_renodx_asset(self, asset_url: str, game_dir: str) -> None:
+        try:
+            generic_download(asset_url, game_dir)
+        except Exception as e:
+            raise IOError(f"Download renodx asset failed: {e}") from e
+
     async def install_shaders(self) -> None:
         if not self.game_path:
             raise ValueError("Path error")
@@ -118,7 +125,7 @@ class ShadersWorker(QObject):
 
                 if not repo_data:
                     continue
-
+                # Shaders
                 repo_name: str = repo_key
                 repo_branch: str = repo_data["branch"]
                 repo_url: str = repo_data["url"]
@@ -128,7 +135,12 @@ class ShadersWorker(QObject):
                 zipped_shader_dir: str = os.path.join(
                     self.shader_temp_directory, f"{repo_name}.zip")
 
-                await asyncio.gather(self.download_shaders(shader_url, zipped_shader_dir), self.unzip_shader(self.shader_temp_directory, repo_name, zipped_shader_dir))
+                # RenoDX
+                renodx_url: str = f"https://github.com/clshortfuse/renodx/releases/download/snapshot/{self.selected_renodx_asset}"
+                renodx_asset_dir: str = os.path.join(
+                    self.game_path, renodx_url.split("/")[-1].strip())
+
+                await asyncio.gather(self.download_shaders(shader_url, zipped_shader_dir), self.unzip_shader(self.shader_temp_directory, repo_name, zipped_shader_dir), self.download_renodx_asset(renodx_url, renodx_asset_dir))
 
                 current_repo += 1
         except Exception as e:
