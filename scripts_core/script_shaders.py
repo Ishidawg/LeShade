@@ -105,6 +105,9 @@ class ShadersWorker(QObject):
             raise IOError(f"Clone reshade failed: {e}") from e
 
     async def download_renodx_asset(self, asset_url: str, game_dir: str) -> None:
+        if self.selected_renodx_asset == "None":
+            return
+
         try:
             generic_download(asset_url, game_dir)
         except Exception as e:
