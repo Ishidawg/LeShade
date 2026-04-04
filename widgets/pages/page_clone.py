@@ -18,10 +18,11 @@ from utils.utils import get_renodx_assets
 class PageClone(QWidget):
     clone_finished: Signal = Signal(bool)
 
-    def __init__(self):
+    def __init__(self, is_addon_param: bool):
         super().__init__()
 
         self.selections: list[str] = []
+        self.is_addon: bool = is_addon_param
 
         # create layout
         layout = QVBoxLayout()
@@ -129,6 +130,18 @@ class PageClone(QWidget):
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.btn_install)
         self.setLayout(layout)
+
+    def set_is_addon(self, value: bool) -> None:
+        self.is_addon = value
+        self.update_renodx_selector()
+
+    def update_renodx_selector(self) -> None:
+        if self.is_addon:
+            self.renodx_addon.setEnabled(True)
+        else:
+            self.renodx_addon.setEnabled(False)
+
+        self.renodx_addon.updatesEnabled()
 
     def on_install(self, game_dir: str) -> None:
         self.start_animation()

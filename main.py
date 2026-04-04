@@ -77,12 +77,15 @@ class MainWindow(QMainWindow):
         widget_dinamic.setLayout(self.layout_dynamic)
         widget_dinamic.setContentsMargins(50, 0, 50, 0)
 
+        # Tracks reshade version (addon or not)
+        self.is_addon: bool = False
+
         # Instance widgets, set widget and related
         self.action_buttons: WidgetBottomButtons = WidgetBottomButtons()
         self.page_start: PageStart = PageStart()
         self.page_download: PageDownload = PageDownload()
         self.page_installation: PageInstallation = PageInstallation()
-        self.page_clone: PageClone = PageClone()
+        self.page_clone: PageClone = PageClone(self.is_addon)
         self.page_dx8: PageDX8 = PageDX8()
 
         self.pages: list[QWidget] = [self.page_start,
@@ -107,6 +110,7 @@ class MainWindow(QMainWindow):
         self.action_buttons.btn_back.clicked.connect(self.on_back_clicked)
         self.action_buttons.btn_next.clicked.connect(self.on_next_clicked)
         self.page_download.download_finished.connect(self.on_download_finished)
+        self.page_download.is_addon.connect(self.get_is_addon)
         self.page_installation.install_finished.connect(
             self.on_install_finished)
         self.page_installation.current_game_directory.connect(
@@ -299,6 +303,15 @@ class MainWindow(QMainWindow):
         if not value:
             self.is_dx8 = value
             return
+
+    @Slot(bool)
+    def get_is_addon(self, value: bool) -> None:
+        if value:
+            self.is_addon = value
+        else:
+            self.is_addon = False
+
+        self.page_clone.set_is_addon(self.is_addon)
 
     @Slot(str)
     def get_game_directory(self, value: str) -> None:

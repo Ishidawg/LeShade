@@ -15,7 +15,6 @@ class PageDX8(QWidget):
         super().__init__()
 
         self.clipboard = QApplication.clipboard()
-        # game_name: str = game_name_param if game_name_param else "Your game"
 
         self.game_name: str | None = game_param
 

@@ -15,6 +15,7 @@ from utils.utils import get_reshade_tags
 
 class PageDownload(QWidget):
     download_finished: Signal = Signal(bool)
+    is_addon: Signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -105,6 +106,12 @@ class PageDownload(QWidget):
     @Slot(bool)
     def on_success(self, value: bool) -> None:
         self.btn_download.setEnabled(True)
+
+        if self.reshade_version.currentText() == "addon":
+            self.is_addon.emit(True)
+        else:
+            self.is_addon.emit(False)
+
         if value:
             self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(100)
@@ -128,8 +135,11 @@ class PageDownload(QWidget):
         # It should always be the last item, but might not be present if there was an error when searching the first tags page in reshade's github
         if self.reshade_release.itemText(index) == self.more:
             self.search_available_versions(self.reshade_releases[-2])
-            self.reshade_release.setCurrentIndex(index-1) # Set the selection to the last known value before "More" was selected
-            self.reshade_release.insertItems(index, self.reshade_releases[index:-1]) # Insert new items before "More"
+            # Set the selection to the last known value before "More" was selected
+            self.reshade_release.setCurrentIndex(index-1)
+            # Insert new items before "More"
+            self.reshade_release.insertItems(
+                index, self.reshade_releases[index:-1])
 
     def search_available_versions(self, after: str | None) -> None:
         tags: list[str] | None = get_reshade_tags(after)
