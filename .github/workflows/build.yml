@@ -32,6 +32,7 @@ jobs:
       run: |
         pyinstaller --noconfirm --onedir --windowed --clean \
           --name "LeShade" \
+          --runtime-hook "rthook.py" \
           --add-data "assets:assets" \
           --icon "assets/logo.png" \
           main.py
