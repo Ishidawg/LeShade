@@ -35,4 +35,4 @@ Easier understanding _(I like the way RenoDX does)_.
 | 🟩      |Hollow Knight            								   | DX11 	  |  Heroic  | Cachy OS	|None
 | 🟧      |PEAK                      								   | Vulkan 	|  Steam   | Cachy OS	|Shaders makes screen darker than usual, use DX11 or D12 instead.
 | 🟩      |Cyberpunk 2077                      				 | DX12 	  |  Steam   | Cachy OS	|No FrameGen, RT or Upscaling
-
+| 🟧      |Death Stranding 2: On the Beach     				 | DX12 	  |  Steam   | Cachy OS	|Any upscaler besides PICO causes missing visuals, only HUD elements remain
