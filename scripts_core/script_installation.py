@@ -168,8 +168,9 @@ class InstallationWorker(QObject):
         reshade_dll_renamed_destination: str = os.path.join(
             self.game_path_parent, reshade_dll_renamed)
 
-        if not Path(reshade_dll_renamed_destination).exists():
-            shutil.copy(reshade_dll_dir, reshade_dll_renamed_destination)
+        # if not Path(reshade_dll_renamed_destination).exists():
+        # just overwrite the file, cuz then reshade is updated, or even downgraded if needed
+        shutil.copy(reshade_dll_dir, reshade_dll_renamed_destination)
 
     def get_executable_architecture(self, path: Path) -> str:
         if not path.exists():
