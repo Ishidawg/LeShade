@@ -27,11 +27,16 @@ class UninstallWorker(QObject):
             )
             is_vulkan: str = read_boolean_flags(self.current_row, "vulkan")
 
-            remove_files_complete: list[str] = [
-                "opengl32.dll", "d3d8.dll", "d3d9.dll", "d3d10.dll", "d3d11.dll", "dxgi.dll"]
+            remove_files_complete: list[str] = []
+
+            if not is_vulkan:
+                game_api_dll: str = read_manager_content("api_dll")[0]
+                remove_files_complete.append(game_api_dll)
 
             if not have_hlsl_compiler:
                 remove_files_complete.append("d3dcompiler_47.dll")
+
+            print(remove_files_complete)
 
             remove_files_pattern: list[str] = [
                 "ReShade*.*",

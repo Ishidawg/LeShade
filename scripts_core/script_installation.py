@@ -29,6 +29,7 @@ class InstallationWorker(QObject):
     have_hlsl_compiler: Signal = Signal(bool)
 
     vulkan_paths: Signal = Signal(str, str, str)
+    api_dll: Signal = Signal(str)
 
     def __init__(self, game_path: str, game_api: str, is_steam: bool):
         super().__init__()
@@ -171,6 +172,7 @@ class InstallationWorker(QObject):
         # if not Path(reshade_dll_renamed_destination).exists():
         # just overwrite the file, cuz then reshade is updated, or even downgraded if needed
         shutil.copy(reshade_dll_dir, reshade_dll_renamed_destination)
+        self.api_dll.emit(reshade_dll_renamed)
 
     def get_executable_architecture(self, path: Path) -> str:
         if not path.exists():

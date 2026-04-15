@@ -100,6 +100,8 @@ class MainWindow(QMainWindow):
         self.is_dx8: bool = False
         self.is_vulkan: bool = False
 
+        self.game_api_dll: str = ""
+
         # prefix directories signals
         self.reshade_prx_dir: str = ""
         self.system32_prx_dir: str = ""
@@ -130,6 +132,7 @@ class MainWindow(QMainWindow):
             self.get_hlsl_compiler)
         self.page_installation.forward_vulkan_paths.connect(
             self.get_vulkan_paths)
+        self.page_installation.dll_api.connect(self.get_game_api_dll)
         self.page_clone.clone_finished.connect(self.on_clone_finished)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
@@ -190,6 +193,7 @@ class MainWindow(QMainWindow):
                         self.game_directory,
                         self.game_exe_path,
                         self.have_hlsl,
+                        self.game_api_dll,
                         self.is_vulkan,
                         self.reshade_prx_dir,
                         self.system32_prx_dir,
@@ -368,6 +372,10 @@ class MainWindow(QMainWindow):
     @Slot(str)
     def get_game_executable_path(self, value: str) -> None:
         self.game_exe_path = value
+
+    @Slot(str)
+    def get_game_api_dll(self, value: str) -> None:
+        self.game_api_dll = value
 
     @Slot(bool)
     def get_hlsl_compiler(self, value: bool | None) -> None:

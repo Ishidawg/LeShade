@@ -27,6 +27,7 @@ class PageInstallation(QWidget):
     is_dx8: Signal = Signal(bool)
     is_vulkan: Signal = Signal(bool)
     already_have_hlsl_compiler: Signal = Signal(bool)
+    dll_api: Signal = Signal(str)
 
     forward_vulkan_paths: Signal = Signal(str, str, str)
 
@@ -150,13 +151,12 @@ class PageInstallation(QWidget):
         self.install_thread.started.connect(
             self.install_worker.run)
 
-        # install_progress, install_finished, current_game_path and have_hlsl_compiler
-        # are signals from script_installation.py
         self.install_worker.install_progress.connect(self.update_progress)
         self.install_worker.install_finished.connect(self.on_sucess)
         self.install_worker.install_finished.connect(self.on_error)
         self.install_worker.current_game_path.connect(self.get_game_dir)
         self.install_worker.have_hlsl_compiler.connect(self.get_hlsl_compiler)
+        self.install_worker.api_dll.connect(self.get_api_dll)
         self.install_worker.vulkan_paths.connect(
             self.forward_vulkan_paths.emit)
 
@@ -178,6 +178,10 @@ class PageInstallation(QWidget):
             self.is_vulkan.emit(True)
         else:
             self.is_vulkan.emit(False)
+
+    def get_api_dll(self, value: str) -> None:
+        if value:
+            self.dll_api.emit(value)
 
     def get_game_dir(self, value: str) -> None:
         self.current_game_directory.emit(value)

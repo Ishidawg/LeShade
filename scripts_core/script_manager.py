@@ -21,7 +21,7 @@ def create_manager() -> None:
             print(e)
 
 
-def add_game(game_dir: str, game_exe_path: str, have_hlsl: bool | None, is_vulkan: bool, reshade_dir: str, system32_dir: str, vulkanrt_dir: str) -> None:
+def add_game(game_dir: str, game_exe_path: str, have_hlsl: bool | None, game_api_dll: str, is_vulkan: bool, reshade_dir: str, system32_dir: str, vulkanrt_dir: str) -> None:
     current_data: list[dict] = []
     game_name: str = format_game_name(game_exe_path)
 
@@ -39,6 +39,9 @@ def add_game(game_dir: str, game_exe_path: str, have_hlsl: bool | None, is_vulka
         "dir": game_dir,
         "hlsl_compiler": have_hlsl,
     }
+
+    if not is_vulkan:
+        new_entry["api_dll"] = game_api_dll
 
     # Add all the directories so I can read them to uninstall from the prefix
     if is_vulkan:
