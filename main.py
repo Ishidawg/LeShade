@@ -21,12 +21,12 @@ from widgets.pages.page_start import PageStart
 from widgets.pages.page_download import PageDownload
 from widgets.pages.page_installation import PageInstallation
 from widgets.pages.page_clone import PageClone
-from widgets.pages.page_dx8 import PageDX8
-from widgets.pages.page_vulkan import PageVulkan
+from widgets.pages.page_wrapper import PageWrapper
 from widgets.pages.page_uninstall import PageUninstall
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 
-from utils.utils import EXTRACT_PATH, format_game_name
+from utils.utils import EXTRACT_PATH, get_game_directory_name
+from utils.wrapper_text import DX8_WRAPPER, VULKAN_WRAPPER
 from scripts_core.script_manager import create_manager, add_game
 
 app_version: str = "2.4.5"
@@ -86,8 +86,7 @@ class MainWindow(QMainWindow):
         self.page_download: PageDownload = PageDownload()
         self.page_installation: PageInstallation = PageInstallation()
         self.page_clone: PageClone = PageClone(self.is_addon)
-        self.page_dx8: PageDX8 = PageDX8()
-        self.page_vulkan: PageVulkan = PageVulkan()
+        self.page_wrapper: PageWrapper
 
         self.pages: list[QWidget] = [self.page_start,
                                      self.page_download, self.page_installation, self.page_clone]
@@ -101,6 +100,7 @@ class MainWindow(QMainWindow):
         self.is_vulkan: bool = False
 
         self.game_api_dll: str = ""
+        self.game_name: str = ""
 
         # prefix directories signals
         self.reshade_prx_dir: str = ""
@@ -201,10 +201,27 @@ class MainWindow(QMainWindow):
                     )
 
                     if self.is_dx8:
-                        self.manage_extra_page(True, self.page_dx8)
+                        self.page_wrapper = PageWrapper(
+                            self.game_name,
+                            DX8_WRAPPER[0],
+                            DX8_WRAPPER[1],
+                            DX8_WRAPPER[2],
+                            DX8_WRAPPER[3],
+                            DX8_WRAPPER[4]
+                        )
 
                     if self.is_vulkan:
-                        self.manage_extra_page(True, self.page_vulkan)
+                        self.page_wrapper = PageWrapper(
+                            self.game_name,
+                            VULKAN_WRAPPER[0],
+                            VULKAN_WRAPPER[1],
+                            VULKAN_WRAPPER[2],
+                            VULKAN_WRAPPER[3],
+                            VULKAN_WRAPPER[4]
+                        )
+
+                    if self.is_dx8 or self.is_vulkan:
+                        self.manage_extra_page(True, self.page_wrapper)
 
             case Pages.WRAPPER:
                 self.enable_next_button()
@@ -364,10 +381,8 @@ class MainWindow(QMainWindow):
     def get_game_directory(self, value: str) -> None:
         self.game_directory = value
 
-        game_name: str = format_game_name(self.game_exe_path)
-
-        self.page_dx8 = PageDX8(game_name)
-        self.page_vulkan = PageVulkan(game_name)
+        # In the same function, I grab the game name.
+        self.game_name = get_game_directory_name(Path(value))
 
     @Slot(str)
     def get_game_executable_path(self, value: str) -> None:

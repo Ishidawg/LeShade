@@ -33,10 +33,11 @@ class UninstallWorker(QObject):
                 game_api_dll: str = read_manager_content("api_dll")[0]
                 remove_files_complete.append(game_api_dll)
 
+                if game_api_dll == "d3d9.dll":
+                    remove_files_complete.append("d3d8.dll")
+
             if not have_hlsl_compiler:
                 remove_files_complete.append("d3dcompiler_47.dll")
-
-            print(remove_files_complete)
 
             remove_files_pattern: list[str] = [
                 "ReShade*.*",
