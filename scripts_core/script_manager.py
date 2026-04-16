@@ -1,8 +1,9 @@
+from utils.utils import get_game_directory_name
 from PySide6.QtCore import QStandardPaths
-from utils.utils import format_game_name
 from pathlib import Path
 import json
 import os
+
 
 CONFIG_PATH = QStandardPaths.writableLocation(
     QStandardPaths.StandardLocation.ConfigLocation)
@@ -23,7 +24,7 @@ def create_manager() -> None:
 
 def add_game(game_dir: str, game_exe_path: str, have_hlsl: bool | None, game_api_dll: str, is_vulkan: bool, reshade_dir: str, system32_dir: str, vulkanrt_dir: str) -> None:
     current_data: list[dict] = []
-    game_name: str = format_game_name(game_exe_path)
+    game_name: str = get_game_directory_name(Path(game_exe_path))
 
     if os.path.exists(MANAGER_PATH):
         try:

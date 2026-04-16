@@ -6,7 +6,7 @@ STYLE_CODE: str = "color: #E83C91; padding: 5px; font-style: italic;"
 STYLE_FONT: str = "font 12pt; font-weight: 600; padding: 5px; margin: 5px;"
 
 DX8_WRAPPER: list[str] = [
-    "uses Direct3D 8.0 as rendering api, so you need to set environment varibles on steam, heroic games or whatever the launcher you use. If your game is on steam, you just need to set the command bellow as launch options.",
+    " uses Direct3D 8.0 as rendering api, so you need to set environment varibles on steam, heroic games or whatever the launcher you use. If your game is on steam, you just need to set the command bellow as launch options.",
     f'<html><strong>Steam: <span style="{STYLE_CODE}">WINEDLLOVERRIDES="d3d8=n,b" %command%</span></strong></html>',
     f'<html><strong>Other: <span style="{STYLE_CODE}">WINEDLLOVERRIDES=d3d8=n,b</span></strong></html>',
     'WINEDLLOVERRIDES="d3d8=n,b" %command%',

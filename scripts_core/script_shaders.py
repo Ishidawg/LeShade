@@ -120,6 +120,7 @@ class ShadersWorker(QObject):
 
                 if not repo_data:
                     continue
+
                 # Shaders
                 repo_name: str = repo_key
                 repo_branch: str = repo_data["branch"]

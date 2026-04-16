@@ -169,7 +169,6 @@ class InstallationWorker(QObject):
         reshade_dll_renamed_destination: str = os.path.join(
             self.game_path_parent, reshade_dll_renamed)
 
-        # if not Path(reshade_dll_renamed_destination).exists():
         # just overwrite the file, cuz then reshade is updated, or even downgraded if needed
         shutil.copy(reshade_dll_dir, reshade_dll_renamed_destination)
         self.api_dll.emit(reshade_dll_renamed)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from re import S
 import shutil
 import sys
 import os
@@ -115,25 +116,42 @@ class MainWindow(QMainWindow):
         # Connect signals (if there is signals)
         self.page_start.install.connect(self.on_install_clicked)
         self.page_start.uninstall.connect(self.on_uninstall_clicked)
+
         self.action_buttons.btn_home.clicked.connect(self.on_home_clicked)
         self.action_buttons.btn_back.clicked.connect(self.on_back_clicked)
         self.action_buttons.btn_next.clicked.connect(self.on_next_clicked)
-        self.page_download.download_finished.connect(self.on_download_finished)
+
         self.page_download.is_addon.connect(self.get_is_addon)
+        self.page_download.download_finished.connect(
+            lambda value: self.on_action_finished("download", value)
+        )
         self.page_installation.install_finished.connect(
-            self.on_install_finished)
-        self.page_installation.current_game_directory.connect(
-            self.get_game_directory)
-        self.page_installation.current_executable_path.connect(
-            self.get_game_executable_path)
-        self.page_installation.is_dx8.connect(self.get_is_dx8)
-        self.page_installation.is_vulkan.connect(self.get_is_vulkan)
+            lambda value: self.on_action_finished("install", value)
+        )
+        self.page_clone.clone_finished.connect(
+            lambda value: self.on_action_finished("clone", value)
+        )
+        self.page_installation.is_dx8.connect(
+            lambda value: self.get_wrapper_api("dx8", value)
+        )
+        self.page_installation.is_vulkan.connect(
+            lambda value: self.get_wrapper_api("vulkan", value)
+        )
+        self.page_installation.dll_api.connect(
+            lambda value: self.get_simple_value("api", value)
+        )
         self.page_installation.already_have_hlsl_compiler.connect(
-            self.get_hlsl_compiler)
+            lambda value: self.get_simple_value("hlsl_compiler", value)
+        )
+        self.page_installation.current_game_directory.connect(
+            lambda value: self.get_simple_value("game_dir", value)
+        )
+        self.page_installation.current_executable_path.connect(
+            lambda str_value: self.get_simple_value("exe_path", str_value)
+        )
         self.page_installation.forward_vulkan_paths.connect(
-            self.get_vulkan_paths)
-        self.page_installation.dll_api.connect(self.get_game_api_dll)
-        self.page_clone.clone_finished.connect(self.on_clone_finished)
+            self.get_vulkan_paths
+        )
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
         self.game_directory: str = ''
@@ -166,12 +184,6 @@ class MainWindow(QMainWindow):
     def update_buttons(self) -> None:
         self.action_buttons.btn_next.setEnabled(False)
         self.update_next_button()
-
-        # 0 - Page Start
-        # 1 - Page Download
-        # 2 - Page Installation
-        # 3 - Page Clone
-        # 4 - Page DX8
 
         match self.pages_index:
             case Pages.START:
@@ -324,43 +336,31 @@ class MainWindow(QMainWindow):
             self.manage_uninstall_page(True)
             self.action_buttons.btn_home.show()
 
-    @Slot(bool)
-    def on_download_finished(self, value: bool) -> None:
-        if value:
+    @Slot(str, bool)
+    def on_action_finished(self, action: str, value: bool) -> None:
+        if not value:
+            return
+
+        if action == "download":
             self.download_finished = value
-            self.update_buttons()
-
-    @Slot(bool)
-    def on_install_finished(self, value: bool) -> None:
-        if value:
+        elif action == "install":
             self.install_finished = value
-            self.update_buttons()
-
-    @Slot(bool)
-    def on_clone_finished(self, value: bool) -> None:
-        if value:
+        elif action == "clone":
             self.clone_finished = value
-            self.update_buttons()
+        else:
+            print("use a valid action!")
 
-    @Slot(bool)
-    def get_is_dx8(self, value: bool) -> None:
-        if value:
+        self.update_buttons()
+
+    @Slot(str, bool)
+    def get_wrapper_api(self, is_api: str, value: bool) -> None:
+
+        if is_api == "dx8":
             self.is_dx8 = value
-            return
-
-        if not value:
-            self.is_dx8 = value
-            return
-
-    @Slot(bool)
-    def get_is_vulkan(self, value: bool) -> None:
-        if value:
+        elif is_api == "vulkan":
             self.is_vulkan = value
-            return
-
-        if not value:
-            self.is_vulkan = value
-            return
+        else:
+            print("use a valid api!")
 
     @Slot(bool)
     def get_is_addon(self, value: bool) -> None:
@@ -377,24 +377,21 @@ class MainWindow(QMainWindow):
         self.system32_prx_dir = sys32
         self.vulkanrt_prx_dir = vulkanrt
 
-    @Slot(str)
-    def get_game_directory(self, value: str) -> None:
-        self.game_directory = value
+    @Slot(str, bool)
+    def get_simple_value(self, get: str, value) -> None:
+        # I did't typed the value by porpuse.
 
-        # In the same function, I grab the game name.
-        self.game_name = get_game_directory_name(Path(value))
-
-    @Slot(str)
-    def get_game_executable_path(self, value: str) -> None:
-        self.game_exe_path = value
-
-    @Slot(str)
-    def get_game_api_dll(self, value: str) -> None:
-        self.game_api_dll = value
-
-    @Slot(bool)
-    def get_hlsl_compiler(self, value: bool | None) -> None:
-        self.have_hlsl = value
+        if get == "exe_path":
+            self.game_exe_path = value
+        elif get == "api":
+            self.game_api_dll = value
+        elif get == "hlsl_compiler":
+            self.have_hlsl = value
+        elif get == "game_dir":
+            self.game_directory = value
+            self.game_name = get_game_directory_name(Path(value))
+        else:
+            print("use a valid! 'get'")
 
     @Slot()
     def closeEvent(self, event) -> None:

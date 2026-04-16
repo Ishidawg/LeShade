@@ -21,12 +21,6 @@ def make_extract_dir() -> None:
     os.makedirs(EXTRACT_PATH, exist_ok=True)
 
 
-def format_game_name(game_dir: str) -> str:
-    game_base_name = os.path.basename(game_dir)
-    game_name = os.path.splitext(game_base_name)[0]
-    return game_name
-
-
 def get_game_directory_name(executable_path: Path) -> str:
     split_path: tuple[str, ...] = executable_path.parts
     common_index: int = split_path.index("common")
