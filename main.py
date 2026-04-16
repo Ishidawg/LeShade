@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from re import S
 import shutil
 import sys
 import os
@@ -78,8 +77,7 @@ class MainWindow(QMainWindow):
         widget_dinamic.setLayout(self.layout_dynamic)
         widget_dinamic.setContentsMargins(50, 0, 50, 0)
 
-        # Tracks reshade version (addon or not)
-        self.is_addon: bool = False
+        self.is_addon: bool = False  # tracks reshade version (addon or not)
 
         # Instance widgets, set widget and related
         self.action_buttons: WidgetBottomButtons = WidgetBottomButtons()
@@ -108,8 +106,7 @@ class MainWindow(QMainWindow):
         self.system32_prx_dir: str = ""
         self.vulkanrt_prx_dir: str = ""
 
-        # tracks uninstall page
-        self.is_uninstall: bool = False
+        self.is_uninstall: bool = False  # tracks uninstall page
 
         self.layout_dynamic.addWidget(self.page_start)
 
@@ -264,8 +261,8 @@ class MainWindow(QMainWindow):
 
     def update_next_button(self) -> None:
         # See if needs extra page on Clone widget
-        clone_is_end = (self.pages_index ==
-                        Pages.CLONE) and not self.is_dx8 and not self.is_vulkan
+        clone_is_end = (
+            self.pages_index == Pages.CLONE) and not self.is_dx8 and not self.is_vulkan
 
         # See if we are oany extra page
         wrapper_is_end = (self.pages_index == Pages.WRAPPER)
@@ -341,26 +338,20 @@ class MainWindow(QMainWindow):
         if not value:
             return
 
-        if action == "download":
-            self.download_finished = value
-        elif action == "install":
-            self.install_finished = value
-        elif action == "clone":
-            self.clone_finished = value
-        else:
-            print("use a valid action!")
+        match action:
+            case "download": self.download_finished = value
+            case "install": self.install_finished = value
+            case "clone": self.clone_finished = value
+            case _: print("use a valid action!")
 
         self.update_buttons()
 
     @Slot(str, bool)
     def get_wrapper_api(self, is_api: str, value: bool) -> None:
-
-        if is_api == "dx8":
-            self.is_dx8 = value
-        elif is_api == "vulkan":
-            self.is_vulkan = value
-        else:
-            print("use a valid api!")
+        match is_api:
+            case "dx8": self.is_dx8 = value
+            case "vulkan": self.is_vulkan = value
+            case _: print("use a valid api!")
 
     @Slot(bool)
     def get_is_addon(self, value: bool) -> None:
@@ -378,20 +369,16 @@ class MainWindow(QMainWindow):
         self.vulkanrt_prx_dir = vulkanrt
 
     @Slot(str, bool)
+    # I didn't typed the value by porpuse.
     def get_simple_value(self, get: str, value) -> None:
-        # I did't typed the value by porpuse.
-
-        if get == "exe_path":
-            self.game_exe_path = value
-        elif get == "api":
-            self.game_api_dll = value
-        elif get == "hlsl_compiler":
-            self.have_hlsl = value
-        elif get == "game_dir":
-            self.game_directory = value
-            self.game_name = get_game_directory_name(Path(value))
-        else:
-            print("use a valid! 'get'")
+        match get:
+            case "exe_path": self.game_exe_path = value
+            case "api": self.game_api_dll = value
+            case "hlsl_compiler": self.have_hlsl = value
+            case "game_dir":
+                self.game_directory = value
+                self.game_name = get_game_directory_name(Path(value))
+            case _: print("use a valid 'get'!")
 
     @Slot()
     def closeEvent(self, event) -> None:
