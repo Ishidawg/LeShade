@@ -11,7 +11,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QMainWindow,
     QApplication,
-    QStackedLayout,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -64,18 +64,16 @@ class MainWindow(QMainWindow):
             window_title += " Nightly"
 
         self.setWindowTitle(window_title)
-        self.setMinimumSize(WINDOW_SIZE[0], WINDOW_SIZE[1])
+        self.setFixedSize(WINDOW_SIZE[0], WINDOW_SIZE[1])
 
         # main widget and main layout (page)
         widget_main = QWidget()
         self.setCentralWidget(widget_main)
         self.layout_main = QVBoxLayout(widget_main)
 
-        # dinamic widget with stacked layout (pages)
-        widget_dinamic = QWidget()
-        self.layout_dynamic = QStackedLayout()
-        widget_dinamic.setLayout(self.layout_dynamic)
-        widget_dinamic.setContentsMargins(50, 0, 50, 0)
+        # dinamic stack
+        self.stack = QStackedWidget()
+        self.stack.setContentsMargins(50, 0, 50, 0)
 
         self.is_addon: bool = False  # tracks reshade version (addon or not)
 
@@ -87,10 +85,17 @@ class MainWindow(QMainWindow):
         self.page_clone: PageClone = PageClone(self.is_addon)
         self.page_wrapper: PageWrapper
 
-        self.pages: list[QWidget] = [self.page_start,
-                                     self.page_download, self.page_installation, self.page_clone]
+        self.pages: list[QWidget] = [
+            self.page_start,
+            self.page_download,
+            self.page_installation,
+            self.page_clone
+        ]
+
+        for page in self.pages:
+            self.stack.addWidget(page)
+
         self.pages_index: int = 0
-        self.current_page: QWidget = self.pages[0]
 
         self.download_finished: bool = False
         self.install_finished: bool = False
@@ -107,8 +112,6 @@ class MainWindow(QMainWindow):
         self.vulkanrt_prx_dir: str = ""
 
         self.is_uninstall: bool = False  # tracks uninstall page
-
-        self.layout_dynamic.addWidget(self.page_start)
 
         # Connect signals (if there is signals)
         self.page_start.install.connect(self.on_install_clicked)
@@ -162,7 +165,7 @@ class MainWindow(QMainWindow):
 
         # add widgets
         self.layout_main.addWidget(WidgetTitle())
-        self.layout_main.addWidget(widget_dinamic)
+        self.layout_main.addWidget(self.stack)
         self.layout_main.addWidget(self.action_buttons)
 
     def on_clone(self) -> None:
@@ -204,24 +207,27 @@ class MainWindow(QMainWindow):
 
     def manage_extra_page(self, append: bool, page: QWidget) -> None:
         if append:
-            if page not in self.pages:
-                self.pages.append(page)
-            return
-
-        if not append and len(self.pages) == 5:
-            self.pages.pop()
-            return
+            self.stack.addWidget(page)
+        else:
+            # Grabs the index, so I can remove it
+            index: int = self.stack.indexOf(page)
+            if index != -1:
+                self.stack.removeWidget(page)
+                page.deleteLater()
 
     def manage_uninstall_page(self, value: bool) -> None:
+        self.is_uninstall = value
         if value:
-            self.is_uninstall = value
             self.page_uninstall: PageUninstall = PageUninstall()
-            self.insert_page(self.page_uninstall)
-            return
+            self.stack.addWidget(self.page_uninstall)
+            self.stack.setCurrentWidget(self.page_uninstall)
+        else:
+            self.stack.setCurrentIndex(self.pages_index)
 
-        if not value:
-            self.insert_page(self.current_page)
-            return
+            # Clean page uninstall from memory
+            if hasattr(self, 'page_uninstall'):
+                self.stack.removeWidget(self.page_uninstall)
+                self.page_uninstall.deleteLater()
 
     def update_next_button(self) -> None:
         # See if needs extra page on Clone widget
@@ -252,34 +258,13 @@ class MainWindow(QMainWindow):
         self.action_buttons.btn_next.setEnabled(True)
 
     def change_page(self, direction: int = 1) -> None:
-        self.layout_dynamic.removeWidget(self.current_page)
+        if direction == 1 and self.pages_index < self.stack.count() - 1:
+            self.pages_index += 1
+        elif direction == 0 and self.pages_index > 0:
+            self.pages_index -= 1
 
-        match direction:
-            case 0:
-                if self.pages_index > 0:
-                    self.pages_index -= 1
-            case 1:
-                if self.pages_index < len(self.pages) - 1:
-                    self.pages_index += 1
-            case _:
-                print("Error trying to change pages")
-
-        self.current_page = self.pages[self.pages_index]
+        self.stack.setCurrentIndex(self.pages_index)
         self.update_buttons()
-        self.insert_page()
-
-    def insert_page(self, page: QWidget | None = None) -> None:
-        self.layout_dynamic.removeWidget(self.current_page)
-        self.layout_dynamic.removeWidget(self.page_start)
-        self.layout_dynamic.removeWidget(self.page_download)
-
-        if self.is_uninstall:
-            self.layout_dynamic.removeWidget(self.page_uninstall)
-
-        if page:
-            self.layout_dynamic.addWidget(page)
-        else:
-            self.layout_dynamic.addWidget(self.current_page)
 
     def clean_cache(self) -> None:
         if Path(EXTRACT_PATH).exists():
