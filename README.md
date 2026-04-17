@@ -1,5 +1,5 @@
 <div align="center">
-	<img src="https://raw.githubusercontent.com/Ishidawg/LeShade/refs/heads/rebuild/assets/logo256.png">
+	<img src="https://i.imgur.com/zng791s.png">
 	<h1>LeShade - A Reshade Manager</h1>
 	<div display="flex">
 		<img alt="GitHub License" src="https://img.shields.io/github/license/ishidawg/LeShade">
