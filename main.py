@@ -2,6 +2,7 @@
 import shutil
 import sys
 import os
+import gc
 
 from enum import IntEnum
 from pathlib import Path
@@ -331,6 +332,7 @@ class MainWindow(QMainWindow):
             case _: print("use a valid action!")
 
         self.update_buttons()
+        gc.collect()
 
     @Slot(str, bool)
     def get_wrapper_api(self, is_api: str, value: bool) -> None:
