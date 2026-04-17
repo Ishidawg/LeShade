@@ -1,5 +1,5 @@
 Name: leshade
-Version: 2.4.5
+Version: 2.4.6
 Release: 1%{?dist}
 Summary: Official build for LeShade. An ReShade Manager for Linux.
 

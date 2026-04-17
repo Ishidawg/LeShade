@@ -29,7 +29,7 @@ from utils.utils import EXTRACT_PATH, get_game_directory_name
 from utils.wrapper_text import DX8_WRAPPER, VULKAN_WRAPPER
 from scripts_core.script_manager import create_manager, add_game
 
-app_version: str = "2.4.5"
+app_version: str = "2.4.6"
 build_type: str = "Release"
 
 

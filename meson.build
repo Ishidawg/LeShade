@@ -1,6 +1,6 @@
 project(
   'leshade',
-  version: '2.4.5',
+  version: '2.4.6',
   meson_version: '>=1.2.0',
   license: 'MIT',
   license_files: 'LICENSE',
