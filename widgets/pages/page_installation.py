@@ -1,5 +1,6 @@
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
 from scripts_core.script_installation import InstallationWorker
+from utils.utils import dialog_box
 from PySide6.QtWidgets import (
     QFileDialog,
     QGridLayout,
@@ -15,6 +16,7 @@ from PySide6.QtWidgets import (
     QCheckBox
 )
 import os
+
 
 HOME = QStandardPaths.writableLocation(
     QStandardPaths.StandardLocation.HomeLocation)
@@ -105,20 +107,6 @@ class PageInstallation(QWidget):
 
         self.setLayout(layout)
 
-    def dialog_box(self) -> None:
-        dialog = QMessageBox()
-        dialog.setWindowTitle("Vulkan Installation")
-        dialog.setIcon(QMessageBox.Icon.Question)
-        dialog.setText("Is your game on Steam?")
-
-        dialog.setStandardButtons(
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-
-        button = dialog.exec()
-
-        if button == QMessageBox.StandardButton.No:
-            self.is_steam = False
-
     def on_browse_clicked(self) -> None:
         options = (
             QFileDialog.Option(0)
@@ -139,7 +127,14 @@ class PageInstallation(QWidget):
 
     def start_installation(self) -> None:
         if self.game_api == "Vulkan":
-            self.dialog_box()
+            self.is_steam = dialog_box(
+                parent=self,
+                title="Vulkan Installation",
+                icon=QMessageBox.Icon.Question,
+                text="Is your game on Steam?",
+                info_text="Steam uses a different path prefix.",
+                buttons=True,
+            )
 
         self.install_thread: QThread = QThread()
         self.install_worker: InstallationWorker = InstallationWorker(
@@ -225,6 +220,8 @@ class PageInstallation(QWidget):
         if not self.game_api:
             self.progress_bar.setFormat("Error: no api selected")
             return
+
+        # Need to check protontricks here, before start installation.
 
         self.is_api_dx8()
         self.is_api_vulkan()

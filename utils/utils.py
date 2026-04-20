@@ -1,9 +1,11 @@
+from PySide6.QtWidgets import QMessageBox, QWidget
 from PySide6.QtCore import QStandardPaths
 from zipfile import BadZipfile, ZipFile
 from typing import Any, Match
 from pathlib import Path
 import urllib.request
 import urllib.error
+from PySide6.QtGui import Qt
 import certifi
 import json
 import ssl
@@ -19,6 +21,25 @@ RENODX_SNAPSHOT_URL: str = "https://api.github.com/repos/clshortfuse/renodx/rele
 
 def make_extract_dir() -> None:
     os.makedirs(EXTRACT_PATH, exist_ok=True)
+
+
+def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, info_text: str, buttons: bool) -> bool:
+    dialog = QMessageBox(parent)
+    dialog.setWindowModality(Qt.WindowModality.WindowModal)
+    dialog.setWindowTitle(title)
+    dialog.setIcon(icon)
+    dialog.setText(text)
+    dialog.setInformativeText(info_text)
+
+    if buttons:
+        dialog.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        button = dialog.exec()
+
+        if button == QMessageBox.StandardButton.No:
+            return False
+
+    return True
 
 
 def get_game_directory_name(executable_path: Path) -> str:
