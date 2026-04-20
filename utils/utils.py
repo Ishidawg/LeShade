@@ -2,10 +2,12 @@ from PySide6.QtWidgets import QMessageBox, QWidget
 from PySide6.QtCore import QStandardPaths
 from zipfile import BadZipfile, ZipFile
 from typing import Any, Match
+from PySide6.QtGui import Qt
+from shutil import which
 from pathlib import Path
 import urllib.request
 import urllib.error
-from PySide6.QtGui import Qt
+import subprocess
 import certifi
 import json
 import ssl
@@ -40,6 +42,41 @@ def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, i
             return False
 
     return True
+
+
+def get_protontricks() -> None:
+    # Which is used to find native (arch, dnf...) and subprocess to find flatpak
+    native_ptricks: bool = False
+    flatpak_ptricks: bool = False
+
+    if which("protontricks"):
+        native_ptricks = True
+
+    try:
+        flatpak_res = subprocess.run(
+            ['flatpak', 'info', 'com.github.Matoking.protontricks'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        if flatpak_res.returncode == 0:
+            flatpak_ptricks = True
+
+    except FileNotFoundError:
+        print("Protontricks was not found on flatpak info")
+
+    if native_ptricks:
+        print("We have native")
+    if flatpak_ptricks:
+        print("We have flatpak")
+    if native_ptricks and flatpak_ptricks:
+        print("We have both")
+    if not native_ptricks and not flatpak_ptricks:
+        print("You don't have protontricks installed on your system!")
+
+
+get_protontricks()
 
 
 def get_game_directory_name(executable_path: Path) -> str:
