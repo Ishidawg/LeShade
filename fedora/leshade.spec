@@ -1,5 +1,5 @@
 Name: leshade
-Version: 2.4.6
+Version: 2.4.7
 Release: 1%{?dist}
 Summary: Official build for LeShade. An ReShade Manager for Linux.
 
@@ -15,7 +15,7 @@ Requires: python
 Requires: python3-pyside6
 Requires: python3-requests
 Requires: python3-certifi
-Requires: protontricks
+Requires: wine
 
 %description
 %{summary}
@@ -39,5 +39,5 @@ Requires: protontricks
 %doc README.md
 
 %changelog
-* Wed April 13 2026 Ishidaw <willianscagol@gmail.com> - 2.4.5-1
-- Last stable release 2.4.5
+* Wed April 21 2026 Ishidaw <willianscagol@gmail.com> - 2.4.7-1
+- Last stable release 2.4.7

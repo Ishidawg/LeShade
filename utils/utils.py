@@ -1,10 +1,14 @@
+from PySide6.QtWidgets import QMessageBox, QWidget
 from PySide6.QtCore import QStandardPaths
 from zipfile import BadZipfile, ZipFile
 from typing import Any, Match
+from PySide6.QtGui import Qt
 from pathlib import Path
 import urllib.request
 import urllib.error
+import subprocess
 import certifi
+import shutil
 import json
 import ssl
 import re
@@ -21,12 +25,60 @@ def make_extract_dir() -> None:
     os.makedirs(EXTRACT_PATH, exist_ok=True)
 
 
+def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, info_text: str, buttons: bool) -> bool:
+    dialog = QMessageBox(parent)
+    dialog.setWindowModality(Qt.WindowModality.WindowModal)
+    dialog.setWindowTitle(title)
+    dialog.setIcon(icon)
+    dialog.setText(text)
+    dialog.setInformativeText(info_text)
+
+    if buttons:
+        dialog.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        button = dialog.exec()
+
+        if button == QMessageBox.StandardButton.No:
+            return False
+    else:
+        dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        dialog.exec()
+
+    return True
+
+
+def get_wine_command() -> list[str]:
+    # I want to priorize native wine
+    if not os.path.exists("/.flatpak-info"):
+        if shutil.which("wine") is not None:
+            return ["wine"]
+        else:
+            return ["flatpak", "run", "org.winehq.Wine"]
+    else:
+        if subprocess.run(["flatpak-spawn", "--host", "which", "wine"], capture_output=True).returncode == 0:
+            return ["flatpak-spawn", "--host", "wine"]
+        else:
+            return ["flatpak-spawn", "--host", "flatpak", "run", "org.winehq.Wine"]
+
+
 def get_game_directory_name(executable_path: Path) -> str:
     split_path: tuple[str, ...] = executable_path.parts
-    common_index: int = split_path.index("common")
-    directory_name: str = split_path[common_index + 1]
 
-    return directory_name
+    if "common" in split_path:
+        common_index: int = split_path.index("common")
+        if common_index + 1 < len(split_path):
+            # Game directory (ex: DARK SOULS REMASTERED)
+            return split_path[common_index + 1]
+
+    parent: Path = executable_path.parent
+
+    # Some games that uses unreal (or other GE), they have the executable into bin directory...
+    probably_directories: set[str] = {
+        "bin", "x64", "x86", "win64", "win32", "system32", "release"}
+    if parent.name.lower() in probably_directories and parent.parent:
+        return parent.parent.name
+
+    return parent.name
 
 
 # Can be steamapps or drive_c (for non-steam games)
