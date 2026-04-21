@@ -1,5 +1,3 @@
-import shutil
-import subprocess
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
 from scripts_core.script_installation import InstallationWorker
 from utils.utils import dialog_box
@@ -17,6 +15,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QCheckBox
 )
+import subprocess
+import shutil
 import os
 
 
