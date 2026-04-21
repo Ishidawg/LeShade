@@ -191,31 +191,15 @@ class InstallVulkan():
 
     def add_remove_registry_keys(self, app_id: str, registry_path: str, remove: bool = False) -> None:
         custom_env: dict[str, str] = get_clean_env()
+        custom_env["WINEPREFIX"] = os.path.dirname(self.drive_c_path)
+        custom_env["WINEDLLOVERRIDES"] = "mscoree,mshtml="
 
-        full_command: list[str] = []
-        sync_command: list[str] = []
+        full_command = ["wine", "regedit", "/S", registry_path]
+        sync_command = ["wineserver", "-w"]
 
-        reg_command: str = f"regedit /S {registry_path}"
-
-        if self.is_steam:
-            full_command = [
-                self.protrontricos_command,
-                "-c",
-                reg_command,
-                app_id
-            ]
-            sync_command = [
-                self.protrontricos_command,
-                "-c",
-                "wineserver -w",
-                app_id
-            ]
-        else:
-            custom_env["WINEPREFIX"] = os.path.dirname(self.drive_c_path)
-            custom_env["WINEDLLOVERRIDES"] = "mscoree,mshtml="
-
-            full_command = ["wine", "regedit", "/S", registry_path]
-            sync_command = ["wineserver", "-w"]
+        if os.path.exists("/.flatpak-info"):
+            full_command = ["flatpak-spawn", "--host"] + full_command
+            sync_command = ["flatpak-spawn", "--host"] + sync_command
 
         try:
             subprocess.run(full_command,
@@ -231,6 +215,7 @@ class InstallVulkan():
                            text=True,
                            env=custom_env
                            )
+            print("regedit runs!!")
         except subprocess.CalledProcessError as e:
             if remove:
                 raise Exception(f"Failed to remove keys: {e.stderr}")
