@@ -1,4 +1,4 @@
-from utils.utils import EXTRACT_PATH, download, get_clean_env, get_game_directory_name, get_steam_appid, get_gamebase_directory, unzip_file
+from utils.utils import EXTRACT_PATH, define_protontricks_command, download, get_clean_env, get_game_directory_name, get_protontricks, get_steam_appid, get_gamebase_directory, unzip_file
 from pathlib import Path
 import subprocess
 import textwrap
@@ -28,6 +28,9 @@ class InstallVulkan():
             self.executable_path, self.is_steam)
         self.app_id: str = ""
         self.drive_c_path: str = ""
+        self.protontricks_install = get_protontricks()
+        self.protrontricos_command = define_protontricks_command(
+            self.protontricks_install)
 
         if is_steam:
             self.game_name: str = get_game_directory_name(self.executable_path)
@@ -102,7 +105,12 @@ class InstallVulkan():
 
         if self.is_steam:
             wine_wrap_command: str = f"wine '{VULKANRT_PATH}' /S"
-            full_command = ["protontricks", "-c", wine_wrap_command, app_id]
+            full_command = [
+                self.protrontricos_command,
+                "-c",
+                wine_wrap_command,
+                app_id
+            ]
         else:
             custom_env["WINEPREFIX"] = os.path.dirname(self.drive_c_path)
             custom_env["WINEDLLOVERRIDES"] = "mscoree,mshtml="
@@ -188,10 +196,19 @@ class InstallVulkan():
 
         reg_command: str = f"regedit /S {registry_path}"
 
-        # For some reason, -c flag on protontricks saves me from spliting commands like on non-steam games.
         if self.is_steam:
-            full_command = ["protontricks", "-c", reg_command, app_id]
-            sync_command = ["protontricks", "-c", "wineserver -w", app_id]
+            full_command = [
+                self.protrontricos_command,
+                "-c",
+                reg_command,
+                app_id
+            ]
+            sync_command = [
+                self.protrontricos_command,
+                "-c",
+                "wineserver -w",
+                app_id
+            ]
         else:
             custom_env["WINEPREFIX"] = os.path.dirname(self.drive_c_path)
             custom_env["WINEDLLOVERRIDES"] = "mscoree,mshtml="

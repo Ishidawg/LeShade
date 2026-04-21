@@ -44,7 +44,7 @@ def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, i
     return True
 
 
-def get_protontricks() -> None:
+def get_protontricks() -> str:
     # Which is used to find native (arch, dnf...) and subprocess to find flatpak
     native_ptricks: bool = False
     flatpak_ptricks: bool = False
@@ -67,16 +67,29 @@ def get_protontricks() -> None:
         print("Protontricks was not found on flatpak info")
 
     if native_ptricks:
-        print("We have native")
-    if flatpak_ptricks:
-        print("We have flatpak")
-    if native_ptricks and flatpak_ptricks:
-        print("We have both")
-    if not native_ptricks and not flatpak_ptricks:
-        print("You don't have protontricks installed on your system!")
+        print("native!")
+        return "native"
+    elif flatpak_ptricks:
+        print("flatpak")
+        return "flatpak"
+    elif native_ptricks and flatpak_ptricks:
+        print("both")
+        return "both"
+    else:
+        return "none"
 
 
-get_protontricks()
+def define_protontricks_command(protontricks_install: str) -> str:
+
+    match protontricks_install:
+        case "native":
+            print("protontricks")
+            return "protontricks"
+        case "flatpak", "both":
+            print("fratupeko")
+            return "flatpak run com.github.Matoking.protontricks"
+        case _:
+            return "none"
 
 
 def get_game_directory_name(executable_path: Path) -> str:
