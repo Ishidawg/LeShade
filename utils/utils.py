@@ -3,12 +3,12 @@ from PySide6.QtCore import QStandardPaths
 from zipfile import BadZipfile, ZipFile
 from typing import Any, Match
 from PySide6.QtGui import Qt
-from shutil import which
 from pathlib import Path
 import urllib.request
 import urllib.error
 import subprocess
 import certifi
+import shutil
 import json
 import ssl
 import re
@@ -40,56 +40,25 @@ def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, i
 
         if button == QMessageBox.StandardButton.No:
             return False
+    else:
+        dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        dialog.exec()
 
     return True
 
 
-def get_protontricks() -> str:
-    # Which is used to find native (arch, dnf...) and subprocess to find flatpak
-    native_ptricks: bool = False
-    flatpak_ptricks: bool = False
-
-    if which("protontricks"):
-        native_ptricks = True
-
-    try:
-        flatpak_res = subprocess.run(
-            ['flatpak', 'info', 'com.github.Matoking.protontricks'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-
-        if flatpak_res.returncode == 0:
-            flatpak_ptricks = True
-
-    except FileNotFoundError:
-        print("Protontricks was not found on flatpak info")
-
-    if native_ptricks:
-        print("native!")
-        return "native"
-    elif flatpak_ptricks:
-        print("flatpak")
-        return "flatpak"
-    elif native_ptricks and flatpak_ptricks:
-        print("both")
-        return "both"
+def get_wine_command() -> list[str]:
+    # I want to priorize native wine
+    if not os.path.exists("/.flatpak-info"):
+        if shutil.which("wine") is not None:
+            return ["wine"]
+        else:
+            return ["flatpak", "run", "org.winehq.Wine"]
     else:
-        return "none"
-
-
-def define_protontricks_command(protontricks_install: str) -> str:
-
-    match protontricks_install:
-        case "native":
-            print("protontricks")
-            return "protontricks"
-        case "flatpak", "both":
-            print("fratupeko")
-            return "flatpak run com.github.Matoking.protontricks"
-        case _:
-            return "none"
+        if subprocess.run(["flatpak-spawn", "--host", "which", "wine"], capture_output=True).returncode == 0:
+            return ["flatpak-spawn", "--host", "wine"]
+        else:
+            return ["flatpak-spawn", "--host", "flatpak", "run", "org.winehq.Wine"]
 
 
 def get_game_directory_name(executable_path: Path) -> str:

@@ -1,3 +1,5 @@
+import shutil
+import subprocess
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
 from scripts_core.script_installation import InstallationWorker
 from utils.utils import dialog_box
@@ -210,6 +212,47 @@ class PageInstallation(QWidget):
                 self.game_api = value
                 break
 
+    def verify_wine(self) -> None:
+        if self.game_api == "Vulkan":
+            has_wine: bool = False
+
+            if os.path.exists("/.flatpak-info"):
+                wine_native = subprocess.run(
+                    ["flatpak-spawn", "--host", "which", "wine"],
+                    capture_output=True
+                )
+
+                wine_flatpak = subprocess.run(
+                    ["flatpak-spawn", "--host", "flatpak",
+                        "info", "org.winehq.Wine"],
+                    capture_output=True
+                )
+
+                has_wine = (wine_native.returncode == 0) or (
+                    wine_flatpak.returncode == 0)
+            else:
+                has_wine = shutil.which("wine") is not None
+
+                if not has_wine and shutil.which("flatpak") is not None:
+                    wine_flatpak = subprocess.run(
+                        ["flatpak", "info", "org.winehq.Wine"],
+                        capture_output=True
+                    )
+
+                    has_wine = (wine_flatpak.returncode == 0)
+
+            if not has_wine:
+                self.progress_bar.setFormat("Error: missing wine - dependency")
+                dialog_box(
+                    parent=self,
+                    title="Missing Dependency",
+                    icon=QMessageBox.Icon.Critical,
+                    text="Wine is not installed on your system!",
+                    info_text="LeShade requires 'wine' to manage Vulkan registry keys. Please install it!.",
+                    buttons=False
+                )
+                return
+
     def installation(self) -> None:
         self.api_selection()
 
@@ -222,6 +265,7 @@ class PageInstallation(QWidget):
             return
 
         # Need to check protontricks here, before start installation.
+        self.verify_wine()
 
         self.is_api_dx8()
         self.is_api_vulkan()

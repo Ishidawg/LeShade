@@ -1,4 +1,4 @@
-from utils.utils import CACHE_PATH, EXTRACT_PATH, define_protontricks_command, download, get_clean_env, get_game_directory_name, get_protontricks, get_steam_appid, get_gamebase_directory, unzip_file
+from utils.utils import EXTRACT_PATH, download, get_clean_env, get_game_directory_name, get_steam_appid, get_gamebase_directory, get_wine_command, unzip_file
 from pathlib import Path
 import subprocess
 import textwrap
@@ -30,9 +30,6 @@ class InstallVulkan():
             self.executable_path, self.is_steam)
         self.app_id: str = ""
         self.drive_c_path: str = ""
-        self.protontricks_install = get_protontricks()
-        self.protrontricos_command = define_protontricks_command(
-            self.protontricks_install)
 
         if is_steam:
             self.game_name: str = get_game_directory_name(self.executable_path)
@@ -188,7 +185,9 @@ class InstallVulkan():
         custom_env["WINEPREFIX"] = os.path.dirname(self.drive_c_path)
         custom_env["WINEDLLOVERRIDES"] = "mscoree,mshtml="
 
-        full_command = ["wine", "regedit", "/S", registry_path]
+        wine_command: list[str] = get_wine_command()
+
+        full_command = wine_command + ["regedit", "/S", registry_path]
         sync_command = ["wineserver", "-w"]
 
         if os.path.exists("/.flatpak-info"):
