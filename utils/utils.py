@@ -94,10 +94,22 @@ def define_protontricks_command(protontricks_install: str) -> str:
 
 def get_game_directory_name(executable_path: Path) -> str:
     split_path: tuple[str, ...] = executable_path.parts
-    common_index: int = split_path.index("common")
-    directory_name: str = split_path[common_index + 1]
 
-    return directory_name
+    if "common" in split_path:
+        common_index: int = split_path.index("common")
+        if common_index + 1 < len(split_path):
+            # Game directory (ex: DARK SOULS REMASTERED)
+            return split_path[common_index + 1]
+
+    parent: Path = executable_path.parent
+
+    # Some games that uses unreal (or other GE), they have the executable into bin directory...
+    probably_directories: set[str] = {
+        "bin", "x64", "x86", "win64", "win32", "system32", "release"}
+    if parent.name.lower() in probably_directories and parent.parent:
+        return parent.parent.name
+
+    return parent.name
 
 
 # Can be steamapps or drive_c (for non-steam games)
