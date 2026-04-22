@@ -181,23 +181,21 @@ class InstallVulkan():
                 file.write(registry_add_content)
 
     def add_remove_registry_keys(self, registry_path: str, remove: bool = False) -> None:
+        drive_c: str = os.path.dirname(self.drive_c_path)
         custom_env: dict[str, str] = get_clean_env()
-        custom_env["WINEPREFIX"] = os.path.dirname(self.drive_c_path)
+        custom_env["WINEPREFIX"] = drive_c
         custom_env["WINEDLLOVERRIDES"] = "mscoree,mshtml="
 
         wine_command: list[str] = get_wine_command()
 
-        # If this work I make this a little better...
-
+        # Need to insert the --env if flatpak is the used package, cuz I need to use wine to install regedit keys
         if "flatpak-spawn" in wine_command:
-            wine_command.insert(
-                2, f"--env=WINEPREFIX={os.path.dirname(self.drive_c_path)}")
+            wine_command.insert(2, f"--env=WINEPREFIX={drive_c}")
             wine_command.insert(3, "--env=WINEDLLOVERRIDES=mscoree,mshtml=")
 
         if "org.winehq.Wine" in wine_command and "run" in wine_command:
             index: int = wine_command.index("run")
-            wine_command.insert(
-                index + 1, f"--env=WINEPREFIX={os.path.dirname(self.drive_c_path)}")
+            wine_command.insert(index + 1, f"--env=WINEPREFIX={drive_c}")
             wine_command.insert(
                 index + 2, "--env=WINEDLLOVERRIDES=mscoree,mshtml=")
 
