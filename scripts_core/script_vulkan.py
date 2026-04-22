@@ -187,6 +187,20 @@ class InstallVulkan():
 
         wine_command: list[str] = get_wine_command()
 
+        # If this work I make this a little better...
+
+        if "flatpak-spawn" in wine_command:
+            wine_command.insert(
+                2, f"--env=WINEPREFIX={os.path.dirname(self.drive_c_path)}")
+            wine_command.insert(3, "--env=WINEDLLOVERRIDES=mscoree,mshtml=")
+
+        if "org.winehq.Wine" in wine_command and "run" in wine_command:
+            index: int = wine_command.index("run")
+            wine_command.insert(
+                index + 1, f"--env=WINEPREFIX={os.path.dirname(self.drive_c_path)}")
+            wine_command.insert(
+                index + 2, "--env=WINEDLLOVERRIDES=mscoree,mshtml=")
+
         full_command = wine_command + ["regedit", "/S", registry_path]
 
         base_prefix: list[str] = wine_command[:-1]
