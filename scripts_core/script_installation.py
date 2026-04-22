@@ -52,24 +52,29 @@ class InstallationWorker(QObject):
         self.is_steam: bool = is_steam
 
     def run(self) -> None:
-        self.install_progress.emit(0)
-        self.game_arch = self.get_executable_architecture(
-            Path(self.game_path))
-        self.install_progress.emit(40)
-        self.ready_reshade_dll(self.is_steam)
-        self.install_progress.emit(60)
+        try:
+            self.install_progress.emit(0)
+            self.game_arch = self.get_executable_architecture(
+                Path(self.game_path))
+            self.install_progress.emit(40)
+            self.ready_reshade_dll(self.is_steam)
+            self.install_progress.emit(60)
 
-        self.hlsl_compiler = download_hlsl_compiler(
-            self.game_path_parent, self.game_arch)
+            self.hlsl_compiler = download_hlsl_compiler(
+                self.game_path_parent, self.game_arch)
 
-        # means that game folder already had the d3dcompiler_47.dll - emit True or False
-        self.have_hlsl_compiler.emit(self.hlsl_compiler)
+            # means that game folder already had the d3dcompiler_47.dll - emit True or False
+            self.have_hlsl_compiler.emit(self.hlsl_compiler)
 
-        if self.game_api == "D3D 8":
-            self.install_progress.emit(90)
-            download_d3d8to9(self.game_path_parent)
+            if self.game_api == "D3D 8":
+                self.install_progress.emit(90)
+                download_d3d8to9(self.game_path_parent)
 
-        self.status_update()
+            self.status_update()
+        except Exception as e:
+            print("Error on installation proccess: {e}")
+            self.install_progress.emit(0)
+            self.install_finished.emit(False)
 
     def status_update(self) -> None:
         if self.game_path and self.game_api and self.game_arch and self.reshade_path:
