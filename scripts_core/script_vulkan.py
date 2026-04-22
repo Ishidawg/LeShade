@@ -188,11 +188,14 @@ class InstallVulkan():
         wine_command: list[str] = get_wine_command()
 
         full_command = wine_command + ["regedit", "/S", registry_path]
-        sync_command = ["wineserver", "-w"]
 
-        if os.path.exists("/.flatpak-info"):
-            full_command = ["flatpak-spawn", "--host"] + full_command
-            sync_command = ["flatpak-spawn", "--host"] + sync_command
+        base_prefix: list[str] = wine_command[:-1]
+
+        if "org.winehq.Wine" in wine_command:
+            sync_command: list[str] = base_prefix + \
+                ["--command=wineserver", "org.winehq.Wine", "-w"]
+        else:
+            sync_command: list[str] = base_prefix + ["wineserver", "-w"]
 
         try:
             subprocess.run(full_command,
