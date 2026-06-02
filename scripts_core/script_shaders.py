@@ -1,58 +1,61 @@
-from utils.utils import generic_download, unzip_file
-from PySide6.QtCore import (
-    QObject,
-    Signal
-)
-from pathlib import Path
 import asyncio
-import shutil
 import os
+import shutil
+from pathlib import Path
+
+from PySide6.QtCore import QObject, Signal
+
+from utils.utils import generic_download, unzip_file
 
 REPO_SHADERS = {
     "Crosire slim": {
         "url": "https://github.com/crosire/reshade-shaders",
-        "branch": "slim"
+        "branch": "slim",
     },
     "Crosire legacy": {
         "url": "https://github.com/crosire/reshade-shaders",
-        "branch": "legacy"
+        "branch": "legacy",
     },
-    "Sweet FX": {
-        "url": "https://github.com/CeeJayDK/SweetFX",
-        "branch": "master"
-    },
+    "Sweet FX": {"url": "https://github.com/CeeJayDK/SweetFX", "branch": "master"},
     "Prod80": {
         "url": "https://github.com/prod80/prod80-ReShade-Repository",
-        "branch": "master"
+        "branch": "master",
     },
-    "qUINT": {
-        "url": "https://github.com/martymcmodding/qUINT",
-        "branch": "master"
-    },
-    "iMMERSE": {
-        "url": "https://github.com/martymcmodding/iMMERSE",
-        "branch": "main"
-    },
-    "MLUT": {
-        "url": "https://github.com/TheGordinho/MLUT",
-        "branch": "master"
-    },
+    "qUINT": {"url": "https://github.com/martymcmodding/qUINT", "branch": "master"},
+    "iMMERSE": {"url": "https://github.com/martymcmodding/iMMERSE", "branch": "main"},
+    "MLUT": {"url": "https://github.com/TheGordinho/MLUT", "branch": "master"},
     "Insane shaders": {
         "url": "https://github.com/LordOfLunacy/Insane-Shaders",
-        "branch": "master"
+        "branch": "master",
     },
     "RS Retro Arch": {
         "url": "https://github.com/Matsilagi/RSRetroArch",
-        "branch": "main"
+        "branch": "main",
     },
     "CRT Royale": {
         "url": "https://github.com/akgunter/crt-royale-reshade",
-        "branch": "master"
+        "branch": "master",
     },
     "Glamarye Fast Effects": {
         "url": "https://github.com/rj200/Glamarye_Fast_Effects_for_ReShade",
-        "branch": "main"
-    }
+        "branch": "main",
+    },
+    "ReShade HDR Shaders": {
+        "url": "https://github.com/EndlesslyFlowering/ReShade_HDR_shaders",
+        "branch": "master",
+    },
+    "Pumbo Auto HDR": {
+        "url": "https://github.com/Filoppi/PumboAutoHDR",
+        "branch": "master",
+    },
+    "PotatoFX": {
+        "url": "https://github.com/GimleLarpes/potatoFX",
+        "branch": "main",
+    },
+    "ReShade Simple HDR Shaders": {
+        "url": "https://github.com/MaxG2D/ReshadeSimpleHDRShaders",
+        "branch": "main",
+    },
 }
 
 
@@ -67,25 +70,25 @@ class ShadersWorker(QObject):
         self.selected_repos: list[str] = selections
         self.total_repos: int = 0
 
-        self.shader_temp_directory: str = os.path.join(
-            self.game_path, ".shaders_temp")
-        self.shader_dir: str = os.path.join(
-            self.game_path, "reshade-shaders/Shaders")
-        self.texture_dir: str = os.path.join(
-            self.game_path, "reshade-shaders/Textures")
+        self.shader_temp_directory: str = os.path.join(self.game_path, ".shaders_temp")
+        self.shader_dir: str = os.path.join(self.game_path, "reshade-shaders/Shaders")
+        self.texture_dir: str = os.path.join(self.game_path, "reshade-shaders/Textures")
 
     def run(self) -> None:
         self.clean_temp()
         asyncio.run(self.install_shaders())
-        self.organize_files(self.shader_temp_directory,
-                            self.shader_dir, self.texture_dir)
+        self.organize_files(
+            self.shader_temp_directory, self.shader_dir, self.texture_dir
+        )
         self.clean_temp()
 
     def clean_temp(self) -> None:
         if Path(self.shader_temp_directory).exists():
             shutil.rmtree(self.shader_temp_directory)
 
-    async def unzip_shader(self, shader_temp_dir: str, repo_name: str, zipped_dir: str) -> None:
+    async def unzip_shader(
+        self, shader_temp_dir: str, repo_name: str, zipped_dir: str
+    ) -> None:
         extracted_shader_dir: str = os.path.join(shader_temp_dir, repo_name)
         os.makedirs(extracted_shader_dir, exist_ok=True)
         unzip_file(zipped_dir, extracted_shader_dir)
@@ -129,25 +132,31 @@ class ShadersWorker(QObject):
                 shader_url: str = f"{repo_url}/archive/refs/heads/{repo_branch}.zip"
 
                 zipped_shader_dir: str = os.path.join(
-                    self.shader_temp_directory, f"{repo_name}.zip")
+                    self.shader_temp_directory, f"{repo_name}.zip"
+                )
 
                 # RenoDX
                 renodx_url: str = f"https://github.com/clshortfuse/renodx/releases/download/snapshot/{self.selected_renodx_asset}"
                 renodx_asset_dir: str = os.path.join(
-                    self.game_path, renodx_url.split("/")[-1].strip())
+                    self.game_path, renodx_url.split("/")[-1].strip()
+                )
 
                 await asyncio.gather(
                     self.download_shaders(shader_url, zipped_shader_dir),
-                    self.download_renodx_asset(renodx_url, renodx_asset_dir)
+                    self.download_renodx_asset(renodx_url, renodx_asset_dir),
                 )
 
-                await self.unzip_shader(self.shader_temp_directory, repo_name, zipped_shader_dir)
+                await self.unzip_shader(
+                    self.shader_temp_directory, repo_name, zipped_shader_dir
+                )
 
                 current_repo += 1
         except Exception as e:
             raise IOError(f"Download shaders failed: {e}") from e
 
-    def organize_files(self, shader_temp_dir: str, shaders_dir: str, textures_dir: str) -> None:
+    def organize_files(
+        self, shader_temp_dir: str, shaders_dir: str, textures_dir: str
+    ) -> None:
         try:
             for root, dirs, files in os.walk(shader_temp_dir):
                 if ".git" in root:
@@ -158,12 +167,10 @@ class ShadersWorker(QObject):
                         src_dir: str = os.path.join(root, dir)
 
                         if dir == "Shaders":
-                            shutil.copytree(
-                                src_dir, shaders_dir, dirs_exist_ok=True)
+                            shutil.copytree(src_dir, shaders_dir, dirs_exist_ok=True)
 
                         if dir == "Textures":
-                            shutil.copytree(
-                                src_dir, textures_dir, dirs_exist_ok=True)
+                            shutil.copytree(src_dir, textures_dir, dirs_exist_ok=True)
                 except Exception as e:
                     raise IOError(f"Failed to organize files: {e}") from e
             self.clone_finished.emit(True)

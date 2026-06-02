@@ -1,6 +1,4 @@
-from scripts_core.script_shaders import ShadersWorker
-from PySide6.QtCore import QThread, Qt, Signal, Slot
-from utils.utils import get_renodx_assets
+from PySide6.QtCore import Qt, QThread, Signal, Slot
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -9,8 +7,11 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
+
+from scripts_core.script_shaders import ShadersWorker
+from utils.utils import get_renodx_assets
 
 
 class PageClone(QWidget):
@@ -32,8 +33,7 @@ class PageClone(QWidget):
         layout_checkboxes.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # create widgets
-        label_description = QLabel(
-            "Select as many repositories you want.")
+        label_description = QLabel("Select as many repositories you want.")
         label_description.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_description.setWordWrap(True)
 
@@ -45,7 +45,8 @@ class PageClone(QWidget):
 
         self.cxb_crosire_legacy = QCheckBox("Crosire legacy")
         self.lbl_crosire_legacy = QLabel(
-            "Legacy shaders from crosire, eg: AmbientLight.")
+            "Legacy shaders from crosire, eg: AmbientLight."
+        )
 
         self.cxb_sweet_fx = QCheckBox("Sweet FX")
         self.lbl_sweet_fx = QLabel("SMAA, FXAA, CAS...")
@@ -61,7 +62,8 @@ class PageClone(QWidget):
 
         self.cxb_mlut = QCheckBox("MLUT")
         self.lbl_mlut = QLabel(
-            "<html>Big collection of multi-LUT. <span style='color: #FF5112'><strong>This repo have over 2GB</strong></span></html>")
+            "<html>Big collection of multi-LUT. <span style='color: #FF5112'><strong>This repo have over 2GB</strong></span></html>"
+        )
 
         self.cxb_insane = QCheckBox("Insane shaders")
         self.lbl_insane = QLabel("Utility shaders, eg: Fog Removal.")
@@ -75,21 +77,80 @@ class PageClone(QWidget):
         self.cxb_glamarye = QCheckBox("Glamarye Fast Effects")
         self.lbl_glamarye = QLabel("Faster shaders, eg: FXAA, AO, SHARPEN...")
 
-        self.cxb_list: list[QCheckBox] = [self.cxb_crosire_slim, self.cxb_crosire_legacy, self.cxb_sweet_fx, self.cxb_prod80,
-                                          self.cxb_quint, self.cxb_immerse, self.cxb_mlut, self.cxb_insane, self.cxb_retro_arch, self.cxb_crt_royale, self.cxb_glamarye]
+        self.cxb_reshade_hdr_shaders = QCheckBox("ReShade HDR Shaders")
+        self.lbl_reshade_hdr_shaders = QLabel(
+            "Democratisation of HDR analysis and other HDR things."
+        )
+
+        self.cxb_pumbo_auto_hdr = QCheckBox("Pumbo Auto HDR")
+        self.lbl_pumbo_auto_hdr = QLabel("Advanced ReShade AutoHDR.")
+
+        self.cxb_potato_fx = QCheckBox("PotatoFX")
+        self.lbl_potato_fx = QLabel(
+            "pCamera, pColorNoise, pColors, pPalletePopsterize..."
+        )
+
+        self.cxb_reshade_simple_hdr_shaders = QCheckBox(
+            "ReShade Simple HDR Shaders")
+        self.lbl_reshade_simple_hdr_shaders = QLabel(
+            "HDR-Compatible shaders that focus on eye-candy effects and basic adjustments."
+        )
+
+        self.cxb_list: list[QCheckBox] = [
+            self.cxb_crosire_slim,
+            self.cxb_crosire_legacy,
+            self.cxb_sweet_fx,
+            self.cxb_prod80,
+            self.cxb_quint,
+            self.cxb_immerse,
+            self.cxb_mlut,
+            self.cxb_insane,
+            self.cxb_retro_arch,
+            self.cxb_crt_royale,
+            self.cxb_glamarye,
+            self.cxb_reshade_hdr_shaders,
+            self.cxb_pumbo_auto_hdr,
+            self.cxb_potato_fx,
+            self.cxb_reshade_simple_hdr_shaders,
+        ]
 
         self.cxb_dict: dict[str, dict[str, QCheckBox | QLabel]] = {
-            "crosire_slim":     {"checkbox": self.cxb_crosire_slim, "label": self.lbl_crosire_slim},
-            "crosire_legacy":   {"checkbox": self.cxb_crosire_legacy, "label": self.lbl_crosire_legacy},
-            "sweet_fx":         {"checkbox": self.cxb_sweet_fx, "label": self.lbl_sweet_fx},
-            "prod80":           {"checkbox": self.cxb_prod80, "label": self.lbl_prod80},
-            "quint":            {"checkbox": self.cxb_quint, "label": self.lbl_quint},
-            "immerse":          {"checkbox": self.cxb_immerse, "label": self.lbl_immerse},
-            "mlut":             {"checkbox": self.cxb_mlut, "label": self.lbl_mlut},
-            "insane":           {"checkbox": self.cxb_insane, "label": self.lbl_insane},
-            "retro_arch":       {"checkbox": self.cxb_retro_arch, "label": self.lbl_retro_arch},
-            "crt_royale":       {"checkbox": self.cxb_crt_royale, "label": self.lbl_crt_royale},
-            "glamarye":         {"checkbox": self.cxb_glamarye, "label": self.lbl_glamarye},
+            "crosire_slim": {
+                "checkbox": self.cxb_crosire_slim,
+                "label": self.lbl_crosire_slim,
+            },
+            "crosire_legacy": {
+                "checkbox": self.cxb_crosire_legacy,
+                "label": self.lbl_crosire_legacy,
+            },
+            "sweet_fx": {"checkbox": self.cxb_sweet_fx, "label": self.lbl_sweet_fx},
+            "prod80": {"checkbox": self.cxb_prod80, "label": self.lbl_prod80},
+            "quint": {"checkbox": self.cxb_quint, "label": self.lbl_quint},
+            "immerse": {"checkbox": self.cxb_immerse, "label": self.lbl_immerse},
+            "mlut": {"checkbox": self.cxb_mlut, "label": self.lbl_mlut},
+            "insane": {"checkbox": self.cxb_insane, "label": self.lbl_insane},
+            "retro_arch": {
+                "checkbox": self.cxb_retro_arch,
+                "label": self.lbl_retro_arch,
+            },
+            "crt_royale": {
+                "checkbox": self.cxb_crt_royale,
+                "label": self.lbl_crt_royale,
+            },
+            "glamarye": {"checkbox": self.cxb_glamarye, "label": self.lbl_glamarye},
+            "reshade_hdr_shaders": {
+                "checkbox": self.cxb_reshade_hdr_shaders,
+                "label": self.lbl_reshade_hdr_shaders,
+            },
+            "pumbo_auto_hdr": {
+                "checkbox": self.cxb_pumbo_auto_hdr,
+                "label": self.lbl_pumbo_auto_hdr,
+            },
+            "potato_fx": {"checkbox": self.cxb_potato_fx, "label": self.lbl_potato_fx},
+            "reshade_siple_hdr_shaders": {
+                "checkbox": self.cxb_reshade_simple_hdr_shaders,
+                "label": self.lbl_reshade_simple_hdr_shaders,
+            },
         }
 
         # Makes it comes checked because of ReShade.fxh
@@ -127,6 +188,9 @@ class PageClone(QWidget):
         layout.addWidget(self.btn_install)
         self.setLayout(layout)
 
+    # Have commented an option that returns the reno-dx item with the same first letter as the game
+    # cuz, tbh, there is no point to make it enabled by default. If someone enables addon, does not
+    # mean he wants to use reno_dx. Uncomment to implement again.
     def update_renodx(self) -> None:
         if not self.is_addon:
             self.renodx_addon.addItem("None")
@@ -143,25 +207,29 @@ class PageClone(QWidget):
             if self.renodx_assets:
                 self.renodx_addon.addItems(self.renodx_assets)
 
-        if self.renodx_assets and self.game_name:
-            self.set_renodx_selector_value(
-                self.game_name,
-                self.renodx_assets,
-                self.renodx_addon
-            )
+        # if self.renodx_assets and self.game_name:
+        #     self.set_renodx_selector_value(
+        #         self.game_name, self.renodx_assets, self.renodx_addon
+        #     )
 
-    def set_renodx_selector_value(self, game_name: str, asset_list: list[str] | None, selector: QComboBox) -> None:
-        if not asset_list or not game_name:
-            return
+    # def set_renodx_selector_value(
+    #     self, game_name: str, asset_list: list[str] | None, selector: QComboBox
+    # ) -> None:
+    #     if not asset_list or not game_name:
+    #         return
 
-        first_char: str = game_name[0].lower()
-        pattern: str = "renodx-"
-        pattern_size: int = len(pattern)
+    #     first_char: str = game_name[0].lower()
+    #     pattern: str = "renodx-"
+    #     pattern_size: int = len(pattern)
 
-        for index, asset in enumerate(asset_list):
-            if asset.startswith(pattern) and len(asset) > pattern_size and asset[pattern_size] == first_char:
-                selector.setCurrentIndex(index)
-                return
+    #     for index, asset in enumerate(asset_list):
+    #         if (
+    #             asset.startswith(pattern)
+    #             and len(asset) > pattern_size
+    #             and asset[pattern_size] == first_char
+    #         ):
+    #             selector.setCurrentIndex(index)
+    #             return
 
     def set_game_name(self, value: str) -> None:
         self.game_name = value
@@ -194,7 +262,8 @@ class PageClone(QWidget):
 
         self.clone_thread: QThread = QThread()
         self.clone_worker: ShadersWorker = ShadersWorker(
-            self.selections, self.renodx_addon.currentText(), game_dir)
+            self.selections, self.renodx_addon.currentText(), game_dir
+        )
 
         self.clone_worker.moveToThread(self.clone_thread)
 
