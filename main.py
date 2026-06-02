@@ -1,44 +1,41 @@
 #!/usr/bin/env python3
+import gc
+import os
 import shutil
 import sys
-import os
-import gc
-
 from enum import IntEnum
 from pathlib import Path
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
-    QMainWindow,
     QApplication,
+    QMainWindow,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
 
-from widgets.widget_title import WidgetTitle
-from widgets.pages.page_start import PageStart
-from widgets.pages.page_download import PageDownload
-from widgets.pages.page_installation import PageInstallation
-from widgets.pages.page_clone import PageClone
-from widgets.pages.page_wrapper import PageWrapper
-from widgets.pages.page_uninstall import PageUninstall
-from widgets.widget_bottom_buttons import WidgetBottomButtons
-
+from scripts_core.script_manager import add_game, create_manager
 from utils.utils import EXTRACT_PATH, get_game_directory_name
 from utils.wrapper_text import DX8_WRAPPER, VULKAN_WRAPPER
-from scripts_core.script_manager import create_manager, add_game
+from widgets.pages.page_clone import PageClone
+from widgets.pages.page_download import PageDownload
+from widgets.pages.page_installation import PageInstallation
+from widgets.pages.page_start import PageStart
+from widgets.pages.page_uninstall import PageUninstall
+from widgets.pages.page_wrapper import PageWrapper
+from widgets.widget_bottom_buttons import WidgetBottomButtons
+from widgets.widget_title import WidgetTitle
 
-app_version: str = "2.4.7"
+app_version: str = "2.4.8"
 build_type: str = "Release"
 
 
 def get_localdir():
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(
-        os.path.abspath(__file__)))
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         return base_path
     else:
         return os.path.dirname(os.path.abspath(__file__))
@@ -53,7 +50,6 @@ class Pages(IntEnum):
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self):
         super().__init__()
 
@@ -90,7 +86,7 @@ class MainWindow(QMainWindow):
             self.page_start,
             self.page_download,
             self.page_installation,
-            self.page_clone
+            self.page_clone,
         ]
 
         for page in self.pages:
@@ -150,16 +146,14 @@ class MainWindow(QMainWindow):
         self.page_installation.current_executable_path.connect(
             lambda str_value: self.get_simple_value("exe_path", str_value)
         )
-        self.page_installation.forward_vulkan_paths.connect(
-            self.get_vulkan_paths
-        )
+        self.page_installation.forward_vulkan_paths.connect(self.get_vulkan_paths)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
-        self.game_directory: str = ''
+        self.game_directory: str = ""
         self.page_clone.btn_install.clicked.connect(self.on_clone)
 
         # So I can set the correct name at uninstall list
-        self.game_exe_path: str = ''
+        self.game_exe_path: str = ""
 
         # This variable is usefull so I know if the game directory already have hlsl compiler, then I do not overwrite neither delete it at uninstall process
         self.have_hlsl: bool | None = None
@@ -203,8 +197,7 @@ class MainWindow(QMainWindow):
             case Pages.WRAPPER:
                 self.enable_next_button()
             case _:
-                raise ValueError(
-                    "The page that your trying to access does not exist")
+                raise ValueError("The page that your trying to access does not exist")
 
     def manage_extra_page(self, append: bool, page: QWidget) -> None:
         if append:
@@ -226,17 +219,18 @@ class MainWindow(QMainWindow):
             self.stack.setCurrentIndex(self.pages_index)
 
             # Clean page uninstall from memory
-            if hasattr(self, 'page_uninstall'):
+            if hasattr(self, "page_uninstall"):
                 self.stack.removeWidget(self.page_uninstall)
                 self.page_uninstall.deleteLater()
 
     def update_next_button(self) -> None:
         # See if needs extra page on Clone widget
         clone_is_end = (
-            self.pages_index == Pages.CLONE) and not self.is_dx8 and not self.is_vulkan
+            (self.pages_index == Pages.CLONE) and not self.is_dx8 and not self.is_vulkan
+        )
 
         # See if we are oany extra page
-        wrapper_is_end = (self.pages_index == Pages.WRAPPER)
+        wrapper_is_end = self.pages_index == Pages.WRAPPER
 
         if clone_is_end or wrapper_is_end:
             self.action_buttons.btn_next.setText("Close")
@@ -289,8 +283,10 @@ class MainWindow(QMainWindow):
             return
 
         match action:
-            case "download": self.download_finished = value
-            case "install": self.install_finished = value
+            case "download":
+                self.download_finished = value
+            case "install":
+                self.install_finished = value
             case "clone":
                 self.clone_finished = value
 
@@ -303,7 +299,7 @@ class MainWindow(QMainWindow):
                     self.is_vulkan,
                     self.reshade_prx_dir,
                     self.system32_prx_dir,
-                    self.vulkanrt_prx_dir
+                    self.vulkanrt_prx_dir,
                 )
 
                 if self.is_dx8:
@@ -313,7 +309,7 @@ class MainWindow(QMainWindow):
                         DX8_WRAPPER[1],
                         DX8_WRAPPER[2],
                         DX8_WRAPPER[3],
-                        DX8_WRAPPER[4]
+                        DX8_WRAPPER[4],
                     )
 
                 if self.is_vulkan:
@@ -323,13 +319,14 @@ class MainWindow(QMainWindow):
                         VULKAN_WRAPPER[1],
                         VULKAN_WRAPPER[2],
                         VULKAN_WRAPPER[3],
-                        VULKAN_WRAPPER[4]
+                        VULKAN_WRAPPER[4],
                     )
 
                 if self.is_dx8 or self.is_vulkan:
                     self.manage_extra_page(True, self.page_wrapper)
 
-            case _: print("use a valid action!")
+            case _:
+                print("use a valid action!")
 
         self.update_buttons()
         gc.collect()
@@ -337,9 +334,12 @@ class MainWindow(QMainWindow):
     @Slot(str, bool)
     def get_wrapper_api(self, is_api: str, value: bool) -> None:
         match is_api:
-            case "dx8": self.is_dx8 = value
-            case "vulkan": self.is_vulkan = value
-            case _: print("use a valid api!")
+            case "dx8":
+                self.is_dx8 = value
+            case "vulkan":
+                self.is_vulkan = value
+            case _:
+                print("use a valid api!")
 
     @Slot(bool)
     def get_is_addon(self, value: bool) -> None:
@@ -360,14 +360,18 @@ class MainWindow(QMainWindow):
     # I didn't typed the value by porpuse.
     def get_simple_value(self, get: str, value) -> None:
         match get:
-            case "exe_path": self.game_exe_path = value
-            case "api": self.game_api_dll = value
-            case "hlsl_compiler": self.have_hlsl = value
+            case "exe_path":
+                self.game_exe_path = value
+            case "api":
+                self.game_api_dll = value
+            case "hlsl_compiler":
+                self.have_hlsl = value
             case "game_dir":
                 self.game_directory = value
                 self.game_name = get_game_directory_name(Path(value))
                 self.page_clone.set_game_name(self.game_name)
-            case _: print("use a valid 'get'!")
+            case _:
+                print("use a valid 'get'!")
 
     @Slot()
     def closeEvent(self, event) -> None:
