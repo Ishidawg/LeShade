@@ -28,7 +28,7 @@ from widgets.pages.page_wrapper import PageWrapper
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 from widgets.widget_title import WidgetTitle
 
-app_version: str = "2.4.8"
+app_version: str = "2.4.9"
 build_type: str = "Release"
 
 

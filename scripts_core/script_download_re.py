@@ -39,7 +39,6 @@ class DownloadWorker(QObject):
 
         self.version: str | None = version
         self.release: str | None = release
-        print(self.release)
 
         self.reshade_dir: str = ""
         self.perhaps_dir: str = ""

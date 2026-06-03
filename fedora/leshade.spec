@@ -1,5 +1,5 @@
 Name: leshade
-Version: 2.4.8
+Version: 2.4.9
 Release: 1%{?dist}
 Summary: Official build for LeShade. An ReShade Manager for Linux.
 
@@ -39,5 +39,5 @@ Requires: wine
 %doc README.md
 
 %changelog
-* Tue June 2 2026 Ishidaw <willianscagol@gmail.com> - 2.4.8-1
-- Last stable release 2.4.8
+* Wed June 3 2026 Ishidaw <willianscagol@gmail.com> - 2.4.9-1
+- Last stable release 2.4.9
