@@ -1,31 +1,43 @@
-from PySide6.QtWidgets import QMessageBox, QWidget
-from PySide6.QtCore import QStandardPaths
-from zipfile import BadZipfile, ZipFile
-from typing import Any, Match
-from PySide6.QtGui import Qt
-from pathlib import Path
-import urllib.request
-import urllib.error
-import subprocess
-import certifi
-import shutil
 import json
-import ssl
-import re
 import os
+import re
+import shutil
+import ssl
+import subprocess
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+from typing import Any, Match
+from zipfile import BadZipfile, ZipFile
+
+import certifi
+from PySide6.QtCore import QStandardPaths
+from PySide6.QtGui import Qt
+from PySide6.QtWidgets import QMessageBox, QWidget
 
 CACHE_PATH: str = QStandardPaths.writableLocation(
-    QStandardPaths.StandardLocation.CacheLocation)
+    QStandardPaths.StandardLocation.CacheLocation
+)
 EXTRACT_PATH: str = os.path.join(CACHE_PATH, "reshade_extracted")
 TAGS_URL: str = "https://github.com/crosire/reshade/tags"
-RENODX_SNAPSHOT_URL: str = "https://api.github.com/repos/clshortfuse/renodx/releases/tags/snapshot"
+RENODX_SNAPSHOT_URL: str = (
+    "https://api.github.com/repos/clshortfuse/renodx/releases/tags/snapshot"
+)
 
 
 def make_extract_dir() -> None:
     os.makedirs(EXTRACT_PATH, exist_ok=True)
 
 
-def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, info_text: str, buttons: bool) -> bool:
+def dialog_box(
+    parent: QWidget,
+    title: str,
+    icon: QMessageBox.Icon,
+    text: str,
+    info_text: str,
+    buttons: bool,
+) -> bool:
     dialog = QMessageBox(parent)
     dialog.setWindowModality(Qt.WindowModality.WindowModal)
     dialog.setWindowTitle(title)
@@ -35,7 +47,8 @@ def dialog_box(parent: QWidget, title: str, icon: QMessageBox.Icon, text: str, i
 
     if buttons:
         dialog.setStandardButtons(
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
         button = dialog.exec()
 
         if button == QMessageBox.StandardButton.No:
@@ -55,7 +68,12 @@ def get_wine_command() -> list[str]:
         else:
             return ["flatpak", "run", "org.winehq.Wine"]
     else:
-        if subprocess.run(["flatpak-spawn", "--host", "wine", "--version"], capture_output=True).returncode == 0:
+        if (
+            subprocess.run(
+                ["flatpak-spawn", "--host", "wine", "--version"], capture_output=True
+            ).returncode
+            == 0
+        ):
             return ["flatpak-spawn", "--host", "wine"]
         else:
             return ["flatpak-spawn", "--host", "flatpak", "run", "org.winehq.Wine"]
@@ -74,7 +92,14 @@ def get_game_directory_name(executable_path: Path) -> str:
 
     # Some games that uses unreal (or other GE), they have the executable into bin directory...
     probably_directories: set[str] = {
-        "bin", "x64", "x86", "win64", "win32", "system32", "release"}
+        "bin",
+        "x64",
+        "x86",
+        "win64",
+        "win32",
+        "system32",
+        "release",
+    }
     if parent.name.lower() in probably_directories and parent.parent:
         return parent.parent.name
 
@@ -111,17 +136,18 @@ def unzip_file(src_file: str, destination_path: str) -> None:
 
 def get_steam_appid(steamapps_dir: str, game_name: str) -> str:
     app_manifest_pattern: str = "appmanifest_*acf"
-    app_manifest_regex: str = r'appmanifest_(\d+)\.acf'
+    app_manifest_regex: str = r"appmanifest_(\d+)\.acf"
     app_id: str = ""
 
     for manifest_file in Path(steamapps_dir).glob(app_manifest_pattern):
         try:
-            manifest_data: str = manifest_file.read_text(encoding='utf-8')
+            manifest_data: str = manifest_file.read_text(encoding="utf-8")
             pattern: str = rf'"installdir"\s+"{re.escape(game_name)}"'
 
             if re.search(pattern, manifest_data, re.IGNORECASE):
                 match: Match[str] | None = re.search(
-                    app_manifest_regex, manifest_file.name)
+                    app_manifest_regex, manifest_file.name
+                )
 
                 if match:
                     app_id = match.group(1)
@@ -135,12 +161,15 @@ def get_steam_appid(steamapps_dir: str, game_name: str) -> str:
     return app_id
 
 
-def download(url: str, game_path: str = "", game_arch: str = "", file_name: str = "") -> None | bool:
+def download(
+    url: str, game_path: str = "", game_arch: str = "", file_name: str = ""
+) -> None | bool:
     file_path: str = os.path.join(game_path, file_name)
 
     if Path(file_path).exists():
         print(
-            f"Game folder already have the {file_name}. For safety reasons it will not be replaced.")
+            f"Game folder already have the {file_name}. For safety reasons it will not be replaced."
+        )
 
         return True if file_name == "d3dcompiler_47.dll" else None
 
@@ -154,10 +183,10 @@ def download(url: str, game_path: str = "", game_arch: str = "", file_name: str 
 
 
 def generic_download(url: str, directory: str | None) -> None | str:
-    context: ssl.SSLContext = ssl.create_default_context(
-        cafile=certifi.where())
+    context: ssl.SSLContext = ssl.create_default_context(cafile=certifi.where())
     req: urllib.request.Request = urllib.request.Request(
-        url, headers={'User-Agent': 'Chrome/120.0.0.0'})
+        url, headers={"User-Agent": "Chrome/120.0.0.0"}
+    )
 
     try:
         with urllib.request.urlopen(req, context=context) as res:
@@ -166,22 +195,41 @@ def generic_download(url: str, directory: str | None) -> None | str:
                     file.write(res.read())
             else:
                 # If no directory was provided, we want the page's HTML decoded as text
-                return res.read().decode('utf-8')
+                return res.read().decode("utf-8")
     except Exception as e:
         raise IOError(f"Failed to download: {e}") from e
 
 
+# DOWNLOAD_PATH is on script_download_re.py
+def download_nightly(nightly_urls: list[str], download_path) -> None:
+    for url in nightly_urls:
+        file_name: str = urllib.parse.unquote(url.split("/")[-1])
+        file_directory: str = os.path.join(download_path, file_name)
+        generic_download(url, file_directory)
+
+
+def extract_nightly(
+    nightly_urls: list[str], download_path: str, extract_path: str
+) -> None:
+    for url in nightly_urls:
+        file_name: str = urllib.parse.unquote(url.split("/")[-1])
+        zip_path: str = os.path.join(download_path, file_name)
+
+        if os.path.exists(zip_path):
+            unzip_file(zip_path, extract_path)
+
+
 def get_reshade_tags(after: str | None) -> list[str] | None:
+    tag_page: str | None = None
     try:
         if after:
             # Other pages
-            tag_page: str | None = generic_download(
-                f"{TAGS_URL}?after=v{after}", None)
+            tag_page = generic_download(f"{TAGS_URL}?after=v{after}", None)
         else:
             # First page
-            tag_page: str | None = generic_download(TAGS_URL, None)
+            tag_page = generic_download(TAGS_URL, None)
 
-        return re.findall(r'(?<=releases/tag/v)[0-9.]+', str(tag_page))
+        return re.findall(r"(?<=releases/tag/v)[0-9.]+", str(tag_page))
     except IOError:
         return None
 
@@ -190,8 +238,10 @@ def get_renodx_assets() -> list[str] | None:
     assets_names: list[str] = ["None"]
 
     context = ssl.create_default_context(cafile=certifi.where())
-    req = urllib.request.Request(RENODX_SNAPSHOT_URL, headers={
-                                 'User-Agent': 'Chrome/120.0.0', 'Accept': 'application/json'})
+    req = urllib.request.Request(
+        RENODX_SNAPSHOT_URL,
+        headers={"User-Agent": "Chrome/120.0.0", "Accept": "application/json"},
+    )
 
     try:
         with urllib.request.urlopen(req, context=context) as response:
@@ -204,7 +254,8 @@ def get_renodx_assets() -> list[str] | None:
             return assets_names if assets_names else None
     except urllib.error.HTTPError as e:
         raise urllib.error.HTTPError(
-            f"Failed to fetch assets: {e.code}. ", e.code, e.msg, e.hdrs, e.fp) from e
+            f"Failed to fetch assets: {e.code}. ", e.code, e.msg, e.hdrs, e.fp
+        ) from e
     except Exception as e:
         raise RuntimeError(f"Failed to fetch assets: {e}") from e
 

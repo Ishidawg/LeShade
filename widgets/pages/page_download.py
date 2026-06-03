@@ -1,15 +1,16 @@
-from PySide6.QtCore import Qt, Signal, SignalInstance, Slot, QThread
-from scripts_core.script_download_re import DownloadWorker
-from utils.utils import get_reshade_tags
+from PySide6.QtCore import Qt, QThread, Signal, SignalInstance, Slot
 from PySide6.QtWidgets import (
     QComboBox,
-    QWidget,
-    QVBoxLayout,
     QHBoxLayout,
     QLabel,
+    QProgressBar,
     QPushButton,
-    QProgressBar
+    QVBoxLayout,
+    QWidget,
 )
+
+from scripts_core.script_download_re import DownloadWorker
+from utils.utils import get_reshade_tags
 
 
 class PageDownload(QWidget):
@@ -19,14 +20,22 @@ class PageDownload(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.reshade_versions: list[str] = ["addon", "non-addon"]
-        self.reshade_releases: list[str] = ["6.7.1", "6.7.0",
-                                            "6.6.2", "6.6.1", "6.6.0", "6.5.1", "6.5.0"]
         self.more: str = "More"
+        self.reshade_versions: list[str] = ["addon", "non-addon"]
+        self.reshade_releases: list[str] = [
+            "6.7.1",
+            "6.7.0",
+            "6.6.2",
+            "6.6.1",
+            "6.6.0",
+            "6.5.1",
+            "6.5.0",
+        ]
+        self.more = "More"
 
         self.search_available_versions(None)
 
-        self.more: str = "More"
+        self.more = "More"
         self.search_available_versions(None)
 
         # create layout
@@ -37,7 +46,8 @@ class PageDownload(QWidget):
 
         # create widgets
         label_description = QLabel(
-            "You can select if reshade has addon support or not, and choose the version.")
+            "You can select if reshade has addon support or not, and choose the version."
+        )
         label_description.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_description.setWordWrap(True)
 
@@ -50,6 +60,9 @@ class PageDownload(QWidget):
 
         for item in self.reshade_releases:
             self.reshade_release.addItem(item)
+
+        self.reshade_version.currentTextChanged.connect(self.update_nightly)
+        self.update_nightly(self.reshade_version.currentText())
 
         self.btn_download = QPushButton("Download")
         self.btn_download.clicked.connect(self.click_download)
@@ -75,7 +88,8 @@ class PageDownload(QWidget):
     def start_download(self) -> None:
         self.download_thread: QThread = QThread()
         self.download_worker: DownloadWorker = DownloadWorker(
-            self.reshade_version.currentText(), self.reshade_release.currentText())
+            self.reshade_version.currentText(), self.reshade_release.currentText()
+        )
 
         self.download_worker.moveToThread(self.download_thread)
 
@@ -89,8 +103,7 @@ class PageDownload(QWidget):
         self.download_worker.reshade_found.connect(self.on_error)
 
         self.download_worker.reshade_found.connect(self.download_thread.quit)
-        self.download_worker.reshade_found.connect(
-            self.download_worker.deleteLater)
+        self.download_worker.reshade_found.connect(self.download_worker.deleteLater)
         self.download_thread.finished.connect(self.download_thread.deleteLater)
 
         self.download_thread.start()
@@ -98,7 +111,9 @@ class PageDownload(QWidget):
     def start_animation(self) -> None:
         self.progress_bar.setRange(0, 0)
 
-    def get_reshade_version(self, reshade_selector: QComboBox, addon_signal: SignalInstance) -> None:
+    def get_reshade_version(
+        self, reshade_selector: QComboBox, addon_signal: SignalInstance
+    ) -> None:
         if reshade_selector.currentText() == "addon":
             addon_signal.emit(True)
         else:
@@ -115,10 +130,9 @@ class PageDownload(QWidget):
         if self.reshade_release.itemText(index) == self.more:
             self.search_available_versions(self.reshade_releases[-2])
             # Set the selection to the last known value before "More" was selected
-            self.reshade_release.setCurrentIndex(index-1)
+            self.reshade_release.setCurrentIndex(index - 1)
             # Insert new items before "More"
-            self.reshade_release.insertItems(
-                index, self.reshade_releases[index:-1])
+            self.reshade_release.insertItems(index, self.reshade_releases[index:-1])
 
     def search_available_versions(self, after: str | None) -> None:
         tags: list[str] | None = get_reshade_tags(after)
@@ -132,6 +146,19 @@ class PageDownload(QWidget):
         for tag in tags:
             # Make sure the "More" entry is always the last one
             self.reshade_releases.insert(len(self.reshade_releases) - 1, tag)
+
+    def update_nightly(self, version_type: str) -> None:
+        self.reshade_release.blockSignals(True)
+
+        if version_type == "addon":
+            if self.reshade_release.itemText(0) != "nightly":
+                self.reshade_release.insertItem(0, "nightly")
+                self.reshade_release.setCurrentIndex(0)
+        else:
+            if self.reshade_release.itemText(0) == "nightly":
+                self.reshade_release.removeItem(0)
+
+        self.reshade_release.blockSignals(True)
 
     @Slot(str)
     def update_text(self, value: str) -> None:
