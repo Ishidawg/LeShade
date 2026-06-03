@@ -32,10 +32,6 @@ class PageDownload(QWidget):
             "6.5.0",
         ]
         self.more = "More"
-
-        self.search_available_versions(None)
-
-        self.more = "More"
         self.search_available_versions(None)
 
         # create layout
@@ -158,7 +154,7 @@ class PageDownload(QWidget):
             if self.reshade_release.itemText(0) == "nightly":
                 self.reshade_release.removeItem(0)
 
-        self.reshade_release.blockSignals(True)
+        self.reshade_release.blockSignals(False)
 
     @Slot(str)
     def update_text(self, value: str) -> None:

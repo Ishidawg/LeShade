@@ -35,7 +35,7 @@ class DownloadWorker(QObject):
         self.local_reshade: list[str] = []
 
         self.reshade_url: str = ""
-        self.nightly_url: list[str] = []
+        self.nightly_urls: list[str] = []
 
         self.version: str | None = version
         self.release: str | None = release
@@ -77,6 +77,10 @@ class DownloadWorker(QObject):
             raise RuntimeError(f"Failed to build url: {e}") from e
 
     def ensure_reshade(self) -> None:
+        if self.release == "nightly":
+            self.update_status(True, True, "ReShade downloaded!")
+            return
+
         if self.perhaps_dir in self.local_reshade:
             self.update_status(False, True, "Reshade already downloaded!")
             return
@@ -136,10 +140,11 @@ class DownloadWorker(QObject):
                 file_name: str = self.reshade_url.split("/")[-1]
                 directory: str = os.path.join(DOWNLOAD_PATH, file_name)
 
-                generic_download(self.reshade_url, directory)
+                if not os.path.exists(directory):
+                    generic_download(self.reshade_url, directory)
 
                 if self.release == "nightly":
                     self.reshade_status.emit("Downloading nightly dll")
-                    download_nightly(self.nightly_url, DOWNLOAD_PATH)
+                    download_nightly(self.nightly_urls, DOWNLOAD_PATH)
             except Exception as e:
                 raise IOError(f"Failed to download: {e}") from e
