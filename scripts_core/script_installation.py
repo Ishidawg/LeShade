@@ -72,7 +72,7 @@ class InstallationWorker(QObject):
 
             self.status_update()
         except Exception as e:
-            print("Error on installation proccess: {e}")
+            print("Error on installation process: {e}")
             self.install_progress.emit(0)
             self.install_finished.emit(False)
 
@@ -169,7 +169,7 @@ class InstallationWorker(QObject):
             case "D3D 12":
                 reshade_dll_renamed = "dxgi.dll"
             case _:
-                raise ValueError(f"YET an unsupported API!")
+                raise ValueError(f"Currently an unsupported API!")
 
         reshade_dll_renamed_destination: str = os.path.join(
             self.game_path_parent, reshade_dll_renamed)

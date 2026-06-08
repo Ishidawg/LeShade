@@ -197,7 +197,7 @@ class MainWindow(QMainWindow):
             case Pages.WRAPPER:
                 self.enable_next_button()
             case _:
-                raise ValueError("The page that your trying to access does not exist")
+                raise ValueError("The page that you're trying to access does not exist")
 
     def manage_extra_page(self, append: bool, page: QWidget) -> None:
         if append:

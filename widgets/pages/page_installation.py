@@ -60,7 +60,7 @@ class PageInstallation(QWidget):
         self.browse_button = QPushButton("browse")
         self.use_native_dialog = QCheckBox("Use native file dialog")
 
-        label_api = QLabel("Select game api")
+        label_api = QLabel("Select game API")
         label_api.setAlignment(Qt.AlignmentFlag.AlignLeft)
         label_api.setStyleSheet("font-size: 12pt; font-weight: 100")
 
@@ -248,7 +248,7 @@ class PageInstallation(QWidget):
                     title="Missing Dependency",
                     icon=QMessageBox.Icon.Critical,
                     text="Wine is not installed on your system!",
-                    info_text="LeShade requires 'wine' to manage Vulkan registry keys. Please install it!.",
+                    info_text="LeShade requires 'wine' to manage Vulkan registry keys. Please install it!",
                     buttons=False
                 )
                 return
@@ -261,7 +261,7 @@ class PageInstallation(QWidget):
             return
 
         if not self.game_api:
-            self.progress_bar.setFormat("Error: no api selected")
+            self.progress_bar.setFormat("Error: no API selected")
             return
 
         # Need to check protontricks here, before start installation.

@@ -33,7 +33,7 @@ class PageClone(QWidget):
         layout_checkboxes.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # create widgets
-        label_description = QLabel("Select as many repositories you want.")
+        label_description = QLabel("Select as many repositories as you want.")
         label_description.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_description.setWordWrap(True)
 
@@ -62,7 +62,7 @@ class PageClone(QWidget):
 
         self.cxb_mlut = QCheckBox("MLUT")
         self.lbl_mlut = QLabel(
-            "<html>Big collection of multi-LUT. <span style='color: #FF5112'><strong>This repo have over 2GB</strong></span></html>"
+            "<html>Big collection of multi-LUT. <span style='color: #FF5112'><strong>This repo is over 2GB</strong></span></html>"
         )
 
         self.cxb_insane = QCheckBox("Insane shaders")
@@ -300,5 +300,5 @@ class PageClone(QWidget):
         self.btn_install.setEnabled(True)
         if not value:
             self.progress_bar.setValue(0)
-            self.progress_bar.setFormat("Failed shader proccess")
+            self.progress_bar.setFormat("Failed shader process")
             self.clone_finished.emit(value)
