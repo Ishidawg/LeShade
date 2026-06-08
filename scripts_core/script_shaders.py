@@ -97,7 +97,7 @@ class ShadersWorker(QObject):
         try:
             generic_download(shader_url, zipped_shader_dir)
         except Exception as e:
-            raise IOError(f"Clone reshade failed: {e}") from e
+            raise IOError(f"Cloning ReShade failed: {e}") from e
 
     async def download_renodx_asset(self, asset_url: str, game_dir: str) -> None:
         if self.selected_renodx_asset == "None":
@@ -106,7 +106,7 @@ class ShadersWorker(QObject):
         try:
             generic_download(asset_url, game_dir)
         except Exception as e:
-            raise IOError(f"Download renodx asset failed: {e}") from e
+            raise IOError(f"Downloading renodx asset failed: {e}") from e
 
     async def install_shaders(self) -> None:
         if not self.game_path:
@@ -152,7 +152,7 @@ class ShadersWorker(QObject):
 
                 current_repo += 1
         except Exception as e:
-            raise IOError(f"Download shaders failed: {e}") from e
+            raise IOError(f"Downloading shaders failed: {e}") from e
 
     def organize_files(
         self, shader_temp_dir: str, shaders_dir: str, textures_dir: str

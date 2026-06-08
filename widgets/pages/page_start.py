@@ -23,7 +23,7 @@ class PageStart(QWidget):
 
         # create widgets
         label_description = QLabel(
-            "LeShade is a manager for reshade installations on Linux. It's a native tool that can manage multiple reshade versions across many games that uses Proton or Wine.")
+            "LeShade is a manager for ReShade installations on Linux. It's a native tool that can manage multiple ReShade versions across many games that use Proton or Wine.")
         label_description.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_description.setWordWrap(True)
         label_description.setAlignment(Qt.AlignmentFlag.AlignJustify)

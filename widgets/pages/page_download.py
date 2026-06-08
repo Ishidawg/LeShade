@@ -42,7 +42,7 @@ class PageDownload(QWidget):
 
         # create widgets
         label_description = QLabel(
-            "You can select if reshade has addon support or not, and choose the version."
+            "You can select if ReShade has addon support or not, and choose the version."
         )
         label_description.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_description.setWordWrap(True)
