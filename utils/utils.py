@@ -168,7 +168,7 @@ def download(
 
     if Path(file_path).exists():
         print(
-            f"Game folder already have the {file_name}. For safety reasons it will not be replaced."
+            f"Game folder already has the {file_name}. For safety reasons it will not be replaced."
         )
 
         return True if file_name == "d3dcompiler_47.dll" else None
