@@ -1,6 +1,7 @@
 import glob
 import os
 from pathlib import Path
+from zipfile import BadZipfile
 
 from PySide6.QtCore import QObject, QStandardPaths, Signal
 
@@ -42,6 +43,8 @@ class DownloadWorker(QObject):
 
         self.reshade_dir: str = ""
         self.perhaps_dir: str = ""
+
+        self.retry_count: int = 0
 
         self.build_url()
 
@@ -107,10 +110,36 @@ class DownloadWorker(QObject):
             self.unzip_reshade()
 
     def unzip_reshade(self) -> None:
-        unzip_file(self.reshade_dir, EXTRACT_PATH)
+        try:
+            unzip_file(self.reshade_dir, EXTRACT_PATH)
 
-        if self.release == "nightly":
-            extract_nightly(self.nightly_urls, DOWNLOAD_PATH, EXTRACT_PATH)
+            if self.release == "nightly":
+                extract_nightly(self.nightly_urls, DOWNLOAD_PATH, EXTRACT_PATH)
+        except BadZipfile:
+            if self.retry_count < 2:
+                self.retry_count += 1
+                self.reshade_status.emit("File corrupted, downloading...")
+
+                self.download_reshade()
+                self.reshade_dir = self.find_reshade()
+
+                if self.reshade_dir:
+                    try:
+                        self.unzip_reshade()
+                        self.reshade_found.emit(True)
+                        self.reshade_status.emit(
+                            "ReShade was downloaded after corruption!")
+                    except Exception as e:
+                        self.reshade_status.emit(
+                            f"Error, restart LeShade: {e}")
+                        raise Exception(str(e))
+                else:
+                    self.reshade_found.emit(False)
+                    self.reshade_status.emit("Failed to download again.")
+            else:
+                self.reshade_found.emit(False)
+                self.reshade_status.emit(
+                    "All download tries failed, restart LeShade.")
 
     def prevent_download(self) -> str:
         file_name: str = self.reshade_url.split("/")[-1]
@@ -131,6 +160,9 @@ class DownloadWorker(QObject):
             matches = list(Path(DOWNLOAD_PATH).rglob(file_name))
         except Exception as e:
             raise OSError(f"Failed to find ReShade: {e}") from e
+
+        if not matches:
+            return ""
 
         return str(matches[0])
 

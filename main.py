@@ -28,12 +28,13 @@ from widgets.pages.page_wrapper import PageWrapper
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 from widgets.widget_title import WidgetTitle
 
-app_version: str = "2.4.9"
+app_version: str = "2.5.0"
 build_type: str = "Release"
 
 
 def get_localdir():
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(
+        os.path.abspath(__file__)))
 
     if getattr(sys, "frozen", False):
         return base_path
@@ -146,7 +147,8 @@ class MainWindow(QMainWindow):
         self.page_installation.current_executable_path.connect(
             lambda str_value: self.get_simple_value("exe_path", str_value)
         )
-        self.page_installation.forward_vulkan_paths.connect(self.get_vulkan_paths)
+        self.page_installation.forward_vulkan_paths.connect(
+            self.get_vulkan_paths)
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
         self.game_directory: str = ""
@@ -197,7 +199,8 @@ class MainWindow(QMainWindow):
             case Pages.WRAPPER:
                 self.enable_next_button()
             case _:
-                raise ValueError("The page that you're trying to access does not exist")
+                raise ValueError(
+                    "The page that you're trying to access does not exist")
 
     def manage_extra_page(self, append: bool, page: QWidget) -> None:
         if append:
