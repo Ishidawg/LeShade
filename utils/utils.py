@@ -130,8 +130,17 @@ def unzip_file(src_file: str, destination_path: str) -> None:
     try:
         with ZipFile(src_file, "r") as zip_file:
             zip_file.extractall(destination_path)
+    except BadZipfile as e:
+        try:
+            if os.path.exists(src_file):
+                os.remove(src_file)
+        except OSError as e:
+            raise OSError(f"Failed to delete corrupted file: {e}")
+
+        raise BadZipfile(
+            f"Failed to unzip (probably the file is corrupted): {e}")
     except Exception as e:
-        raise BadZipfile(f"Failed to unzip: {e}")
+        raise Exception(f"Failed to unzip for unknown reason: {e}")
 
 
 def get_steam_appid(steamapps_dir: str, game_name: str) -> str:
@@ -183,7 +192,8 @@ def download(
 
 
 def generic_download(url: str, directory: str | None) -> None | str:
-    context: ssl.SSLContext = ssl.create_default_context(cafile=certifi.where())
+    context: ssl.SSLContext = ssl.create_default_context(
+        cafile=certifi.where())
     req: urllib.request.Request = urllib.request.Request(
         url, headers={"User-Agent": "Chrome/120.0.0.0"}
     )
