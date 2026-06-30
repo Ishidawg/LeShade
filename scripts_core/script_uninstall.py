@@ -1,9 +1,11 @@
-from scripts_core.script_manager import read_boolean_flags, read_manager_content
-from scripts_core.script_vulkan import InstallVulkan
-from PySide6.QtCore import QObject, Signal
-import shutil
 import glob
 import os
+import shutil
+
+from PySide6.QtCore import QObject, Signal
+
+from scripts_core.script_manager import read_boolean_flags, read_manager_content
+from scripts_core.script_vulkan import InstallVulkan
 
 
 class UninstallWorker(QObject):
@@ -22,15 +24,14 @@ class UninstallWorker(QObject):
 
             # I dont remember what I did to this string be a bool
             have_hlsl_compiler: str = read_boolean_flags(
-                self.current_row,
-                "hlsl_compiler"
+                self.current_row, "hlsl_compiler"
             )
             is_vulkan: str = read_boolean_flags(self.current_row, "vulkan")
 
             remove_files_complete: list[str] = []
 
             if not is_vulkan:
-                game_api_dll: str = read_manager_content("api_dll")[0]
+                game_api_dll: str = read_manager_content("api_dll")[self.current_row]
                 remove_files_complete.append(game_api_dll)
 
                 if game_api_dll == "d3d9.dll":
@@ -39,11 +40,7 @@ class UninstallWorker(QObject):
             if not have_hlsl_compiler:
                 remove_files_complete.append("d3dcompiler_47.dll")
 
-            remove_files_pattern: list[str] = [
-                "ReShade*.*",
-                "reshade*.*",
-                "renodx*.*"
-            ]
+            remove_files_pattern: list[str] = ["ReShade*.*", "reshade*.*", "renodx*.*"]
 
             if os.path.exists(self.game_path):
                 if os.path.exists(shaders_dir):
@@ -64,12 +61,15 @@ class UninstallWorker(QObject):
                             os.remove(file_found)
 
                 if is_vulkan:
-                    reshade_dir: str = read_manager_content(
-                        "reshade_prx_dir")[self.current_row]
-                    system32_dir: str = read_manager_content(
-                        "system32_prx_dir")[self.current_row]
-                    vulkanrt_dir: str = read_manager_content(
-                        "vulkanrt_prx_dir")[self.current_row]
+                    reshade_dir: str = read_manager_content("reshade_prx_dir")[
+                        self.current_row
+                    ]
+                    system32_dir: str = read_manager_content("system32_prx_dir")[
+                        self.current_row
+                    ]
+                    vulkanrt_dir: str = read_manager_content("vulkanrt_prx_dir")[
+                        self.current_row
+                    ]
 
                     if reshade_dir and os.path.exists(reshade_dir):
                         shutil.rmtree(reshade_dir)
@@ -80,14 +80,37 @@ class UninstallWorker(QObject):
                     if system32_dir and os.path.exists(system32_dir):
                         icu_file_path: str = ""
 
-                        icu_files: list[str] = ["derb.exe", "genbrk.exe", "genccode.exe", "genu.exe",
-                                                "gencmn.exe", "gencnval.exe", "gendict.exe", "gennorm2.exe",
-                                                "genrb.exe", "gensprep.exe", "icudt.dll", "icudt78.dll",
-                                                "icuexportdata.exe", "icuin.dll", "icuin78.dll", "icuinfo.exe",
-                                                "icuio.dll", "icuio78.dll", "icupkg.exe", "icutest.exe",
-                                                "icutest78.exe", "icutu.dll", "icutu78.dll", "icuuc.dll",
-                                                "icuuc78.dll", "makeconv.exe", "pkgdata.exe", "testplug.dll",
-                                                "uconv.exe"]
+                        icu_files: list[str] = [
+                            "derb.exe",
+                            "genbrk.exe",
+                            "genccode.exe",
+                            "genu.exe",
+                            "gencmn.exe",
+                            "gencnval.exe",
+                            "gendict.exe",
+                            "gennorm2.exe",
+                            "genrb.exe",
+                            "gensprep.exe",
+                            "icudt.dll",
+                            "icudt78.dll",
+                            "icuexportdata.exe",
+                            "icuin.dll",
+                            "icuin78.dll",
+                            "icuinfo.exe",
+                            "icuio.dll",
+                            "icuio78.dll",
+                            "icupkg.exe",
+                            "icutest.exe",
+                            "icutest78.exe",
+                            "icutu.dll",
+                            "icutu78.dll",
+                            "icuuc.dll",
+                            "icuuc78.dll",
+                            "makeconv.exe",
+                            "pkgdata.exe",
+                            "testplug.dll",
+                            "uconv.exe",
+                        ]
 
                         for file in icu_files:
                             icu_file_path = os.path.join(system32_dir, file)
@@ -101,6 +124,6 @@ class UninstallWorker(QObject):
 
             self.finished.emit(True)
         except Exception as e:
-            self.error.emit(e)
+            self.error.emit(str(e))
             self.finished.emit(False)
             raise IndexError(f"Error while deleting files: {e}")
