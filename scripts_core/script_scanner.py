@@ -124,9 +124,24 @@ def detect_graphics_api(path: str) -> str:
     return "D3D 11"
 
 
+def get_extra_search_paths() -> list[str]:
+    """
+    Returns optional custom directories specified by the user via
+    the LESHADE_EXTRA_PATHS environment variable (colon-separated).
+    """
+    paths = []
+    extra_env = os.environ.get("LESHADE_EXTRA_PATHS", "")
+    if extra_env:
+        for p in extra_env.split(":"):
+            p = p.strip()
+            if p and os.path.isdir(p):
+                paths.append(p)
+    return paths
+
+
 def scan_heroic_games() -> list[dict]:
     """
-    Scans Heroic Games Launcher install configs across host, flatpak, and distrobox paths.
+    Scans Heroic Games Launcher install configs across host, flatpak, and custom paths.
     """
     games = []
     seen_exes = set()
@@ -134,7 +149,15 @@ def scan_heroic_games() -> list[dict]:
     candidate_bases = [
         os.path.expanduser("~/.config/heroic"),
         os.path.expanduser("~/.var/app/com.heroicgameslauncher.hgl/config/heroic"),
-    ] + glob.glob("/mnt/data/distrobox/*/.config/heroic")
+    ]
+
+    xdg_config = os.environ.get("XDG_CONFIG_HOME")
+    if xdg_config:
+        candidate_bases.append(os.path.join(xdg_config, "heroic"))
+
+    for extra in get_extra_search_paths():
+        candidate_bases.append(os.path.join(extra, ".config", "heroic"))
+        candidate_bases.append(extra)
 
     for base in candidate_bases:
         cache_dir = os.path.join(base, "store_cache")
@@ -171,7 +194,7 @@ def scan_heroic_games() -> list[dict]:
 
 def scan_steam_games() -> list[dict]:
     """
-    Scans Steam libraries and manifests across host, flatpak, and distrobox paths.
+    Scans Steam libraries and manifests across host, flatpak, and custom paths.
     """
     games = []
     seen_exes = set()
@@ -179,8 +202,18 @@ def scan_steam_games() -> list[dict]:
     candidate_bases = [
         os.path.expanduser("~/.local/share/Steam"),
         os.path.expanduser("~/.steam/steam"),
+        os.path.expanduser("~/.steam/root"),
         os.path.expanduser("~/.var/app/com.valvesoftware.Steam/data/Steam"),
-    ] + glob.glob("/mnt/data/distrobox/*/.local/share/Steam")
+    ]
+
+    xdg_data = os.environ.get("XDG_DATA_HOME")
+    if xdg_data:
+        candidate_bases.append(os.path.join(xdg_data, "Steam"))
+
+    for extra in get_extra_search_paths():
+        candidate_bases.append(os.path.join(extra, ".local", "share", "Steam"))
+        candidate_bases.append(os.path.join(extra, ".steam", "steam"))
+        candidate_bases.append(extra)
 
     for base in candidate_bases:
         vdf = os.path.join(base, "config", "libraryfolders.vdf")
