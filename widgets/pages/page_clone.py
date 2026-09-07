@@ -2,7 +2,9 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QHBoxLayout,
     QLabel,
+    QLineEdit,
     QProgressBar,
     QPushButton,
     QScrollArea,
@@ -10,7 +12,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from scripts_core.script_shaders import ShadersWorker
+from scripts_core.script_addons import fetch_addons
+from scripts_core.script_shaders import ShadersWorker, fetch_effect_packages
 from utils.utils import get_renodx_assets
 
 
@@ -20,159 +23,74 @@ class PageClone(QWidget):
     def __init__(self, is_addon_param: bool):
         super().__init__()
 
-        self.selections: list[str] = []
         self.is_addon: bool = is_addon_param
         self.game_name: str = ""
+        self.package_items: list[dict] = []
+        self.addon_items: list[dict] = []
 
-        # create layout
+        # Main layout
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        widget_checkboxes = QWidget()
-        layout_checkboxes = QVBoxLayout(widget_checkboxes)
-        layout_checkboxes.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        # create widgets
-        label_description = QLabel("Select as many repositories as you want.")
+        # Header description
+        label_description = QLabel("Select effect packages and add-ons to install.")
         label_description.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_description.setWordWrap(True)
 
+        # Filter & Action toolbar
+        toolbar_layout = QHBoxLayout()
+        self.filter_input = QLineEdit()
+        self.filter_input.setPlaceholderText("Filter packages...")
+        self.filter_input.textChanged.connect(self.on_filter_changed)
+
+        self.btn_select_all = QPushButton("Select all")
+        self.btn_select_all.setFixedWidth(90)
+        self.btn_select_all.clicked.connect(self.on_select_all_clicked)
+
+        self.btn_clear_all = QPushButton("Clear all")
+        self.btn_clear_all.setFixedWidth(90)
+        self.btn_clear_all.clicked.connect(self.on_clear_all_clicked)
+
+        toolbar_layout.addWidget(self.filter_input)
+        toolbar_layout.addWidget(self.btn_select_all)
+        toolbar_layout.addWidget(self.btn_clear_all)
+
+        # Scrollable container for packages & addons
         self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
 
-        self.cxb_crosire_slim = QCheckBox("Crosire slim")
-        self.lbl_crosire_slim = QLabel(
-            "Default crosire, eg: Deband, UIMask...")
+        self.container_widget = QWidget()
+        self.container_layout = QVBoxLayout(self.container_widget)
+        self.container_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.cxb_crosire_legacy = QCheckBox("Crosire legacy")
-        self.lbl_crosire_legacy = QLabel(
-            "Legacy shaders from crosire, eg: AmbientLight."
-        )
+        # Load Effect Packages
+        self.load_packages()
 
-        self.cxb_sweet_fx = QCheckBox("Sweet FX")
-        self.lbl_sweet_fx = QLabel("SMAA, FXAA, CAS...")
+        # Addons container
+        self.widget_addons = QWidget()
+        self.layout_addons = QVBoxLayout(self.widget_addons)
+        self.layout_addons.setContentsMargins(0, 10, 0, 0)
 
-        self.cxb_prod80 = QCheckBox("Prod80")
-        self.lbl_prod80 = QLabel("Color grading shaders.")
+        label_addons_section = QLabel("Official Add-ons (Optional)")
+        label_addons_section.setStyleSheet("font-size: 11pt; font-weight: bold; margin-top: 10px;")
+        self.layout_addons.addWidget(label_addons_section)
 
-        self.cxb_quint = QCheckBox("qUINT")
-        self.lbl_quint = QLabel("MXAO, Lightroom, DOF, Bloom...")
+        self.load_addons()
 
-        self.cxb_immerse = QCheckBox("iMMERSE")
-        self.lbl_immerse = QLabel("MXAO, Sharpen and SMAA.")
-
-        self.cxb_mlut = QCheckBox("MLUT")
-        self.lbl_mlut = QLabel(
-            "<html>Big collection of multi-LUT. <span style='color: #FF5112'><strong>This repo is over 2GB</strong></span></html>"
-        )
-
-        self.cxb_insane = QCheckBox("Insane shaders")
-        self.lbl_insane = QLabel("Utility shaders, eg: Fog Removal.")
-
-        self.cxb_retro_arch = QCheckBox("RS Retro Arch")
-        self.lbl_retro_arch = QLabel("Shaders from RetroArch.")
-
-        self.cxb_crt_royale = QCheckBox("CRT Royale")
-        self.lbl_crt_royale = QLabel("CRT emulation shaders.")
-
-        self.cxb_glamarye = QCheckBox("Glamarye Fast Effects")
-        self.lbl_glamarye = QLabel("Faster shaders, eg: FXAA, AO, SHARPEN...")
-
-        self.cxb_reshade_hdr_shaders = QCheckBox("ReShade HDR Shaders")
-        self.lbl_reshade_hdr_shaders = QLabel(
-            "Democratisation of HDR analysis and other HDR things."
-        )
-
-        self.cxb_pumbo_auto_hdr = QCheckBox("Pumbo Auto HDR")
-        self.lbl_pumbo_auto_hdr = QLabel("Advanced ReShade AutoHDR.")
-
-        self.cxb_potato_fx = QCheckBox("PotatoFX")
-        self.lbl_potato_fx = QLabel(
-            "pCamera, pColorNoise, pColors, pPalletePopsterize..."
-        )
-
-        self.cxb_reshade_simple_hdr_shaders = QCheckBox(
-            "ReShade Simple HDR Shaders")
-        self.lbl_reshade_simple_hdr_shaders = QLabel(
-            "HDR-Compatible shaders that focus on eye-candy effects and basic adjustments."
-        )
-
-        self.cxb_list: list[QCheckBox] = [
-            self.cxb_crosire_slim,
-            self.cxb_crosire_legacy,
-            self.cxb_sweet_fx,
-            self.cxb_prod80,
-            self.cxb_quint,
-            self.cxb_immerse,
-            self.cxb_mlut,
-            self.cxb_insane,
-            self.cxb_retro_arch,
-            self.cxb_crt_royale,
-            self.cxb_glamarye,
-            self.cxb_reshade_hdr_shaders,
-            self.cxb_pumbo_auto_hdr,
-            self.cxb_potato_fx,
-            self.cxb_reshade_simple_hdr_shaders,
-        ]
-
-        self.cxb_dict: dict[str, dict[str, QCheckBox | QLabel]] = {
-            "crosire_slim": {
-                "checkbox": self.cxb_crosire_slim,
-                "label": self.lbl_crosire_slim,
-            },
-            "crosire_legacy": {
-                "checkbox": self.cxb_crosire_legacy,
-                "label": self.lbl_crosire_legacy,
-            },
-            "sweet_fx": {"checkbox": self.cxb_sweet_fx, "label": self.lbl_sweet_fx},
-            "prod80": {"checkbox": self.cxb_prod80, "label": self.lbl_prod80},
-            "quint": {"checkbox": self.cxb_quint, "label": self.lbl_quint},
-            "immerse": {"checkbox": self.cxb_immerse, "label": self.lbl_immerse},
-            "mlut": {"checkbox": self.cxb_mlut, "label": self.lbl_mlut},
-            "insane": {"checkbox": self.cxb_insane, "label": self.lbl_insane},
-            "retro_arch": {
-                "checkbox": self.cxb_retro_arch,
-                "label": self.lbl_retro_arch,
-            },
-            "crt_royale": {
-                "checkbox": self.cxb_crt_royale,
-                "label": self.lbl_crt_royale,
-            },
-            "glamarye": {"checkbox": self.cxb_glamarye, "label": self.lbl_glamarye},
-            "reshade_hdr_shaders": {
-                "checkbox": self.cxb_reshade_hdr_shaders,
-                "label": self.lbl_reshade_hdr_shaders,
-            },
-            "pumbo_auto_hdr": {
-                "checkbox": self.cxb_pumbo_auto_hdr,
-                "label": self.lbl_pumbo_auto_hdr,
-            },
-            "potato_fx": {"checkbox": self.cxb_potato_fx, "label": self.lbl_potato_fx},
-            "reshade_siple_hdr_shaders": {
-                "checkbox": self.cxb_reshade_simple_hdr_shaders,
-                "label": self.lbl_reshade_simple_hdr_shaders,
-            },
-        }
-
-        # Makes it comes checked because of ReShade.fxh
-        self.cxb_crosire_slim.setChecked(True)
-
-        for values in self.cxb_dict:
-            for key, value in self.cxb_dict[values].items():
-                if isinstance(value, QLabel):
-                    value.setStyleSheet("font-weight: 100;")
-                layout_checkboxes.addWidget(value)
-
-        # RenoDX
+        # RenoDX section
         self.renodx_assets: list[str] | None = None
-        self.lbl_renodx = QLabel("RenoDX - Select game addon")
+        self.lbl_renodx = QLabel("RenoDX - Select game snapshot")
+        self.lbl_renodx.setStyleSheet("font-size: 10pt; font-weight: bold; margin-top: 5px;")
         self.renodx_addon = QComboBox()
+        self.layout_addons.addWidget(self.lbl_renodx)
+        self.layout_addons.addWidget(self.renodx_addon)
 
-        layout_checkboxes.addSpacing(15)
-        layout_checkboxes.addWidget(self.lbl_renodx)
-        layout_checkboxes.addWidget(self.renodx_addon)
+        self.container_layout.addWidget(self.widget_addons)
+        self.widget_addons.setVisible(self.is_addon)
 
-        self.scroll_area.setWidget(widget_checkboxes)
+        self.scroll_area.setWidget(self.container_widget)
 
+        # Progress bar & Install button
         self.progress_bar = QProgressBar()
         self.progress_bar.setTextVisible(True)
         self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -180,19 +98,102 @@ class PageClone(QWidget):
         self.progress_bar.setValue(0)
 
         self.btn_install = QPushButton("Install")
+        self.btn_install.clicked.connect(self.on_install_clicked)
 
-        # add widgets
+        # Assemble layout
         layout.addWidget(label_description)
+        layout.addLayout(toolbar_layout)
         layout.addWidget(self.scroll_area)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.btn_install)
-        self.setLayout(layout)
 
-    # Have commented an option that returns the reno-dx item with the same first letter as the game
-    # cuz, tbh, there is no point to make it enabled by default. If someone enables addon, does not
-    # mean he wants to use reno_dx. Uncomment to implement again.
+        self.setLayout(layout)
+        self.update_renodx()
+
+    def load_packages(self) -> None:
+        packages = fetch_effect_packages()
+        for pkg in packages:
+            item_widget = QWidget()
+            item_layout = QVBoxLayout(item_widget)
+            item_layout.setContentsMargins(0, 2, 0, 4)
+            item_layout.setSpacing(2)
+
+            cxb = QCheckBox(pkg["name"])
+            if pkg.get("required") or pkg.get("enabled"):
+                cxb.setChecked(True)
+
+            lbl = QLabel(pkg.get("description", ""))
+            lbl.setStyleSheet("color: #888888; font-size: 9pt; padding-left: 20px;")
+            lbl.setWordWrap(True)
+
+            item_layout.addWidget(cxb)
+            if pkg.get("description"):
+                item_layout.addWidget(lbl)
+
+            self.container_layout.addWidget(item_widget)
+            self.package_items.append({
+                "pkg": pkg,
+                "checkbox": cxb,
+                "label": lbl,
+                "widget": item_widget,
+            })
+
+    def load_addons(self) -> None:
+        addons = fetch_addons(is_64bit=True)
+        for addon in addons:
+            item_widget = QWidget()
+            item_layout = QVBoxLayout(item_widget)
+            item_layout.setContentsMargins(0, 2, 0, 4)
+            item_layout.setSpacing(2)
+
+            cxb = QCheckBox(addon["name"])
+            lbl = QLabel(addon.get("description", ""))
+            lbl.setStyleSheet("color: #888888; font-size: 9pt; padding-left: 20px;")
+            lbl.setWordWrap(True)
+
+            item_layout.addWidget(cxb)
+            if addon.get("description"):
+                item_layout.addWidget(lbl)
+
+            self.layout_addons.addWidget(item_widget)
+            self.addon_items.append({
+                "addon": addon,
+                "checkbox": cxb,
+                "label": lbl,
+                "widget": item_widget,
+            })
+
+    def on_filter_changed(self, text: str) -> None:
+        query = text.strip().lower()
+        for item in self.package_items:
+            name = item["pkg"].get("name", "").lower()
+            desc = item["pkg"].get("description", "").lower()
+            match = (query in name) or (query in desc)
+            item["widget"].setVisible(match)
+
+        for item in self.addon_items:
+            name = item["addon"].get("name", "").lower()
+            desc = item["addon"].get("description", "").lower()
+            match = (query in name) or (query in desc)
+            item["widget"].setVisible(match)
+
+    def on_select_all_clicked(self) -> None:
+        for item in self.package_items:
+            if not item["widget"].isHidden():
+                item["checkbox"].setChecked(True)
+
+    def on_clear_all_clicked(self) -> None:
+        for item in self.package_items:
+            if not item["widget"].isHidden():
+                item["checkbox"].setChecked(False)
+
+        for item in self.addon_items:
+            if not item["widget"].isHidden():
+                item["checkbox"].setChecked(False)
+
     def update_renodx(self) -> None:
         if not self.is_addon:
+            self.renodx_addon.clear()
             self.renodx_addon.addItem("None")
             self.renodx_addon.setEnabled(False)
             return
@@ -200,36 +201,14 @@ class PageClone(QWidget):
         self.renodx_addon.setEnabled(True)
 
         if self.renodx_assets is None:
-            self.renodx_assets = get_renodx_assets()
+            try:
+                self.renodx_assets = get_renodx_assets()
+            except Exception:
+                self.renodx_assets = ["None"]
 
             self.renodx_addon.clear()
-
             if self.renodx_assets:
                 self.renodx_addon.addItems(self.renodx_assets)
-
-        # if self.renodx_assets and self.game_name:
-        #     self.set_renodx_selector_value(
-        #         self.game_name, self.renodx_assets, self.renodx_addon
-        #     )
-
-    # def set_renodx_selector_value(
-    #     self, game_name: str, asset_list: list[str] | None, selector: QComboBox
-    # ) -> None:
-    #     if not asset_list or not game_name:
-    #         return
-
-    #     first_char: str = game_name[0].lower()
-    #     pattern: str = "renodx-"
-    #     pattern_size: int = len(pattern)
-
-    #     for index, asset in enumerate(asset_list):
-    #         if (
-    #             asset.startswith(pattern)
-    #             and len(asset) > pattern_size
-    #             and asset[pattern_size] == first_char
-    #         ):
-    #             selector.setCurrentIndex(index)
-    #             return
 
     def set_game_name(self, value: str) -> None:
         self.game_name = value
@@ -237,43 +216,39 @@ class PageClone(QWidget):
 
     def set_is_addon(self, value: bool) -> None:
         self.is_addon = value
+        self.widget_addons.setVisible(value)
         self.update_renodx()
-        self.update_renodx_selector()
 
-    def update_renodx_selector(self) -> None:
-        # is_addon = True or False
-        self.renodx_addon.setEnabled(self.is_addon)
-        self.renodx_addon.updatesEnabled()
+    def on_install_clicked(self) -> None:
+        pass
 
     def on_install(self, game_dir: str) -> None:
-        self.start_animation()
-        self.append_selections(self.selections)
-        self.start_clone(game_dir)
-        self.btn_install.setEnabled(False)
+        selected_pkgs = [
+            item["pkg"] for item in self.package_items if item["checkbox"].isChecked()
+        ]
+        selected_addons = [
+            item["addon"] for item in self.addon_items if item["checkbox"].isChecked()
+        ]
 
-    def append_selections(self, selections: list[str]):
-        for checkbox in self.cxb_list:
-            if checkbox.isChecked():
-                selections.append(checkbox.text())
+        renodx_choice = self.renodx_addon.currentText() if self.is_addon else "None"
 
-    def start_clone(self, game_dir: str) -> None:
-        if not self.selections and self.renodx_addon.currentText() == "None":
+        if not selected_pkgs and not selected_addons and renodx_choice == "None":
+            self.clone_finished.emit(True)
             return
+
+        self.start_animation()
+        self.btn_install.setEnabled(False)
 
         self.clone_thread: QThread = QThread()
         self.clone_worker: ShadersWorker = ShadersWorker(
-            self.selections, self.renodx_addon.currentText(), game_dir
+            selected_pkgs, renodx_choice, game_dir, selected_addons=selected_addons
         )
 
         self.clone_worker.moveToThread(self.clone_thread)
-
-        # start and at the end, finished, are built-in threads signals
         self.clone_thread.started.connect(self.clone_worker.run)
 
-        # clone_finished
         self.clone_worker.clone_finished.connect(self.on_success)
         self.clone_worker.clone_finished.connect(self.on_error)
-
         self.clone_worker.clone_finished.connect(self.clone_thread.quit)
         self.clone_worker.clone_finished.connect(self.clone_worker.deleteLater)
         self.clone_thread.finished.connect(self.clone_thread.deleteLater)
@@ -292,13 +267,11 @@ class PageClone(QWidget):
             self.progress_bar.setFormat("Installation finished!")
             self.clone_finished.emit(value)
 
-            for checkbox in self.cxb_list:
-                checkbox.setChecked(False)
-
     @Slot(bool)
     def on_error(self, value: bool) -> None:
         self.btn_install.setEnabled(True)
         if not value:
+            self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("Failed shader process")
             self.clone_finished.emit(value)
