@@ -1,7 +1,9 @@
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
 from scripts_core.script_installation import InstallationWorker
+from scripts_core.script_scanner import scan_all_games, detect_graphics_api
 from utils.utils import dialog_box
 from PySide6.QtWidgets import (
+    QComboBox,
     QFileDialog,
     QGridLayout,
     QLineEdit,
@@ -46,23 +48,36 @@ class PageInstallation(QWidget):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        layout_detected = QHBoxLayout()
         layout_browse = QHBoxLayout()
         layout_api = QGridLayout()
         layout_api.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout_api.setSpacing(20)
 
         # create widgets
-        label_exe = QLabel("Select game executable")
+        label_detected = QLabel("Discovered games (Steam / Heroic)")
+        label_detected.setStyleSheet("font-size: 12pt; font-weight: 100")
+        label_detected.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        self.combo_games = QComboBox()
+        self.btn_refresh = QPushButton("Refresh")
+        self.btn_refresh.setFixedWidth(80)
+        self.btn_refresh.setToolTip("Rescan installed games")
+
+        layout_detected.addWidget(self.combo_games)
+        layout_detected.addWidget(self.btn_refresh)
+
+        label_exe = QLabel("Or select game executable manually")
         label_exe.setStyleSheet("font-size: 12pt; font-weight: 100")
         label_exe.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.browse_input = QLineEdit()
-        self.browse_button = QPushButton("browse")
+        self.browse_button = QPushButton("Browse")
         self.use_native_dialog = QCheckBox("Use native file dialog")
 
-        label_api = QLabel("Select game API")
-        label_api.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        label_api.setStyleSheet("font-size: 12pt; font-weight: 100")
+        self.label_api = QLabel("Select game API")
+        self.label_api.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.label_api.setStyleSheet("font-size: 12pt; font-weight: 100")
 
         self.radio_opengl = QRadioButton("OpenGL")
         self.radio_d3d8 = QRadioButton("D3D 8")
@@ -82,14 +97,18 @@ class PageInstallation(QWidget):
         self.btn_install = QPushButton("Install")
 
         # add widgets
-        layout.addWidget(label_exe)
+        layout.addWidget(label_detected)
+        layout.addLayout(layout_detected)
+        layout.addSpacing(5)
 
+        layout.addWidget(label_exe)
         layout_browse.addWidget(self.browse_input)
         layout_browse.addWidget(self.browse_button)
         layout.addLayout(layout_browse)
         layout.addWidget(self.use_native_dialog)
-        layout.addSpacing(10)
+        layout.addSpacing(5)
 
+        layout.addWidget(self.label_api)
         layout_api.addWidget(self.radio_opengl, 0, 0)
         layout_api.addWidget(self.radio_d3d8, 0, 1)
         layout_api.addWidget(self.radio_d3d9, 0, 2)
@@ -98,16 +117,89 @@ class PageInstallation(QWidget):
         layout_api.addWidget(self.radio_d3d12, 1, 2)
         layout_api.addWidget(self.radio_vulkan, 2, 1)
         layout.addLayout(layout_api)
-        layout.addSpacing(10)
+        layout.addSpacing(5)
 
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.btn_install)
 
         # Connect functions and signals (if there's)
         self.browse_button.clicked.connect(self.on_browse_clicked)
+        self.browse_input.textChanged.connect(self.on_browse_text_changed)
+        self.combo_games.currentIndexChanged.connect(self.on_game_selected)
+        self.btn_refresh.clicked.connect(self.populate_games)
         self.btn_install.clicked.connect(self.on_install_clicked)
 
+        self.populate_games()
+
         self.setLayout(layout)
+
+    def populate_games(self) -> None:
+        self.combo_games.blockSignals(True)
+        self.combo_games.clear()
+        self.combo_games.addItem("-- Select detected game (Steam / Heroic) --", userData=None)
+
+        games = scan_all_games()
+        for game in games:
+            title = game.get("title", "Unknown")
+            source = game.get("source", "Game")
+            label = f"[{source}] {title}"
+            self.combo_games.addItem(label, userData=game)
+
+        self.combo_games.blockSignals(False)
+
+    def on_game_selected(self, index: int) -> None:
+        if index <= 0:
+            return
+
+        game_data = self.combo_games.itemData(index)
+        if not game_data or not isinstance(game_data, dict):
+            return
+
+        exe_path = game_data.get("exe", "")
+        if exe_path and os.path.exists(exe_path):
+            self.browse_input.setText(exe_path)
+            self.set_executable_path(exe_path)
+            if game_data.get("source") == "Steam":
+                self.is_steam = True
+            elif game_data.get("source") == "Heroic":
+                self.is_steam = False
+
+    def on_browse_text_changed(self, text: str) -> None:
+        clean = text.strip().strip('"').strip("'")
+        if os.path.isfile(clean) and clean.lower().endswith(".exe"):
+            if clean != self.game_path:
+                self.set_executable_path(clean)
+        else:
+            self.game_path = clean
+            self.update_install_button()
+
+    def set_executable_path(self, exe_path: str) -> None:
+        self.game_path = exe_path
+        self.current_executable_path.emit(self.game_path)
+        self.auto_select_api(exe_path)
+        self.update_install_button()
+        self.progress_bar.reset()
+
+    def auto_select_api(self, exe_path: str) -> None:
+        if not exe_path or not os.path.exists(exe_path):
+            return
+
+        api = detect_graphics_api(exe_path)
+        self.label_api.setText(f"Select game API (Auto-detected: {api})")
+
+        radio_map = {
+            "OpenGL": self.radio_opengl,
+            "D3D 8": self.radio_d3d8,
+            "D3D 9": self.radio_d3d9,
+            "D3D 10": self.radio_d3d10,
+            "D3D 11": self.radio_d3d11,
+            "D3D 12": self.radio_d3d12,
+            "Vulkan": self.radio_vulkan,
+        }
+
+        if api in radio_map:
+            radio_map[api].setChecked(True)
+            self.game_api = api
 
     def on_browse_clicked(self) -> None:
         options = (
@@ -119,13 +211,9 @@ class PageInstallation(QWidget):
         file_name: tuple[str, str] = QFileDialog.getOpenFileName(
             self, "Select game executable", HOME, "Executables (*.exe)", options=options)
 
-        if file_name:
+        if file_name and file_name[0]:
             self.browse_input.setText(file_name[0])
-            self.game_path = file_name[0]
-            self.current_executable_path.emit(self.game_path)
-
-        self.update_install_button()
-        self.progress_bar.reset()
+            self.set_executable_path(file_name[0])
 
     def start_installation(self) -> None:
         if self.game_api == "Vulkan":
