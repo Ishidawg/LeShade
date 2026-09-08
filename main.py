@@ -20,6 +20,7 @@ from scripts_core.script_manager import add_game, create_manager
 from utils.utils import EXTRACT_PATH, get_game_directory_name
 from utils.wrapper_text import DX8_WRAPPER, VULKAN_WRAPPER
 from widgets.pages.page_clone import PageClone
+from widgets.pages.page_dlss5 import PageDLSS5
 from widgets.pages.page_download import PageDownload
 from widgets.pages.page_installation import PageInstallation
 from widgets.pages.page_start import PageStart
@@ -54,7 +55,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        WINDOW_SIZE: list[int] = [620, 500]
+        WINDOW_MIN_SIZE: list[int] = [640, 520]
+        WINDOW_DEFAULT_SIZE: list[int] = [760, 640]
 
         window_title: str = f"LeShade {app_version}"
 
@@ -62,7 +64,8 @@ class MainWindow(QMainWindow):
             window_title += " Nightly"
 
         self.setWindowTitle(window_title)
-        self.setFixedSize(WINDOW_SIZE[0], WINDOW_SIZE[1])
+        self.setMinimumSize(WINDOW_MIN_SIZE[0], WINDOW_MIN_SIZE[1])
+        self.resize(WINDOW_DEFAULT_SIZE[0], WINDOW_DEFAULT_SIZE[1])
 
         # main widget and main layout (page)
         widget_main = QWidget()
@@ -81,6 +84,7 @@ class MainWindow(QMainWindow):
         self.page_download: PageDownload = PageDownload()
         self.page_installation: PageInstallation = PageInstallation()
         self.page_clone: PageClone = PageClone(self.is_addon)
+        self.page_dlss5: PageDLSS5 = PageDLSS5()
         self.page_wrapper: PageWrapper
 
         self.pages: list[QWidget] = [
@@ -114,6 +118,9 @@ class MainWindow(QMainWindow):
         # Connect signals (if there is signals)
         self.page_start.install.connect(self.on_install_clicked)
         self.page_start.uninstall.connect(self.on_uninstall_clicked)
+        self.page_start.dlss5_requested.connect(self.on_dlss5_clicked)
+        self.page_dlss5.back_requested.connect(self.on_dlss5_back_clicked)
+        self.page_installation.request_dlss5_page.connect(self.on_dlss5_shortcut_clicked)
 
         self.action_buttons.btn_home.clicked.connect(self.on_home_clicked)
         self.action_buttons.btn_back.clicked.connect(self.on_back_clicked)
@@ -288,6 +295,35 @@ class MainWindow(QMainWindow):
         self.pages_index = Pages.CLONE
         self.stack.setCurrentIndex(self.pages_index)
         self.update_buttons()
+
+    def manage_dlss5_page(self, show: bool, game_path: str = "") -> None:
+        if show:
+            self.action_buttons.hide()
+            self.stack.setContentsMargins(20, 10, 20, 10)
+            if self.stack.indexOf(self.page_dlss5) == -1:
+                self.stack.addWidget(self.page_dlss5)
+            if game_path:
+                self.page_dlss5.browse_input.setText(game_path)
+                self.page_dlss5.set_game_path(game_path)
+            self.stack.setCurrentWidget(self.page_dlss5)
+        else:
+            self.action_buttons.show()
+            self.stack.setContentsMargins(50, 0, 50, 0)
+            self.stack.setCurrentIndex(self.pages_index)
+            self.update_buttons()
+
+    @Slot(bool)
+    def on_dlss5_clicked(self, value: bool) -> None:
+        if value:
+            self.manage_dlss5_page(True)
+
+    @Slot()
+    def on_dlss5_back_clicked(self) -> None:
+        self.manage_dlss5_page(False)
+
+    @Slot(str)
+    def on_dlss5_shortcut_clicked(self, game_path: str) -> None:
+        self.manage_dlss5_page(True, game_path)
 
     @Slot(str, bool)
     def on_action_finished(self, action: str, value: bool) -> None:

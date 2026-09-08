@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 class PageStart(QWidget):
     install: Signal = Signal(bool)
     uninstall: Signal = Signal(bool)
+    dlss5_requested: Signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -29,9 +30,12 @@ class PageStart(QWidget):
         label_description.setAlignment(Qt.AlignmentFlag.AlignJustify)
 
         self.btn_install = QPushButton("Install")
+        self.btn_dlss5 = QPushButton("DLSS 5 Autopilot")
+        self.btn_dlss5.setToolTip("Assistente de IA Neural para jogos no Linux (NVIDIA RTX)")
         self.btn_uninstall = QPushButton("Uninstall")
 
         self.btn_install.clicked.connect(self.click_install)
+        self.btn_dlss5.clicked.connect(self.click_dlss5)
         self.btn_uninstall.clicked.connect(self.click_uninstall)
 
         # add widgets
@@ -39,6 +43,7 @@ class PageStart(QWidget):
         layout.addSpacing(12)
 
         layout_buttons.addWidget(self.btn_install)
+        layout_buttons.addWidget(self.btn_dlss5)
         layout_buttons.addWidget(self.btn_uninstall)
         layout.addLayout(layout_buttons)
 
@@ -46,6 +51,9 @@ class PageStart(QWidget):
 
     def click_install(self) -> None:
         self.install.emit(True)
+
+    def click_dlss5(self) -> None:
+        self.dlss5_requested.emit(True)
 
     def click_uninstall(self) -> None:
         self.uninstall.emit(True)
