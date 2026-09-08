@@ -43,6 +43,7 @@ class PageInstallation(QWidget):
     already_have_hlsl_compiler: Signal = Signal(bool)
     dll_api: Signal = Signal(str)
     request_page_clone: Signal = Signal()
+    request_dlss5_page: Signal = Signal(str)
 
     forward_vulkan_paths: Signal = Signal(str, str, str)
 
@@ -133,6 +134,14 @@ class PageInstallation(QWidget):
         self.btn_modify.setToolTip(
             "Update ReShade and customize installed shaders and add-ons"
         )
+        self.btn_dlss5 = QPushButton("DLSS 5")
+        self.btn_dlss5.setToolTip("Abrir o assistente DLSS 5 Autopilot para este jogo")
+        self.btn_dlss5.setStyleSheet(
+            "QPushButton { color: #81C784; border: 1px solid #81C784; } "
+            "QPushButton:hover { background-color: rgba(129, 199, 132, 0.15); }"
+        )
+        self.btn_dlss5.clicked.connect(self.on_dlss5_clicked)
+
         self.btn_uninstall = QPushButton("Uninstall")
         self.btn_uninstall.setToolTip("Completely remove ReShade from this game")
         self.btn_uninstall.setStyleSheet(
@@ -142,6 +151,7 @@ class PageInstallation(QWidget):
 
         self.layout_lifecycle.addWidget(self.btn_update)
         self.layout_lifecycle.addWidget(self.btn_modify)
+        self.layout_lifecycle.addWidget(self.btn_dlss5)
         self.layout_lifecycle.addWidget(self.btn_uninstall)
         self.widget_lifecycle.hide()
 
@@ -440,6 +450,10 @@ class PageInstallation(QWidget):
         else:
             self.progress_bar.setFormat(f"Error: {msg}")
             self.install_finished.emit(False)
+
+    def on_dlss5_clicked(self) -> None:
+        if self.game_path:
+            self.request_dlss5_page.emit(self.game_path)
 
     def on_uninstall_clicked(self) -> None:
         if not self.game_path or not os.path.exists(self.game_path):
