@@ -1,7 +1,15 @@
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
-from scripts_core.script_installation import InstallationWorker
+from scripts_core.script_installation import (
+    InstallationWorker,
+    check_existing_installation,
+    update_reshade_dll_only,
+    uninstall_game_reshade,
+    get_api_dll_name
+)
+from scripts_core.script_manager import add_game
 from scripts_core.script_scanner import scan_all_games, detect_graphics_api
 from utils.utils import dialog_box
+from pathlib import Path
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -34,6 +42,7 @@ class PageInstallation(QWidget):
     is_vulkan: Signal = Signal(bool)
     already_have_hlsl_compiler: Signal = Signal(bool)
     dll_api: Signal = Signal(str)
+    request_page_clone: Signal = Signal()
 
     forward_vulkan_paths: Signal = Signal(str, str, str)
 
@@ -43,6 +52,7 @@ class PageInstallation(QWidget):
         self.game_path: str = ""
         self.game_api: str = ""
         self.is_steam: bool = True
+        self.current_existing_info: dict = {}
 
         # create layout
         layout = QVBoxLayout()
@@ -88,6 +98,20 @@ class PageInstallation(QWidget):
         self.radio_vulkan = QRadioButton("Vulkan")
         self.radio_d3d12.setChecked(True)
 
+        self.label_status_detected = QLabel()
+        self.label_status_detected.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label_status_detected.setWordWrap(True)
+        self.label_status_detected.setStyleSheet(
+            "background-color: rgba(76, 175, 80, 0.15); "
+            "color: #4CAF50; "
+            "border: 1px solid #4CAF50; "
+            "border-radius: 4px; "
+            "padding: 6px; "
+            "font-size: 10pt; "
+            "font-weight: bold;"
+        )
+        self.label_status_detected.hide()
+
         self.progress_bar = QProgressBar()
         self.progress_bar.setTextVisible(True)
         self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -95,6 +119,31 @@ class PageInstallation(QWidget):
         self.progress_bar.setValue(0)
 
         self.btn_install = QPushButton("Install")
+
+        self.widget_lifecycle = QWidget()
+        self.layout_lifecycle = QHBoxLayout(self.widget_lifecycle)
+        self.layout_lifecycle.setContentsMargins(0, 0, 0, 0)
+        self.layout_lifecycle.setSpacing(10)
+
+        self.btn_update = QPushButton("Update ReShade")
+        self.btn_update.setToolTip(
+            "Update ReShade DLL to the downloaded version, keeping settings and presets intact"
+        )
+        self.btn_modify = QPushButton("Modify Shaders / Add-ons")
+        self.btn_modify.setToolTip(
+            "Update ReShade and customize installed shaders and add-ons"
+        )
+        self.btn_uninstall = QPushButton("Uninstall")
+        self.btn_uninstall.setToolTip("Completely remove ReShade from this game")
+        self.btn_uninstall.setStyleSheet(
+            "QPushButton { color: #ff6b6b; border: 1px solid #ff6b6b; } "
+            "QPushButton:hover { background-color: rgba(255, 107, 107, 0.15); }"
+        )
+
+        self.layout_lifecycle.addWidget(self.btn_update)
+        self.layout_lifecycle.addWidget(self.btn_modify)
+        self.layout_lifecycle.addWidget(self.btn_uninstall)
+        self.widget_lifecycle.hide()
 
         # add widgets
         layout.addWidget(label_detected)
@@ -119,15 +168,20 @@ class PageInstallation(QWidget):
         layout.addLayout(layout_api)
         layout.addSpacing(5)
 
+        layout.addWidget(self.label_status_detected)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.btn_install)
+        layout.addWidget(self.widget_lifecycle)
 
-        # Connect functions and signals (if there's)
+        # Connect functions and signals
         self.browse_button.clicked.connect(self.on_browse_clicked)
         self.browse_input.textChanged.connect(self.on_browse_text_changed)
         self.combo_games.currentIndexChanged.connect(self.on_game_selected)
         self.btn_refresh.clicked.connect(self.populate_games)
         self.btn_install.clicked.connect(self.on_install_clicked)
+        self.btn_update.clicked.connect(self.on_update_clicked)
+        self.btn_modify.clicked.connect(self.on_modify_clicked)
+        self.btn_uninstall.clicked.connect(self.on_uninstall_clicked)
 
         self.populate_games()
 
@@ -171,13 +225,13 @@ class PageInstallation(QWidget):
                 self.set_executable_path(clean)
         else:
             self.game_path = clean
-            self.update_install_button()
+            self.check_existing_reshade()
 
     def set_executable_path(self, exe_path: str) -> None:
         self.game_path = exe_path
         self.current_executable_path.emit(self.game_path)
         self.auto_select_api(exe_path)
-        self.update_install_button()
+        self.check_existing_reshade()
         self.progress_bar.reset()
 
     def auto_select_api(self, exe_path: str) -> None:
@@ -281,8 +335,141 @@ class PageInstallation(QWidget):
         self.btn_install.setEnabled(False)
 
     def update_install_button(self) -> None:
-        self.btn_install.setEnabled(
-            True) if self.game_path else self.btn_install.setEnabled(False)
+        self.check_existing_reshade()
+
+    def check_existing_reshade(self) -> None:
+        if not self.game_path or not os.path.exists(self.game_path):
+            self.current_existing_info = {}
+            self.label_status_detected.hide()
+            self.widget_lifecycle.hide()
+            self.btn_install.show()
+            self.btn_install.setEnabled(False)
+            return
+
+        self.current_existing_info = check_existing_installation(self.game_path)
+
+        if self.current_existing_info.get("installed"):
+            ver = self.current_existing_info.get("version")
+            dll = self.current_existing_info.get("api_dll") or "ReShade"
+            ver_text = f"v{ver}" if ver else "detected"
+            self.label_status_detected.setText(
+                f"Existing ReShade found: {ver_text} ({dll})"
+            )
+            self.label_status_detected.show()
+            self.btn_install.hide()
+            self.widget_lifecycle.show()
+        else:
+            self.label_status_detected.hide()
+            self.widget_lifecycle.hide()
+            self.btn_install.show()
+            self.btn_install.setEnabled(True)
+
+    def on_update_clicked(self) -> None:
+        self.api_selection()
+        if not self.game_path or not os.path.exists(self.game_path):
+            self.progress_bar.setFormat("Error: invalid game path")
+            return
+
+        self.verify_wine()
+
+        target_dll = self.current_existing_info.get("api_dll", "")
+        success, msg = update_reshade_dll_only(
+            self.game_path,
+            game_api=self.game_api,
+            target_dll_name=target_dll,
+            is_steam=self.is_steam
+        )
+
+        if success:
+            self.progress_bar.setValue(100)
+            self.progress_bar.setFormat("ReShade updated successfully!")
+            self.install_finished.emit(True)
+            parent_dir = str(Path(self.game_path).resolve().parent)
+            self.current_game_directory.emit(parent_dir)
+            self.current_executable_path.emit(self.game_path)
+            api_dll_name = target_dll or get_api_dll_name(self.game_api)
+            self.dll_api.emit(api_dll_name)
+            self.is_api_dx8()
+            self.is_api_vulkan()
+            try:
+                add_game(
+                    parent_dir,
+                    self.game_path,
+                    None,
+                    api_dll_name,
+                    self.game_api == "Vulkan",
+                    "",
+                    "",
+                    ""
+                )
+            except Exception:
+                pass
+            self.check_existing_reshade()
+        else:
+            self.progress_bar.setFormat(f"Error: {msg}")
+            self.install_finished.emit(False)
+
+    def on_modify_clicked(self) -> None:
+        self.api_selection()
+        if not self.game_path or not os.path.exists(self.game_path):
+            self.progress_bar.setFormat("Error: invalid game path")
+            return
+
+        self.verify_wine()
+
+        target_dll = self.current_existing_info.get("api_dll", "")
+        success, msg = update_reshade_dll_only(
+            self.game_path,
+            game_api=self.game_api,
+            target_dll_name=target_dll,
+            is_steam=self.is_steam
+        )
+
+        if success:
+            self.progress_bar.setValue(100)
+            self.progress_bar.setFormat("Ready to modify shaders!")
+            self.install_finished.emit(True)
+            parent_dir = str(Path(self.game_path).resolve().parent)
+            self.current_game_directory.emit(parent_dir)
+            self.current_executable_path.emit(self.game_path)
+            api_dll_name = target_dll or get_api_dll_name(self.game_api)
+            self.dll_api.emit(api_dll_name)
+            self.is_api_dx8()
+            self.is_api_vulkan()
+            self.request_page_clone.emit()
+        else:
+            self.progress_bar.setFormat(f"Error: {msg}")
+            self.install_finished.emit(False)
+
+    def on_uninstall_clicked(self) -> None:
+        if not self.game_path or not os.path.exists(self.game_path):
+            return
+
+        game_name = Path(self.game_path).name
+        confirm = dialog_box(
+            parent=self,
+            title="Uninstall ReShade",
+            icon=QMessageBox.Icon.Warning,
+            text=f"Uninstall ReShade from {game_name}?",
+            info_text="This will remove ReShade binaries, shaders, add-ons, and configuration files.",
+            buttons=True
+        )
+
+        if not confirm:
+            return
+
+        self.progress_bar.setRange(0, 0)
+        self.progress_bar.setFormat("Uninstalling...")
+        success, msg = uninstall_game_reshade(self.game_path, is_steam=self.is_steam)
+        self.progress_bar.setRange(0, 100)
+
+        if success:
+            self.progress_bar.setValue(100)
+            self.progress_bar.setFormat("ReShade uninstalled successfully!")
+            self.check_existing_reshade()
+        else:
+            self.progress_bar.setValue(0)
+            self.progress_bar.setFormat(f"Error: {msg}")
 
     def api_selection(self) -> None:
         available_api: dict = {
@@ -369,6 +556,7 @@ class PageInstallation(QWidget):
         if value:
             self.progress_bar.setFormat("Installation finished!")
             self.install_finished.emit(value)
+            self.check_existing_reshade()
 
     @Slot(bool)
     def on_error(self, value: bool) -> None:

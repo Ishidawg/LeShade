@@ -13,7 +13,9 @@ from utils.utils import EXTRACT_PATH
 import textwrap
 import struct
 import shutil
+import glob
 import os
+import re
 
 MACHINE_TYPES = {
     0x014C: "32-bit",
@@ -155,21 +157,7 @@ class InstallationWorker(QObject):
             raise FileNotFoundError(
                 f"Could not find {reshade_dll} in {self.reshade_path}")
 
-        reshade_dll_renamed: str = ''
-
-        match self.game_api:
-            case "OpenGL":
-                reshade_dll_renamed = "opengl32.dll"
-            case "D3D 8" | "D3D 9":
-                reshade_dll_renamed = "d3d9.dll"
-            case "D3D 10":
-                reshade_dll_renamed = "d3d10.dll"
-            case "D3D 11":
-                reshade_dll_renamed = "d3d11.dll"
-            case "D3D 12":
-                reshade_dll_renamed = "dxgi.dll"
-            case _:
-                raise ValueError(f"Currently an unsupported API!")
+        reshade_dll_renamed: str = get_api_dll_name(self.game_api)
 
         reshade_dll_renamed_destination: str = os.path.join(
             self.game_path_parent, reshade_dll_renamed)
@@ -179,22 +167,246 @@ class InstallationWorker(QObject):
         self.api_dll.emit(reshade_dll_renamed)
 
     def get_executable_architecture(self, path: Path) -> str:
-        if not path.exists():
-            raise FileNotFoundError(f"File not found: {path}")
+        return get_executable_architecture(path)
 
-        with path.open("rb") as f:
-            dos_header: bytes = f.read(64)
-            if len(dos_header) < 64 or dos_header[:2] != b"MZ":
-                raise ValueError("Not a valid executable (missing MZ header)")
 
-            e_lfanew: int = struct.unpack_from("<I", dos_header, 60)[0]
+def get_executable_architecture(path: Path) -> str:
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
 
-            f.seek(e_lfanew)
-            pe_signature: bytes = f.read(4)
-            if pe_signature != b"PE\x00\x00":
-                raise ValueError("Invalid PE signature")
+    with path.open("rb") as f:
+        dos_header: bytes = f.read(64)
+        if len(dos_header) < 64 or dos_header[:2] != b"MZ":
+            raise ValueError("Not a valid executable (missing MZ header)")
 
-            machine_bytes: bytes = f.read(2)
-            machine: int = struct.unpack("<H", machine_bytes)[0]
+        e_lfanew: int = struct.unpack_from("<I", dos_header, 60)[0]
 
-        return MACHINE_TYPES.get(machine, "unknown")
+        f.seek(e_lfanew)
+        pe_signature: bytes = f.read(4)
+        if pe_signature != b"PE\x00\x00":
+            raise ValueError("Invalid PE signature")
+
+        machine_bytes: bytes = f.read(2)
+        machine: int = struct.unpack("<H", machine_bytes)[0]
+
+    return MACHINE_TYPES.get(machine, "unknown")
+
+
+def get_api_dll_name(game_api: str) -> str:
+    match game_api:
+        case "OpenGL":
+            return "opengl32.dll"
+        case "D3D 8" | "D3D 9":
+            return "d3d9.dll"
+        case "D3D 10":
+            return "d3d10.dll"
+        case "D3D 11":
+            return "d3d11.dll"
+        case "D3D 12":
+            return "dxgi.dll"
+        case _:
+            return "dxgi.dll"
+
+
+def check_existing_installation(game_exe_path: str) -> dict:
+    result = {
+        "installed": False,
+        "version": "",
+        "api_dll": "",
+        "api_dll_path": "",
+        "detected_api": "",
+        "has_ini": False,
+        "has_shaders": False,
+        "has_log": False,
+        "addons": []
+    }
+    if not game_exe_path or not os.path.exists(game_exe_path):
+        return result
+
+    exe = Path(game_exe_path).resolve()
+    game_dir = exe.parent if exe.is_file() else exe
+    if not game_dir.is_dir():
+        return result
+
+    candidate_dlls = [
+        ("dxgi.dll", "D3D 12"),
+        ("d3d11.dll", "D3D 11"),
+        ("d3d9.dll", "D3D 9"),
+        ("d3d10.dll", "D3D 10"),
+        ("d3d12.dll", "D3D 12"),
+        ("opengl32.dll", "OpenGL"),
+        ("d3d8.dll", "D3D 8")
+    ]
+
+    found_dll = None
+    found_dll_path = None
+    detected_api = ""
+    version = ""
+
+    for dll_name, api in candidate_dlls:
+        dll_path = game_dir / dll_name
+        if dll_path.is_file():
+            try:
+                with open(dll_path, "rb") as f:
+                    data = f.read()
+                m = re.search(rb"crosire\'s ReShade version \'([^\']+)\'", data)
+                if m:
+                    version = m.group(1).decode("latin1", errors="ignore")
+                    found_dll = dll_name
+                    found_dll_path = str(dll_path)
+                    detected_api = api
+                    break
+                elif b"ReShade" in data:
+                    found_dll = dll_name
+                    found_dll_path = str(dll_path)
+                    detected_api = api
+                    break
+            except Exception:
+                pass
+
+    has_ini = (game_dir / "ReShade.ini").is_file()
+    has_shaders = (game_dir / "reshade-shaders").is_dir()
+    has_log = (game_dir / "ReShade.log").is_file()
+
+    # Read version from ReShade.log if not found in DLL
+    if not version and has_log:
+        try:
+            with open(game_dir / "ReShade.log", "r", encoding="latin1", errors="ignore") as f:
+                for _ in range(30):
+                    line = f.readline()
+                    if not line:
+                        break
+                    m = re.search(r"ReShade version \'([^\']+)\'", line)
+                    if m:
+                        version = m.group(1)
+                        break
+        except Exception:
+            pass
+
+    # Find addons
+    addons = []
+    for pattern in ("*.addon", "*.addon64", "*.addon32"):
+        addons.extend([f.name for f in game_dir.glob(pattern)])
+
+    installed = bool(found_dll or has_ini or has_shaders)
+    return {
+        "installed": installed,
+        "version": version,
+        "api_dll": found_dll or "",
+        "api_dll_path": found_dll_path or "",
+        "detected_api": detected_api,
+        "has_ini": has_ini,
+        "has_shaders": has_shaders,
+        "has_log": has_log,
+        "addons": addons
+    }
+
+
+def update_reshade_dll_only(
+    game_exe_path: str,
+    game_api: str = "",
+    target_dll_name: str = "",
+    reshade_source_dir: str = EXTRACT_PATH,
+    is_steam: bool = True
+) -> tuple[bool, str]:
+    try:
+        exe_path = Path(game_exe_path).resolve()
+        game_dir = exe_path.parent if exe_path.is_file() else exe_path
+        if not game_dir.is_dir():
+            return False, f"Game directory does not exist: {game_dir}"
+
+        if not os.path.exists(reshade_source_dir):
+            return False, "ReShade binaries not found in cache. Please download ReShade first."
+
+        if game_api == "Vulkan":
+            vulkan_install = InstallVulkan(str(exe_path), is_steam)
+            vulkan_install.run()
+        else:
+            arch = get_executable_architecture(exe_path)
+            reshade_dll = "ReShade64.dll" if arch == "64-bit" else "ReShade32.dll"
+            reshade_src = os.path.join(reshade_source_dir, reshade_dll)
+            if not os.path.isfile(reshade_src):
+                return False, f"Could not find {reshade_dll} in {reshade_source_dir}. Please download ReShade first."
+
+            if not target_dll_name:
+                existing = check_existing_installation(str(exe_path))
+                if existing.get("api_dll"):
+                    target_dll_name = existing["api_dll"]
+                elif game_api:
+                    target_dll_name = get_api_dll_name(game_api)
+                else:
+                    target_dll_name = "dxgi.dll"
+
+            target_dll_dest = os.path.join(str(game_dir), target_dll_name)
+            shutil.copy(reshade_src, target_dll_dest)
+
+        # Download HLSL compiler if needed
+        arch = get_executable_architecture(exe_path)
+        download_hlsl_compiler(str(game_dir), arch)
+
+        if game_api == "D3D 8":
+            download_d3d8to9(str(game_dir))
+
+        return True, "ReShade DLL updated successfully!"
+    except Exception as e:
+        return False, str(e)
+
+
+def uninstall_game_reshade(game_exe_path: str, is_steam: bool = True) -> tuple[bool, str]:
+    try:
+        from scripts_core.script_manager import remove_game_by_dir, remove_game_by_path
+
+        exe_path = Path(game_exe_path).resolve()
+        game_dir = exe_path.parent if exe_path.is_file() else exe_path
+        if not game_dir.is_dir():
+            return False, f"Directory does not exist: {game_dir}"
+
+        # 1. Delete ReShade candidate DLLs only if verified as ReShade
+        candidate_dlls = ["dxgi.dll", "d3d11.dll", "d3d9.dll", "d3d8.dll", "d3d10.dll", "d3d12.dll", "opengl32.dll"]
+        for dll_name in candidate_dlls:
+            dll_path = game_dir / dll_name
+            if dll_path.is_file():
+                try:
+                    with open(dll_path, "rb") as f:
+                        data = f.read()
+                    if b"ReShade" in data or b"crosire" in data:
+                        dll_path.unlink()
+                except Exception:
+                    pass
+
+        # 2. Delete configuration, presets, and logs
+        for pattern in ("ReShade*.*", "reshade*.*", "renodx*.*"):
+            for f in game_dir.glob(pattern):
+                if f.is_file():
+                    try:
+                        f.unlink()
+                    except Exception:
+                        pass
+
+        # 3. Delete reshade-shaders folder
+        shaders_dir = game_dir / "reshade-shaders"
+        if shaders_dir.is_dir():
+            shutil.rmtree(shaders_dir, ignore_errors=True)
+
+        # 4. Delete add-ons
+        for pattern in ("*.addon", "*.addon64", "*.addon32"):
+            for f in game_dir.glob(pattern):
+                if f.is_file():
+                    try:
+                        f.unlink()
+                    except Exception:
+                        pass
+
+        # 5. Clean Vulkan layer if relevant
+        try:
+            InstallVulkan(str(exe_path), is_steam, remove=True)
+        except Exception:
+            pass
+
+        # 6. Remove from manager.json
+        remove_game_by_dir(str(game_dir))
+        remove_game_by_path(str(exe_path))
+
+        return True, "ReShade uninstalled successfully!"
+    except Exception as e:
+        return False, str(e)
