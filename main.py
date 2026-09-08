@@ -149,6 +149,9 @@ class MainWindow(QMainWindow):
         )
         self.page_installation.forward_vulkan_paths.connect(
             self.get_vulkan_paths)
+        self.page_installation.request_page_clone.connect(
+            self.on_request_page_clone
+        )
 
         # Clone work around, I get the game_dir and pass as param here, executing the on_clone that has game_dir as a param sequencially.
         self.game_directory: str = ""
@@ -279,6 +282,12 @@ class MainWindow(QMainWindow):
         if value:
             self.manage_uninstall_page(True)
             self.action_buttons.btn_home.show()
+
+    @Slot()
+    def on_request_page_clone(self) -> None:
+        self.pages_index = Pages.CLONE
+        self.stack.setCurrentIndex(self.pages_index)
+        self.update_buttons()
 
     @Slot(str, bool)
     def on_action_finished(self, action: str, value: bool) -> None:

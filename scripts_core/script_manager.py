@@ -104,3 +104,42 @@ def update_manager(index: int) -> None:
 
     with open(MANAGER_PATH, "w") as file:
         json.dump(new_data, file, indent=4)
+
+
+def remove_game_by_dir(game_dir: str) -> bool:
+    if not os.path.exists(MANAGER_PATH):
+        return False
+    try:
+        with open(MANAGER_PATH, "r") as file:
+            data = json.load(file)
+        if not isinstance(data, list):
+            return False
+        new_data = [entry for entry in data if entry.get("dir") != game_dir]
+        with open(MANAGER_PATH, "w") as file:
+            json.dump(new_data, file, indent=4)
+        return True
+    except Exception as e:
+        print(f"Error removing game from manager: {e}")
+        return False
+
+
+def remove_game_by_path(game_exe_path: str) -> bool:
+    game_dir = str(Path(game_exe_path).resolve().parent)
+    game_name = get_game_directory_name(Path(game_exe_path))
+    if not os.path.exists(MANAGER_PATH):
+        return False
+    try:
+        with open(MANAGER_PATH, "r") as file:
+            data = json.load(file)
+        if not isinstance(data, list):
+            return False
+        new_data = [
+            entry for entry in data
+            if entry.get("dir") != game_dir and entry.get("game") != game_name
+        ]
+        with open(MANAGER_PATH, "w") as file:
+            json.dump(new_data, file, indent=4)
+        return True
+    except Exception as e:
+        print(f"Error removing game from manager: {e}")
+        return False
