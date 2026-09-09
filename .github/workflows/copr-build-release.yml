@@ -31,7 +31,9 @@ jobs:
 
       - name: Do tarball and versions
         run: |
-          PKG_VERSION=$(grep -m1 "^Version:" fedora/leshade.spec | awk '{print $2}')
+          PKG_VERSION=$(tr -d '[:space:]' < VERSION)
+
+          sed -i "s/^Version:.*/Version: $PKG_VERSION/" fedora/leshade.spec
 
           rpmdev-setuptree
 

@@ -22,7 +22,6 @@ def find_heroic_game_config(exe_path: str) -> tuple[dict | None, str | None, str
     candidate_bases = [
         os.path.expanduser("~/.config/heroic"),
         os.path.expanduser("~/.var/app/com.heroicgameslauncher.hgl/config/heroic"),
-        "/mnt/data/distrobox/gaming/.config/heroic",
     ]
 
     xdg_config = os.environ.get("XDG_CONFIG_HOME")

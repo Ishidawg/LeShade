@@ -1,5 +1,6 @@
 Name: leshade-nightly
-Version: 2.5.0
+# Placeholder: the COPR workflow replaces this line with the content of the VERSION file
+Version: 0.0.0
 Release: 1%{?dist}
 Summary: Official build for LeShade Nightly. An ReShade Manager for Linux.
 
@@ -16,7 +17,6 @@ BuildRequires: meson
 BuildRequires: ninja-build
 Requires: python
 Requires: python3-pyside6
-Requires: python3-requests
 Requires: python3-certifi
 Requires: wine
 

@@ -31,7 +31,7 @@ class PageStart(QWidget):
 
         self.btn_install = QPushButton("Install")
         self.btn_dlss5 = QPushButton("DLSS 5 Autopilot")
-        self.btn_dlss5.setToolTip("Assistente de IA Neural para jogos no Linux (NVIDIA RTX)")
+        self.btn_dlss5.setToolTip("Neural rendering assistant for games on Linux (NVIDIA RTX)")
         self.btn_uninstall = QPushButton("Uninstall")
 
         self.btn_install.clicked.connect(self.click_install)

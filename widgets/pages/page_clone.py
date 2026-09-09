@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QThread, Signal, Slot
+from PySide6.QtCore import QObject, Qt, QThread, Signal, Slot
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -17,6 +17,35 @@ from scripts_core.script_shaders import ShadersWorker, fetch_effect_packages
 from utils.utils import get_renodx_assets
 
 
+class CatalogWorker(QObject):
+    """
+    Fetches the effect package list, the add-on list and the RenoDX snapshot
+    assets off the UI thread so the window does not freeze on startup.
+    """
+    loaded: Signal = Signal(object, object, object)
+
+    def run(self) -> None:
+        try:
+            packages = fetch_effect_packages()
+        except Exception as e:
+            print(f"Failed to fetch effect packages: {e}")
+            packages = []
+
+        try:
+            addons = fetch_addons(is_64bit=True)
+        except Exception as e:
+            print(f"Failed to fetch addons: {e}")
+            addons = []
+
+        try:
+            renodx_assets = get_renodx_assets() or ["None"]
+        except Exception as e:
+            print(f"Failed to fetch RenoDX assets: {e}")
+            renodx_assets = ["None"]
+
+        self.loaded.emit(packages, addons, renodx_assets)
+
+
 class PageClone(QWidget):
     clone_finished: Signal = Signal(bool)
 
@@ -27,6 +56,7 @@ class PageClone(QWidget):
         self.game_name: str = ""
         self.package_items: list[dict] = []
         self.addon_items: list[dict] = []
+        self.catalog_loaded: bool = False
 
         # Main layout
         layout = QVBoxLayout()
@@ -63,8 +93,15 @@ class PageClone(QWidget):
         self.container_layout = QVBoxLayout(self.container_widget)
         self.container_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # Load Effect Packages
-        self.load_packages()
+        self.label_loading = QLabel("Loading package catalog...")
+        self.label_loading.setStyleSheet("color: #888888; font-size: 10pt;")
+        self.container_layout.addWidget(self.label_loading)
+
+        # Packages container (filled when the catalog arrives)
+        self.widget_packages = QWidget()
+        self.layout_packages = QVBoxLayout(self.widget_packages)
+        self.layout_packages.setContentsMargins(0, 0, 0, 0)
+        self.container_layout.addWidget(self.widget_packages)
 
         # Addons container
         self.widget_addons = QWidget()
@@ -74,8 +111,6 @@ class PageClone(QWidget):
         label_addons_section = QLabel("Official Add-ons (Optional)")
         label_addons_section.setStyleSheet("font-size: 11pt; font-weight: bold; margin-top: 10px;")
         self.layout_addons.addWidget(label_addons_section)
-
-        self.load_addons()
 
         # RenoDX section
         self.renodx_assets: list[str] | None = None
@@ -97,8 +132,9 @@ class PageClone(QWidget):
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
 
+        # The click is handled by MainWindow (it owns the game directory).
         self.btn_install = QPushButton("Install")
-        self.btn_install.clicked.connect(self.on_install_clicked)
+        self.btn_install.setEnabled(False)
 
         # Assemble layout
         layout.addWidget(label_description)
@@ -109,9 +145,34 @@ class PageClone(QWidget):
 
         self.setLayout(layout)
         self.update_renodx()
+        self.start_catalog_load()
 
-    def load_packages(self) -> None:
-        packages = fetch_effect_packages()
+    def start_catalog_load(self) -> None:
+        self.catalog_thread: QThread = QThread()
+        self.catalog_worker: CatalogWorker = CatalogWorker()
+        self.catalog_worker.moveToThread(self.catalog_thread)
+
+        self.catalog_thread.started.connect(self.catalog_worker.run)
+        self.catalog_worker.loaded.connect(self.on_catalog_loaded)
+        self.catalog_worker.loaded.connect(self.catalog_thread.quit)
+        self.catalog_worker.loaded.connect(self.catalog_worker.deleteLater)
+        self.catalog_thread.finished.connect(self.catalog_thread.deleteLater)
+
+        self.catalog_thread.start()
+
+    @Slot(object, object, object)
+    def on_catalog_loaded(self, packages: list[dict], addons: list[dict], renodx_assets: list[str]) -> None:
+        self.load_packages(packages)
+        self.load_addons(addons)
+        self.renodx_assets = renodx_assets
+        self.catalog_loaded = True
+
+        self.label_loading.hide()
+        self.btn_install.setEnabled(True)
+        self.update_renodx()
+        self.on_filter_changed(self.filter_input.text())
+
+    def load_packages(self, packages: list[dict]) -> None:
         for pkg in packages:
             item_widget = QWidget()
             item_layout = QVBoxLayout(item_widget)
@@ -130,7 +191,7 @@ class PageClone(QWidget):
             if pkg.get("description"):
                 item_layout.addWidget(lbl)
 
-            self.container_layout.addWidget(item_widget)
+            self.layout_packages.addWidget(item_widget)
             self.package_items.append({
                 "pkg": pkg,
                 "checkbox": cxb,
@@ -138,8 +199,10 @@ class PageClone(QWidget):
                 "widget": item_widget,
             })
 
-    def load_addons(self) -> None:
-        addons = fetch_addons(is_64bit=True)
+    def load_addons(self, addons: list[dict]) -> None:
+        # Insert before the RenoDX label so RenoDX stays at the bottom of the section
+        insert_index = self.layout_addons.indexOf(self.lbl_renodx)
+
         for addon in addons:
             item_widget = QWidget()
             item_layout = QVBoxLayout(item_widget)
@@ -155,7 +218,8 @@ class PageClone(QWidget):
             if addon.get("description"):
                 item_layout.addWidget(lbl)
 
-            self.layout_addons.addWidget(item_widget)
+            self.layout_addons.insertWidget(insert_index, item_widget)
+            insert_index += 1
             self.addon_items.append({
                 "addon": addon,
                 "checkbox": cxb,
@@ -198,17 +262,20 @@ class PageClone(QWidget):
             self.renodx_addon.setEnabled(False)
             return
 
-        self.renodx_addon.setEnabled(True)
-
         if self.renodx_assets is None:
-            try:
-                self.renodx_assets = get_renodx_assets()
-            except Exception:
-                self.renodx_assets = ["None"]
-
             self.renodx_addon.clear()
-            if self.renodx_assets:
-                self.renodx_addon.addItems(self.renodx_assets)
+            self.renodx_addon.addItem("Loading...")
+            self.renodx_addon.setEnabled(False)
+            return
+
+        current_items = [
+            self.renodx_addon.itemText(i) for i in range(self.renodx_addon.count())
+        ]
+        if current_items != self.renodx_assets:
+            self.renodx_addon.clear()
+            self.renodx_addon.addItems(self.renodx_assets)
+
+        self.renodx_addon.setEnabled(True)
 
     def set_game_name(self, value: str) -> None:
         self.game_name = value
@@ -219,10 +286,11 @@ class PageClone(QWidget):
         self.widget_addons.setVisible(value)
         self.update_renodx()
 
-    def on_install_clicked(self) -> None:
-        pass
-
     def on_install(self, game_dir: str) -> None:
+        if not self.catalog_loaded:
+            self.progress_bar.setFormat("Package catalog is still loading...")
+            return
+
         selected_pkgs = [
             item["pkg"] for item in self.package_items if item["checkbox"].isChecked()
         ]
@@ -230,7 +298,9 @@ class PageClone(QWidget):
             item["addon"] for item in self.addon_items if item["checkbox"].isChecked()
         ]
 
-        renodx_choice = self.renodx_addon.currentText() if self.is_addon else "None"
+        renodx_choice = "None"
+        if self.is_addon and self.renodx_assets is not None:
+            renodx_choice = self.renodx_addon.currentText()
 
         if not selected_pkgs and not selected_addons and renodx_choice == "None":
             self.clone_finished.emit(True)

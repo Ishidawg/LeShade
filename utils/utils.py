@@ -191,7 +191,12 @@ def download(
     generic_download(url, file_path)
 
 
-def generic_download(url: str, directory: str | None) -> None | str:
+DOWNLOAD_TIMEOUT_SECONDS: int = 30
+
+
+def generic_download(
+    url: str, directory: str | None, timeout: int = DOWNLOAD_TIMEOUT_SECONDS
+) -> None | str:
     context: ssl.SSLContext = ssl.create_default_context(
         cafile=certifi.where())
     req: urllib.request.Request = urllib.request.Request(
@@ -199,7 +204,7 @@ def generic_download(url: str, directory: str | None) -> None | str:
     )
 
     try:
-        with urllib.request.urlopen(req, context=context) as res:
+        with urllib.request.urlopen(req, context=context, timeout=timeout) as res:
             if directory:
                 with open(directory, "wb") as file:
                     file.write(res.read())
@@ -234,10 +239,10 @@ def get_reshade_tags(after: str | None) -> list[str] | None:
     try:
         if after:
             # Other pages
-            tag_page = generic_download(f"{TAGS_URL}?after=v{after}", None)
+            tag_page = generic_download(f"{TAGS_URL}?after=v{after}", None, timeout=10)
         else:
             # First page
-            tag_page = generic_download(TAGS_URL, None)
+            tag_page = generic_download(TAGS_URL, None, timeout=10)
 
         return re.findall(r"(?<=releases/tag/v)[0-9.]+", str(tag_page))
     except IOError:
@@ -254,7 +259,7 @@ def get_renodx_assets() -> list[str] | None:
     )
 
     try:
-        with urllib.request.urlopen(req, context=context) as response:
+        with urllib.request.urlopen(req, context=context, timeout=10) as response:
             release: dict[str, Any] = json.loads(response.read())
             assets: list[dict[str, Any]] = release.get("assets", [])
 

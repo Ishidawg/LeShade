@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QStandardPaths
 from PySide6.QtWidgets import (
@@ -26,7 +25,6 @@ from scripts_core.script_dlss5 import (
     detect_nvidia_gpu,
 )
 from scripts_core.script_prefix import (
-    find_heroic_game_config,
     find_wine_prefix,
     get_steam_launch_options,
 )
@@ -60,7 +58,7 @@ class PageDLSS5(QWidget):
         layout.setSpacing(12)
 
         # 1. GPU Card / Banner
-        self.gpu_card = QGroupBox("Hardware NVIDIA")
+        self.gpu_card = QGroupBox("NVIDIA Hardware")
         gpu_layout = QVBoxLayout(self.gpu_card)
 
         gpu_name = self.gpu_info.get("name", "NVIDIA GPU")
@@ -69,12 +67,12 @@ class PageDLSS5(QWidget):
         cost = self.gpu_info.get("cost", "")
 
         status_color = "#4CAF50" if supported else "#FF9800"
-        status_text = "Suportado" if supported else "Não suportado"
+        status_text = "Supported" if supported else "Not supported"
 
         self.lbl_gpu = QLabel(f"<b>GPU:</b> {gpu_name} ({arch}) | <font color='{status_color}'><b>{status_text}</b></font>")
         self.lbl_gpu.setStyleSheet("font-size: 11pt;")
         self.lbl_gpu.setWordWrap(True)
-        self.lbl_gpu_desc = QLabel(f"Desempenho estimado: {cost} | Modelo: {self.gpu_info.get('recommended_build', 'N/A')}")
+        self.lbl_gpu_desc = QLabel(f"Estimated cost: {cost} | Model: {self.gpu_info.get('recommended_build', 'N/A')}")
         self.lbl_gpu_desc.setStyleSheet("color: #888888; font-size: 9pt;")
         self.lbl_gpu_desc.setWordWrap(True)
 
@@ -83,7 +81,7 @@ class PageDLSS5(QWidget):
         layout.addWidget(self.gpu_card)
 
         # 2. Game Selection
-        self.game_card = QGroupBox("Seleção do Jogo")
+        self.game_card = QGroupBox("Game Selection")
         game_layout = QVBoxLayout(self.game_card)
 
         row_games = QHBoxLayout()
@@ -99,7 +97,7 @@ class PageDLSS5(QWidget):
 
         row_browse = QHBoxLayout()
         self.browse_input = QLineEdit()
-        self.browse_input.setPlaceholderText("Ou selecione o executável (.exe) manualmente...")
+        self.browse_input.setPlaceholderText("Or select the game executable (.exe) manually...")
         self.browse_input.textChanged.connect(self.on_browse_text_changed)
         self.btn_browse = QPushButton("Browse")
         self.btn_browse.clicked.connect(self.on_browse_clicked)
@@ -110,37 +108,37 @@ class PageDLSS5(QWidget):
         layout.addWidget(self.game_card)
 
         # 3. Route Selection
-        self.route_card = QGroupBox("Rota do DLSS 5")
+        self.route_card = QGroupBox("DLSS 5 Route")
         route_layout = QVBoxLayout(self.route_card)
 
-        self.lbl_route_reason = QLabel("Selecione um executável para análise automática.")
+        self.lbl_route_reason = QLabel("Select an executable for automatic analysis.")
         self.lbl_route_reason.setStyleSheet("color: #4CAF50; font-size: 9pt; font-weight: bold;")
         route_layout.addWidget(self.lbl_route_reason)
 
-        self.radio_route_feeder = QRadioButton("Rota Feeder (DLSS 5 Feeder + Lumenite + RenoDX)")
-        self.radio_route_feeder.setToolTip("Gera contrato DLAA através do depth buffer e vetores de movimento por shader.")
+        self.radio_route_feeder = QRadioButton("Feeder route (DLSS 5 Feeder + Lumenite + RenoDX)")
+        self.radio_route_feeder.setToolTip("Builds a DLAA contract from the depth buffer and shader-generated motion vectors.")
         self.radio_route_feeder.setChecked(True)
 
-        self.radio_route_optiscaler = QRadioButton("Rota OptiScaler (Pre-SR Multipass)")
-        self.radio_route_optiscaler.setToolTip("Substitui o upscaler nativo do jogo e aplica o modelo DLSS 5 sobre ele.")
+        self.radio_route_optiscaler = QRadioButton("OptiScaler route (Pre-SR Multipass)")
+        self.radio_route_optiscaler.setToolTip("Replaces the game's native upscaler and applies the DLSS 5 model on top of it.")
 
         route_layout.addWidget(self.radio_route_feeder)
         route_layout.addWidget(self.radio_route_optiscaler)
         layout.addWidget(self.route_card)
 
         # 4. Performance Profile
-        self.perf_card = QGroupBox("Perfil de Desempenho (work_resolution)")
+        self.perf_card = QGroupBox("Performance Profile (work_resolution)")
         perf_layout = QHBoxLayout(self.perf_card)
 
-        self.radio_perf_balanced = QRadioButton("Equilibrado (70% - Recomendado)")
-        self.radio_perf_balanced.setToolTip("Reconstrução a 70% com FSR1 upscale. Protege FPS e folga de GPU.")
+        self.radio_perf_balanced = QRadioButton("Balanced (70% - Recommended)")
+        self.radio_perf_balanced.setToolTip("Reconstruction at 70% with FSR1 upscale. Protects FPS and leaves GPU headroom.")
         self.radio_perf_balanced.setChecked(True)
 
-        self.radio_perf_performance = QRadioButton("Desempenho (50%)")
-        self.radio_perf_performance.setToolTip("Reconstrução a 50% de resolução. Maior ganho de taxa de quadros.")
+        self.radio_perf_performance = QRadioButton("Performance (50%)")
+        self.radio_perf_performance.setToolTip("Reconstruction at 50% resolution. Highest frame rate gain.")
 
-        self.radio_perf_quality = QRadioButton("Qualidade (100% DLAA)")
-        self.radio_perf_quality.setToolTip("Reconstrução neural a 100% nativo. Carga máxima na GPU.")
+        self.radio_perf_quality = QRadioButton("Quality (100% DLAA)")
+        self.radio_perf_quality.setToolTip("Neural reconstruction at 100% native resolution. Maximum GPU load.")
 
         perf_layout.addWidget(self.radio_perf_balanced)
         perf_layout.addWidget(self.radio_perf_performance)
@@ -148,16 +146,16 @@ class PageDLSS5(QWidget):
         layout.addWidget(self.perf_card)
 
         # 5. Wine Prefix Info
-        self.prefix_card = QGroupBox("Prefixo Wine / Proton")
+        self.prefix_card = QGroupBox("Wine / Proton Prefix")
         prefix_layout = QVBoxLayout(self.prefix_card)
 
-        self.lbl_prefix_status = QLabel("Nenhum prefixo detectado.")
+        self.lbl_prefix_status = QLabel("No prefix detected.")
         self.lbl_prefix_status.setStyleSheet("font-size: 9pt; color: #888888;")
         self.lbl_prefix_status.setWordWrap(True)
 
         row_prefix = QHBoxLayout()
         self.input_prefix = QLineEdit()
-        self.input_prefix.setPlaceholderText("Caminho do Wine Prefix (ex: .../pfx)...")
+        self.input_prefix.setPlaceholderText("Wine prefix path (e.g. .../pfx)...")
         self.btn_prefix_browse = QPushButton("Browse")
         self.btn_prefix_browse.clicked.connect(self.on_prefix_browse_clicked)
 
@@ -182,7 +180,7 @@ class PageDLSS5(QWidget):
         )
         self.anticheat_banner.hide()
 
-        self.check_anticheat_confirm = QCheckBox("Estou ciente do risco de banimento e confirmo a instalação.")
+        self.check_anticheat_confirm = QCheckBox("I understand the ban risk and confirm the installation.")
         self.check_anticheat_confirm.stateChanged.connect(self.update_install_state)
         self.check_anticheat_confirm.hide()
 
@@ -200,11 +198,11 @@ class PageDLSS5(QWidget):
         self.progress_bar.setValue(0)
 
         bottom_buttons = QHBoxLayout()
-        self.btn_back = QPushButton("Voltar")
+        self.btn_back = QPushButton("Back")
         self.btn_back.setFixedWidth(100)
         self.btn_back.clicked.connect(self.back_requested.emit)
 
-        self.btn_install = QPushButton("Instalar DLSS 5 Autopilot")
+        self.btn_install = QPushButton("Install DLSS 5 Autopilot")
         self.btn_install.setEnabled(False)
         self.btn_install.clicked.connect(self.on_install_clicked)
 
@@ -219,12 +217,12 @@ class PageDLSS5(QWidget):
     def populate_games(self) -> None:
         self.combo_games.blockSignals(True)
         self.combo_games.clear()
-        self.combo_games.addItem("-- Selecione um jogo detectado --", userData=None)
+        self.combo_games.addItem("-- Select a detected game --", userData=None)
 
         games = scan_all_games()
         for g in games:
-            title = g.get("title", "Desconhecido")
-            source = g.get("source", "Jogo")
+            title = g.get("title", "Unknown")
+            source = g.get("source", "Game")
             self.combo_games.addItem(f"[{source}] {title}", userData=g)
 
         self.combo_games.blockSignals(False)
@@ -242,7 +240,7 @@ class PageDLSS5(QWidget):
 
     def on_browse_clicked(self) -> None:
         file_name, _ = QFileDialog.getOpenFileName(
-            self, "Selecione o executável do jogo", HOME, "Executables (*.exe)"
+            self, "Select game executable", HOME, "Executables (*.exe)"
         )
         if file_name:
             self.browse_input.setText(file_name)
@@ -258,7 +256,7 @@ class PageDLSS5(QWidget):
             self.update_install_state()
 
     def on_prefix_browse_clicked(self) -> None:
-        dir_name = QFileDialog.getExistingDirectory(self, "Selecione a pasta do Wine Prefix", HOME)
+        dir_name = QFileDialog.getExistingDirectory(self, "Select the Wine prefix folder", HOME)
         if dir_name:
             self.input_prefix.setText(dir_name)
             self.wine_prefix = dir_name
@@ -279,8 +277,8 @@ class PageDLSS5(QWidget):
         ac_list = detect_anticheat(exe_path)
         if ac_list:
             self.anticheat_banner.setText(
-                f"Atenção: Anti-Cheat detectado ({', '.join(ac_list)}). "
-                "O uso de add-ons e DLLs customizadas pode resultar em banimento em jogos online!"
+                f"Warning: anti-cheat detected ({', '.join(ac_list)}). "
+                "Using add-ons and custom DLLs may get you banned in online games!"
             )
             self.anticheat_banner.show()
             self.check_anticheat_confirm.setChecked(False)
@@ -294,9 +292,9 @@ class PageDLSS5(QWidget):
         if detected_prefix:
             self.wine_prefix = detected_prefix
             self.input_prefix.setText(detected_prefix)
-            self.lbl_prefix_status.setText(f"Prefixo detectado automaticamente: {detected_prefix}")
+            self.lbl_prefix_status.setText(f"Prefix detected automatically: {detected_prefix}")
         else:
-            self.lbl_prefix_status.setText("Nenhum prefixo detectado automaticamente. Se necessário, informe acima.")
+            self.lbl_prefix_status.setText("No prefix detected automatically. Enter it above if needed.")
 
         self.update_install_state()
 
@@ -324,7 +322,7 @@ class PageDLSS5(QWidget):
 
         self.btn_install.setEnabled(False)
         self.progress_bar.setValue(0)
-        self.progress_bar.setFormat("Iniciando instalação...")
+        self.progress_bar.setFormat("Starting installation...")
 
         self.worker_thread = QThread()
         self.worker = DLSS5InstallWorker(
@@ -356,35 +354,35 @@ class PageDLSS5(QWidget):
         self.btn_install.setEnabled(True)
         if success:
             self.progress_bar.setValue(100)
-            self.progress_bar.setFormat("DLSS 5 Autopilot instalado com sucesso!")
+            self.progress_bar.setFormat("DLSS 5 Autopilot installed!")
 
             info_msg = (
-                "DLSS 5 instalado com sucesso!\n\n"
-                "Instruções:\n"
-                "- Pressione HOME dentro do jogo para abrir a barra do ReShade.\n"
-                "- Marque Lumenite_Kernel e DLSS 5 Feed.\n"
-                "- Na aba DLSS 5, ative o Neural Rendering."
+                f"{msg}\n\n"
+                "Instructions:\n"
+                "- Press HOME in-game to open the ReShade overlay.\n"
+                "- Enable Lumenite_Kernel and DLSS 5 Feed.\n"
+                "- In the DLSS 5 tab, turn on Neural Rendering."
             )
             if self.is_steam:
                 steam_args = get_steam_launch_options()
-                info_msg += f"\n\nOpções de Inicialização da Steam (Launch Options):\n{steam_args}"
+                info_msg += f"\n\nSteam Launch Options:\n{steam_args}"
 
             dialog_box(
                 parent=self,
                 title="DLSS 5 Autopilot",
                 icon=QMessageBox.Icon.Information,
-                text="Instalação Concluída!",
+                text="Installation complete!",
                 info_text=info_msg,
                 buttons=False,
             )
             self.dlss5_finished.emit(True)
         else:
-            self.progress_bar.setFormat(f"Erro: {msg}")
+            self.progress_bar.setFormat(f"Error: {msg}")
             dialog_box(
                 parent=self,
-                title="Erro DLSS 5",
+                title="DLSS 5 Error",
                 icon=QMessageBox.Icon.Critical,
-                text="Falha na instalação do DLSS 5",
+                text="DLSS 5 installation failed",
                 info_text=msg,
                 buttons=False,
             )

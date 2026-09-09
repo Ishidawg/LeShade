@@ -2,7 +2,6 @@ import asyncio
 import configparser
 import os
 import shutil
-import urllib.request
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QStandardPaths, Signal
@@ -85,17 +84,12 @@ def fetch_effect_packages(use_cache: bool = True) -> list[dict]:
     content = ""
 
     try:
-        req = urllib.request.Request(
-            EFFECT_PACKAGES_URL,
-            headers={"User-Agent": "LeShade/2.5.0"}
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            content = resp.read().decode("utf-8", errors="ignore")
-            try:
-                with open(cache_file, "w", encoding="utf-8") as f:
-                    f.write(content)
-            except Exception:
-                pass
+        content = generic_download(EFFECT_PACKAGES_URL, None, timeout=10) or ""
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception:
+            pass
     except Exception:
         if use_cache and os.path.isfile(cache_file):
             try:

@@ -1,15 +1,10 @@
-import glob
-import json
 import os
 import re
 import shutil
-import ssl
 import subprocess
-import urllib.request
 from pathlib import Path
 from zipfile import ZipFile
 
-import certifi
 from PySide6.QtCore import QObject, Signal
 
 from scripts_core.script_prefix import (
@@ -19,16 +14,57 @@ from scripts_core.script_prefix import (
     setup_prefix_system32_nvngx,
 )
 from scripts_core.script_scanner import get_pe_imports
-from utils.utils import EXTRACT_PATH, download, unzip_file
+from utils.utils import generic_download, unzip_file
 
 CACHE_DIR = os.path.expanduser("~/.cache/leshade/dlss5")
-LOCAL_DOWNLOADS_DIR = "/home/cado/Downloads/DLSS5"
+
+# Optional directory with components that have no public download URL
+# (renodx-dlss5.addon64, nvngx_dlssnr.dll, OptiScaler archive). When unset,
+# those components are reported as missing instead of silently skipped.
+LOCAL_COMPONENTS_ENV = "LESHADE_DLSS5_COMPONENTS_DIR"
 
 # Component URLs
 URL_FEEDER_ZIP = "https://github.com/jlrouzies-fr/DLSS5-Feeder/releases/download/v0.12.0/DLSS5-Feeder-0.12.0.zip"
 URL_LUMENITE_ZIP = "https://codeload.github.com/umar-afzaal/LumeniteFX/zip/refs/heads/mainline"
 URL_RESHADE_FXH = "https://raw.githubusercontent.com/crosire/reshade-shaders/slim/Shaders/ReShade.fxh"
 URL_RESHADE_UI_FXH = "https://raw.githubusercontent.com/crosire/reshade-shaders/slim/Shaders/ReShadeUI.fxh"
+
+FEEDER_ZIP_NAME = "DLSS5-Feeder-0.12.0.zip"
+RENODX_ADDON_NAME = "renodx-dlss5.addon64"
+RENODX_ZIP_NAME = "renodx-dlss5_4.5.zip"
+DLSSNR_DLL_NAME = "nvngx_dlssnr.dll"
+OPTISCALER_ARCHIVE_PATTERN = re.compile(r"^OptiScaler.*\.(7z|zip)$", re.IGNORECASE)
+
+DLSS5_TECHNIQUES = [
+    "Lumenite_Kernel@lumenite_Kernel.fx",
+    "DLSS5_Feed@DLSS5_Feed.fx",
+]
+MV_PROVIDER_DEFINE = "DLSS5_MV_PROVIDER=3"
+
+
+def get_local_components_dir() -> str | None:
+    value = os.environ.get(LOCAL_COMPONENTS_ENV, "").strip()
+    if value and os.path.isdir(value):
+        return value
+    return None
+
+
+def find_local_component(file_name: str) -> str | None:
+    base = get_local_components_dir()
+    if not base:
+        return None
+    candidate = os.path.join(base, file_name)
+    return candidate if os.path.isfile(candidate) else None
+
+
+def find_local_optiscaler_archive() -> str | None:
+    base = get_local_components_dir()
+    if not base:
+        return None
+    for entry in sorted(os.listdir(base)):
+        if OPTISCALER_ARCHIVE_PATTERN.match(entry):
+            return os.path.join(base, entry)
+    return None
 
 
 def detect_nvidia_gpu() -> dict:
@@ -41,6 +77,7 @@ def detect_nvidia_gpu() -> dict:
             capture_output=True,
             text=True,
             check=True,
+            timeout=10,
         )
         line = out.stdout.strip().split("\n")[0]
         parts = [x.strip() for x in line.split(",")]
@@ -142,13 +179,13 @@ def detect_game_dlss_capability(exe_path: str) -> dict:
 
     if has_dlss:
         recommended = "optiscaler"
-        reason = "Jogo possui DLSS nativo detectado (Rota OptiScaler recomendada)"
+        reason = "Native DLSS detected (OptiScaler route recommended)"
     elif has_fsr or has_xess:
         recommended = "optiscaler"
-        reason = "Jogo possui FSR/XeSS nativo detectado (Rota OptiScaler recomendada)"
+        reason = "Native FSR/XeSS detected (OptiScaler route recommended)"
     else:
         recommended = "feeder"
-        reason = "Jogo sem DLSS nativo (Rota Feeder com vetores de movimento Lumenite recomendada)"
+        reason = "No native DLSS (Feeder route with Lumenite motion vectors recommended)"
 
     return {
         "has_dlss": has_dlss,
@@ -275,24 +312,97 @@ def clean_conflicting_files(game_dir: Path) -> None:
                 pass
 
 
+def backup_file(path: Path) -> Path | None:
+    """
+    Copies path to path + '.leshade.bak' (first backup only, never overwritten).
+    """
+    if not path.is_file():
+        return None
+    backup = path.with_name(path.name + ".leshade.bak")
+    if backup.exists():
+        return backup
+    try:
+        shutil.copy2(path, backup)
+        return backup
+    except Exception as e:
+        print(f"Warning: could not back up {path}: {e}")
+        return None
+
+
+def merge_csv_values(existing: str, required: list[str], prepend: bool) -> str:
+    current = [v.strip() for v in existing.split(",") if v.strip()]
+    missing = [v for v in required if v not in current]
+    merged = (missing + current) if prepend else (current + missing)
+    return ",".join(merged)
+
+
 def update_reshade_preset_order(game_dir: Path) -> None:
     """
-    Ensures ReShadePreset.ini places Lumenite_Kernel.fx before DLSS5_Feed.fx.
+    Ensures ReShadePreset.ini enables Lumenite_Kernel.fx before DLSS5_Feed.fx
+    and defines DLSS5_MV_PROVIDER, preserving any existing user preset.
+    A backup is written before the first modification.
     """
     preset_path = game_dir / "ReShadePreset.ini"
-    techniques = [
-        "Lumenite_Kernel@lumenite_Kernel.fx",
-        "DLSS5_Feed@DLSS5_Feed.fx",
-    ]
 
-    content = f"""[General]
-PreprocessorDefinitions=DLSS5_MV_PROVIDER=3
+    if not preset_path.is_file():
+        content = (
+            "[General]\n"
+            f"PreprocessorDefinitions={MV_PROVIDER_DEFINE}\n"
+            "\n"
+            f"Techniques={','.join(DLSS5_TECHNIQUES)}\n"
+            f"TechniqueSorting={','.join(DLSS5_TECHNIQUES)}\n"
+        )
+        try:
+            preset_path.write_text(content, encoding="utf-8")
+        except Exception as e:
+            print(f"Error writing ReShadePreset.ini: {e}")
+        return
 
-Techniques={','.join(techniques)}
-TechniqueSorting={','.join(techniques)}
-"""
+    backup_file(preset_path)
+
     try:
-        preset_path.write_text(content, encoding="utf-8")
+        lines = preset_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except Exception as e:
+        print(f"Error reading ReShadePreset.ini: {e}")
+        return
+
+    seen = {"Techniques": False, "TechniqueSorting": False, "PreprocessorDefinitions": False}
+    general_index = -1
+    result: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.lower() == "[general]":
+            general_index = len(result)
+            result.append(line)
+            continue
+
+        key, sep, value = line.partition("=")
+        key = key.strip()
+        if sep and key in seen:
+            seen[key] = True
+            if key == "PreprocessorDefinitions":
+                line = f"{key}={merge_csv_values(value, [MV_PROVIDER_DEFINE], prepend=False)}"
+            else:
+                line = f"{key}={merge_csv_values(value, DLSS5_TECHNIQUES, prepend=True)}"
+        result.append(line)
+
+    additions = []
+    if not seen["PreprocessorDefinitions"]:
+        additions.append(f"PreprocessorDefinitions={MV_PROVIDER_DEFINE}")
+    if not seen["Techniques"]:
+        additions.append(f"Techniques={','.join(DLSS5_TECHNIQUES)}")
+    if not seen["TechniqueSorting"]:
+        additions.append(f"TechniqueSorting={','.join(DLSS5_TECHNIQUES)}")
+
+    if additions:
+        if general_index == -1:
+            result = ["[General]"] + additions + [""] + result
+        else:
+            result[general_index + 1:general_index + 1] = additions
+
+    try:
+        preset_path.write_text("\n".join(result) + "\n", encoding="utf-8")
     except Exception as e:
         print(f"Error updating ReShadePreset.ini: {e}")
 
@@ -307,15 +417,28 @@ def update_reshade_ini_mv(game_dir: Path) -> None:
 
     try:
         text = ini_path.read_text(encoding="utf-8", errors="ignore")
-        if "DLSS5_MV_PROVIDER" not in text:
-            if "PreprocessorDefinitions=" in text:
-                text = text.replace(
-                    "PreprocessorDefinitions=",
-                    "PreprocessorDefinitions=DLSS5_MV_PROVIDER=3,",
-                )
-            else:
-                text += "\n[GENERAL]\nPreprocessorDefinitions=DLSS5_MV_PROVIDER=3\n"
-            ini_path.write_text(text, encoding="utf-8")
+        if "DLSS5_MV_PROVIDER" in text:
+            return
+
+        backup_file(ini_path)
+
+        if "PreprocessorDefinitions=" in text:
+            text = text.replace(
+                "PreprocessorDefinitions=",
+                f"PreprocessorDefinitions={MV_PROVIDER_DEFINE},",
+                1,
+            )
+        elif re.search(r"^\[GENERAL\]\s*$", text, flags=re.IGNORECASE | re.MULTILINE):
+            text = re.sub(
+                r"(^\[GENERAL\]\s*\n)",
+                rf"\1PreprocessorDefinitions={MV_PROVIDER_DEFINE}\n",
+                text,
+                count=1,
+                flags=re.IGNORECASE | re.MULTILINE,
+            )
+        else:
+            text += f"\n[GENERAL]\nPreprocessorDefinitions={MV_PROVIDER_DEFINE}\n"
+        ini_path.write_text(text, encoding="utf-8")
     except Exception as e:
         print(f"Error updating ReShade.ini MV definition: {e}")
 
@@ -342,26 +465,34 @@ class DLSS5InstallWorker(QObject):
         self.preset = performance_preset
         self.is_steam = is_steam
         self.wine_prefix = wine_prefix
+        self.warnings: list[str] = []
 
     def run(self) -> None:
         try:
             os.makedirs(CACHE_DIR, exist_ok=True)
-            self.progress.emit(10, "Detectando hardware e prefixo...")
+            self.progress.emit(10, "Detecting hardware and Wine prefix...")
 
             # 1. Locate Wine Prefix and configure
             prefix = self.wine_prefix or find_wine_prefix(str(self.game_exe), self.is_steam)
             if prefix:
-                self.progress.emit(20, f"Configurando prefixo Wine ({prefix})...")
-                setup_prefix_system32_nvngx(prefix)
+                self.progress.emit(20, f"Configuring Wine prefix ({prefix})...")
+                ok, msg = setup_prefix_system32_nvngx(prefix)
+                if not ok:
+                    self.warnings.append(msg)
+            else:
+                self.warnings.append(
+                    "Wine prefix not found: nvngx.dll was not copied to system32."
+                )
 
             # 2. Configure Heroic if applicable
             heroic_cfg, cfg_file, app_id = find_heroic_game_config(str(self.game_exe))
             if cfg_file:
-                self.progress.emit(30, "Injetando variáveis no Heroic Games Launcher...")
-                configure_heroic_game(cfg_file, app_id)
+                self.progress.emit(30, "Injecting environment variables into Heroic Games Launcher...")
+                if not configure_heroic_game(cfg_file, app_id):
+                    self.warnings.append("Failed to update the Heroic game configuration.")
 
             # 3. Clean conflicting files
-            self.progress.emit(40, "Limpando DLLs e arquivos conflitantes...")
+            self.progress.emit(40, "Cleaning conflicting DLLs and files...")
             clean_conflicting_files(self.game_dir)
 
             # 4. Download and setup components
@@ -370,40 +501,51 @@ class DLSS5InstallWorker(QObject):
             else:
                 self.setup_optiscaler_route()
 
-            self.progress.emit(90, "Gravando configurações de performance...")
+            self.progress.emit(90, "Writing performance settings...")
             cfg_content = generate_dlss5_feed_cfg(self.preset)
             (self.game_dir / "dlss5-feed.cfg").write_text(cfg_content, encoding="utf-8")
 
             update_reshade_preset_order(self.game_dir)
             update_reshade_ini_mv(self.game_dir)
 
-            self.progress.emit(100, "DLSS 5 Autopilot instalado com sucesso!")
-            self.finished.emit(True, "DLSS 5 Autopilot instalado com sucesso!")
+            if self.warnings:
+                message = "DLSS 5 Autopilot installed with warnings:\n- " + "\n- ".join(self.warnings)
+            else:
+                message = "DLSS 5 Autopilot installed successfully!"
+
+            self.progress.emit(100, "DLSS 5 Autopilot installed.")
+            self.finished.emit(True, message)
         except Exception as e:
-            self.finished.emit(False, f"Erro na instalação: {e}")
+            self.finished.emit(False, f"Installation error: {e}")
 
     def download_url(self, url: str, dest_path: str) -> None:
         if os.path.exists(dest_path):
             return
-        context = ssl.create_default_context(cafile=certifi.where())
-        req = urllib.request.Request(url, headers={"User-Agent": "LeShade/DLSS5"})
-        with urllib.request.urlopen(req, context=context) as resp, open(dest_path, "wb") as f:
-            f.write(resp.read())
+        generic_download(url, dest_path)
+
+    def install_dlssnr(self) -> None:
+        local_dlssnr = find_local_component(DLSSNR_DLL_NAME)
+        if local_dlssnr:
+            shutil.copy2(local_dlssnr, str(self.game_dir / DLSSNR_DLL_NAME))
+        else:
+            self.warnings.append(
+                f"{DLSSNR_DLL_NAME} not found. Place it in the directory pointed to by "
+                f"{LOCAL_COMPONENTS_ENV} and reinstall."
+            )
 
     def setup_feeder_route(self) -> None:
-        self.progress.emit(50, "Obtendo DLSS 5 Feeder e shaders...")
-        feeder_zip = os.path.join(CACHE_DIR, "DLSS5-Feeder-0.12.0.zip")
+        self.progress.emit(50, "Fetching DLSS 5 Feeder and shaders...")
+        feeder_zip = os.path.join(CACHE_DIR, FEEDER_ZIP_NAME)
         lumenite_zip = os.path.join(CACHE_DIR, "lumenite.zip")
 
-        # Use local downloads if available, otherwise fetch
-        local_feeder = os.path.join(LOCAL_DOWNLOADS_DIR, "DLSS5-Feeder-0.12.0.zip")
-        if os.path.isfile(local_feeder):
+        local_feeder = find_local_component(FEEDER_ZIP_NAME)
+        if local_feeder and not os.path.exists(feeder_zip):
             shutil.copy2(local_feeder, feeder_zip)
         else:
             self.download_url(URL_FEEDER_ZIP, feeder_zip)
 
-        local_lumenite = os.path.join(LOCAL_DOWNLOADS_DIR, "lumenite.zip")
-        if os.path.isfile(local_lumenite):
+        local_lumenite = find_local_component("lumenite.zip")
+        if local_lumenite and not os.path.exists(lumenite_zip):
             shutil.copy2(local_lumenite, lumenite_zip)
         else:
             self.download_url(URL_LUMENITE_ZIP, lumenite_zip)
@@ -430,11 +572,15 @@ class DLSS5InstallWorker(QObject):
         src_feed = os.path.join(feeder_extract, "reshade-shaders", "Shaders", "DLSS5_Feed.fx")
         if os.path.isfile(src_feed):
             shutil.copy2(src_feed, str(shaders_dir / "DLSS5_Feed.fx"))
+        else:
+            raise FileNotFoundError("DLSS5_Feed.fx not found in the Feeder package.")
 
         # Copy Lumenite shaders
         lumenite_src_dir = os.path.join(lumenite_extract, "LumeniteFX-mainline", "Shaders")
         if os.path.isdir(lumenite_src_dir):
             shutil.copytree(lumenite_src_dir, str(shaders_dir), dirs_exist_ok=True)
+        else:
+            raise FileNotFoundError("Shaders folder not found in the LumeniteFX package.")
 
         lumenite_tex_src = os.path.join(
             lumenite_extract, "LumeniteFX-mainline", "Textures", "lumenite_bluenoise256.png"
@@ -446,28 +592,58 @@ class DLSS5InstallWorker(QObject):
         src_addon = os.path.join(feeder_extract, "dlss5-feed.addon64")
         if os.path.isfile(src_addon):
             shutil.copy2(src_addon, str(self.game_dir / "dlss5-feed.addon64"))
+        else:
+            raise FileNotFoundError("dlss5-feed.addon64 not found in the Feeder package.")
 
-        # Copy renodx-dlss5.addon64 (v4.1.5 stable)
-        self.progress.emit(70, "Instalando RenoDX DLSS 5 estável (v4.1.5)...")
-        local_renodx = os.path.join(LOCAL_DOWNLOADS_DIR, "renodx-dlss5.addon64")
-        local_renodx_zip = os.path.join(LOCAL_DOWNLOADS_DIR, "renodx-dlss5_4.5.zip")
+        # Copy renodx-dlss5.addon64 (no public URL; must come from the local components dir)
+        self.progress.emit(70, "Installing RenoDX DLSS 5...")
+        local_renodx = find_local_component(RENODX_ADDON_NAME)
+        local_renodx_zip = find_local_component(RENODX_ZIP_NAME)
 
-        if os.path.isfile(local_renodx):
-            shutil.copy2(local_renodx, str(self.game_dir / "renodx-dlss5.addon64"))
-        elif os.path.isfile(local_renodx_zip):
+        if local_renodx:
+            shutil.copy2(local_renodx, str(self.game_dir / RENODX_ADDON_NAME))
+        elif local_renodx_zip:
             with ZipFile(local_renodx_zip, "r") as z:
-                z.extract("renodx-dlss5.addon64", str(self.game_dir))
+                z.extract(RENODX_ADDON_NAME, str(self.game_dir))
+        else:
+            self.warnings.append(
+                f"{RENODX_ADDON_NAME} not found. Place it in the directory pointed to by "
+                f"{LOCAL_COMPONENTS_ENV} and reinstall."
+            )
 
-        # Copy nvngx_dlssnr.dll
-        self.progress.emit(80, "Instalando runtime DLSS Neural (nvngx_dlssnr.dll)...")
-        local_dlssnr = os.path.join(LOCAL_DOWNLOADS_DIR, "nvngx_dlssnr.dll")
-        if os.path.isfile(local_dlssnr):
-            shutil.copy2(local_dlssnr, str(self.game_dir / "nvngx_dlssnr.dll"))
+        self.progress.emit(80, "Installing DLSS Neural runtime (nvngx_dlssnr.dll)...")
+        self.install_dlssnr()
 
     def setup_optiscaler_route(self) -> None:
-        self.progress.emit(60, "Configurando Rota OptiScaler...")
-        # Copies OptiScaler runtime DLLs
-        local_optiscaler = os.path.join(LOCAL_DOWNLOADS_DIR, "OptiScaler_v10.0.0-pre1_20260903.7z")
-        local_dlssnr = os.path.join(LOCAL_DOWNLOADS_DIR, "nvngx_dlssnr.dll")
-        if os.path.isfile(local_dlssnr):
-            shutil.copy2(local_dlssnr, str(self.game_dir / "nvngx_dlssnr.dll"))
+        self.progress.emit(60, "Configuring OptiScaler route...")
+
+        archive = find_local_optiscaler_archive()
+        if not archive:
+            raise FileNotFoundError(
+                "OptiScaler package not found. The OptiScaler route does not download "
+                f"automatically yet: place an OptiScaler*.zip file in the directory pointed to by "
+                f"{LOCAL_COMPONENTS_ENV} or use the Feeder route."
+            )
+
+        if not archive.lower().endswith(".zip"):
+            raise ValueError(
+                f"Unsupported OptiScaler archive format: {os.path.basename(archive)}. "
+                "Extract the .7z and repackage it as .zip."
+            )
+
+        extract_dir = os.path.join(CACHE_DIR, "optiscaler_tmp")
+        os.makedirs(extract_dir, exist_ok=True)
+        unzip_file(archive, extract_dir)
+
+        copied = 0
+        for root, _, files in os.walk(extract_dir):
+            for name in files:
+                if name.lower().endswith((".dll", ".ini", ".asi")):
+                    shutil.copy2(os.path.join(root, name), str(self.game_dir / name))
+                    copied += 1
+
+        if copied == 0:
+            raise FileNotFoundError("The OptiScaler package contains no installable files.")
+
+        self.progress.emit(80, "Installing DLSS Neural runtime (nvngx_dlssnr.dll)...")
+        self.install_dlssnr()

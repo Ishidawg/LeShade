@@ -1,6 +1,7 @@
 from PySide6.QtCore import QThread, Qt, Signal, Slot, QStandardPaths
 from scripts_core.script_installation import (
     InstallationWorker,
+    LifecycleWorker,
     check_existing_installation,
     update_reshade_dll_only,
     uninstall_game_reshade,
@@ -54,6 +55,7 @@ class PageInstallation(QWidget):
         self.game_api: str = ""
         self.is_steam: bool = True
         self.current_existing_info: dict = {}
+        self.lifecycle_mode: str = "update"
 
         # create layout
         layout = QVBoxLayout()
@@ -135,7 +137,7 @@ class PageInstallation(QWidget):
             "Update ReShade and customize installed shaders and add-ons"
         )
         self.btn_dlss5 = QPushButton("DLSS 5")
-        self.btn_dlss5.setToolTip("Abrir o assistente DLSS 5 Autopilot para este jogo")
+        self.btn_dlss5.setToolTip("Open the DLSS 5 Autopilot assistant for this game")
         self.btn_dlss5.setStyleSheet(
             "QPushButton { color: #81C784; border: 1px solid #81C784; } "
             "QPushButton:hover { background-color: rgba(129, 199, 132, 0.15); }"
@@ -249,6 +251,11 @@ class PageInstallation(QWidget):
             return
 
         api = detect_graphics_api(exe_path)
+        if not api:
+            self.label_api.setText(
+                "Select game API (could not auto-detect, pick it manually)")
+            return
+
         self.label_api.setText(f"Select game API (Auto-detected: {api})")
 
         radio_map = {
@@ -339,10 +346,12 @@ class PageInstallation(QWidget):
         self.already_have_hlsl_compiler.emit(value)
 
     def on_install_clicked(self) -> None:
-        self.installation()
+        started: bool = self.installation()
         self.update_install_button()
 
-        self.btn_install.setEnabled(False)
+        # Only lock the button when a worker is actually running
+        if started:
+            self.btn_install.setEnabled(False)
 
     def update_install_button(self) -> None:
         self.check_existing_reshade()
@@ -375,81 +384,97 @@ class PageInstallation(QWidget):
             self.btn_install.setEnabled(True)
 
     def on_update_clicked(self) -> None:
-        self.api_selection()
-        if not self.game_path or not os.path.exists(self.game_path):
-            self.progress_bar.setFormat("Error: invalid game path")
-            return
-
-        self.verify_wine()
-
-        target_dll = self.current_existing_info.get("api_dll", "")
-        success, msg = update_reshade_dll_only(
-            self.game_path,
-            game_api=self.game_api,
-            target_dll_name=target_dll,
-            is_steam=self.is_steam
-        )
-
-        if success:
-            self.progress_bar.setValue(100)
-            self.progress_bar.setFormat("ReShade updated successfully!")
-            self.install_finished.emit(True)
-            parent_dir = str(Path(self.game_path).resolve().parent)
-            self.current_game_directory.emit(parent_dir)
-            self.current_executable_path.emit(self.game_path)
-            api_dll_name = target_dll or get_api_dll_name(self.game_api)
-            self.dll_api.emit(api_dll_name)
-            self.is_api_dx8()
-            self.is_api_vulkan()
-            try:
-                add_game(
-                    parent_dir,
-                    self.game_path,
-                    None,
-                    api_dll_name,
-                    self.game_api == "Vulkan",
-                    "",
-                    "",
-                    ""
-                )
-            except Exception:
-                pass
-            self.check_existing_reshade()
-        else:
-            self.progress_bar.setFormat(f"Error: {msg}")
-            self.install_finished.emit(False)
+        self.start_lifecycle_update("update")
 
     def on_modify_clicked(self) -> None:
+        self.start_lifecycle_update("modify")
+
+    def start_lifecycle_update(self, mode: str) -> None:
         self.api_selection()
         if not self.game_path or not os.path.exists(self.game_path):
             self.progress_bar.setFormat("Error: invalid game path")
             return
 
-        self.verify_wine()
+        if not self.verify_wine():
+            return
+
+        self.lifecycle_mode = mode
+        self.set_lifecycle_busy(True, "Updating ReShade...")
 
         target_dll = self.current_existing_info.get("api_dll", "")
-        success, msg = update_reshade_dll_only(
+        self.run_lifecycle_operation(
+            update_reshade_dll_only,
+            self.on_lifecycle_update_finished,
             self.game_path,
             game_api=self.game_api,
             target_dll_name=target_dll,
-            is_steam=self.is_steam
+            is_steam=self.is_steam,
         )
 
-        if success:
-            self.progress_bar.setValue(100)
-            self.progress_bar.setFormat("Ready to modify shaders!")
-            self.install_finished.emit(True)
-            parent_dir = str(Path(self.game_path).resolve().parent)
-            self.current_game_directory.emit(parent_dir)
-            self.current_executable_path.emit(self.game_path)
-            api_dll_name = target_dll or get_api_dll_name(self.game_api)
-            self.dll_api.emit(api_dll_name)
-            self.is_api_dx8()
-            self.is_api_vulkan()
-            self.request_page_clone.emit()
+    def run_lifecycle_operation(self, operation, on_finished, *args, **kwargs) -> None:
+        # Update and uninstall can download files and spawn wine; keep them off the UI thread.
+        self.lifecycle_thread: QThread = QThread()
+        self.lifecycle_worker: LifecycleWorker = LifecycleWorker(operation, *args, **kwargs)
+        self.lifecycle_worker.moveToThread(self.lifecycle_thread)
+
+        self.lifecycle_thread.started.connect(self.lifecycle_worker.run)
+        self.lifecycle_worker.finished.connect(on_finished)
+        self.lifecycle_worker.finished.connect(self.lifecycle_thread.quit)
+        self.lifecycle_worker.finished.connect(self.lifecycle_worker.deleteLater)
+        self.lifecycle_thread.finished.connect(self.lifecycle_thread.deleteLater)
+
+        self.lifecycle_thread.start()
+
+    def set_lifecycle_busy(self, busy: bool, message: str = "") -> None:
+        self.widget_lifecycle.setEnabled(not busy)
+        if busy:
+            self.progress_bar.setRange(0, 0)
+            self.progress_bar.setFormat(message)
         else:
+            self.progress_bar.setRange(0, 100)
+
+    @Slot(bool, str, object)
+    def on_lifecycle_update_finished(self, success: bool, msg: str, have_hlsl) -> None:
+        self.set_lifecycle_busy(False)
+
+        if not success:
+            self.progress_bar.setValue(0)
             self.progress_bar.setFormat(f"Error: {msg}")
             self.install_finished.emit(False)
+            return
+
+        self.progress_bar.setValue(100)
+        parent_dir = str(Path(self.game_path).resolve().parent)
+        target_dll = self.current_existing_info.get("api_dll", "")
+        api_dll_name = target_dll or get_api_dll_name(self.game_api)
+
+        self.current_game_directory.emit(parent_dir)
+        self.current_executable_path.emit(self.game_path)
+        self.dll_api.emit(api_dll_name)
+        self.is_api_dx8()
+        self.is_api_vulkan()
+        self.install_finished.emit(True)
+
+        if self.lifecycle_mode == "modify":
+            self.progress_bar.setFormat("Ready to modify shaders!")
+            self.request_page_clone.emit()
+            return
+
+        self.progress_bar.setFormat("ReShade updated successfully!")
+        try:
+            add_game(
+                parent_dir,
+                self.game_path,
+                have_hlsl,
+                api_dll_name,
+                self.game_api == "Vulkan",
+                "",
+                "",
+                ""
+            )
+        except Exception as e:
+            print(f"Could not register game in manager: {e}")
+        self.check_existing_reshade()
 
     def on_dlss5_clicked(self) -> None:
         if self.game_path:
@@ -472,14 +497,29 @@ class PageInstallation(QWidget):
         if not confirm:
             return
 
-        self.progress_bar.setRange(0, 0)
-        self.progress_bar.setFormat("Uninstalling...")
-        success, msg = uninstall_game_reshade(self.game_path, is_steam=self.is_steam)
-        self.progress_bar.setRange(0, 100)
+        self.api_selection()
+
+        # None lets the manager entry decide whether this was a Vulkan install
+        is_vulkan: bool | None = None
+        if self.game_api == "Vulkan":
+            is_vulkan = True
+
+        self.set_lifecycle_busy(True, "Uninstalling...")
+        self.run_lifecycle_operation(
+            uninstall_game_reshade,
+            self.on_lifecycle_uninstall_finished,
+            self.game_path,
+            is_steam=self.is_steam,
+            is_vulkan=is_vulkan,
+        )
+
+    @Slot(bool, str, object)
+    def on_lifecycle_uninstall_finished(self, success: bool, msg: str, _extra) -> None:
+        self.set_lifecycle_busy(False)
 
         if success:
             self.progress_bar.setValue(100)
-            self.progress_bar.setFormat("ReShade uninstalled successfully!")
+            self.progress_bar.setFormat(msg)
             self.check_existing_reshade()
         else:
             self.progress_bar.setValue(0)
@@ -501,7 +541,11 @@ class PageInstallation(QWidget):
                 self.game_api = value
                 break
 
-    def verify_wine(self) -> None:
+    def verify_wine(self) -> bool:
+        """
+        Returns False (after warning the user) when the selected API needs wine
+        and none is available. Callers must abort in that case.
+        """
         if self.game_api == "Vulkan":
             has_wine: bool = False
 
@@ -540,25 +584,29 @@ class PageInstallation(QWidget):
                     info_text="LeShade requires 'wine' to manage Vulkan registry keys. Please install it!",
                     buttons=False
                 )
-                return
+                return False
 
-    def installation(self) -> None:
+        return True
+
+    def installation(self) -> bool:
         self.api_selection()
 
         if not self.game_path or not os.path.exists(self.game_path):
             self.progress_bar.setFormat("Error: no game directory")
-            return
+            return False
 
         if not self.game_api:
             self.progress_bar.setFormat("Error: no API selected")
-            return
+            return False
 
-        # Need to check protontricks here, before start installation.
-        self.verify_wine()
+        # Vulkan needs wine for the registry keys; abort before touching anything.
+        if not self.verify_wine():
+            return False
 
         self.is_api_dx8()
         self.is_api_vulkan()
         self.start_installation()
+        return True
 
     @Slot(int)
     def update_progress(self, value: int) -> None:

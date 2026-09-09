@@ -1,6 +1,6 @@
 project(
   'leshade',
-  version: '2.5.0',
+  version: files('VERSION'),
   meson_version: '>=1.2.0',
   license: 'MIT',
   license_files: 'LICENSE',
@@ -9,6 +9,7 @@ project(
 app_dir = get_option('datadir') / 'leshade'
 
 install_data('main.py', install_dir: app_dir, install_mode: 'rwxr-xr-x')
+install_data('VERSION', install_dir: app_dir)
 
 install_subdir('scripts_core', install_dir: app_dir)
 install_subdir('utils', install_dir: app_dir)

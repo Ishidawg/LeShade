@@ -22,22 +22,25 @@ class UninstallWorker(QObject):
         try:
             shaders_dir: str = os.path.join(self.game_path, "reshade-shaders")
 
-            # I dont remember what I did to this string be a bool
-            have_hlsl_compiler: str = read_boolean_flags(
+            # True: the game shipped its own d3dcompiler_47.dll (keep it)
+            # False: LeShade downloaded it (safe to delete)
+            # None: unknown, so keep it to avoid breaking the game
+            have_hlsl_compiler: bool | None = read_boolean_flags(
                 self.current_row, "hlsl_compiler"
             )
-            is_vulkan: str = read_boolean_flags(self.current_row, "vulkan")
+            is_vulkan: bool = bool(read_boolean_flags(self.current_row, "vulkan"))
 
             remove_files_complete: list[str] = []
 
             if not is_vulkan:
-                game_api_dll: str = read_manager_content("api_dll")[self.current_row]
-                remove_files_complete.append(game_api_dll)
+                game_api_dll: str | None = read_manager_content("api_dll")[self.current_row]
+                if game_api_dll:
+                    remove_files_complete.append(game_api_dll)
 
                 if game_api_dll == "d3d9.dll":
                     remove_files_complete.append("d3d8.dll")
 
-            if not have_hlsl_compiler:
+            if have_hlsl_compiler is False:
                 remove_files_complete.append("d3dcompiler_47.dll")
 
             remove_files_pattern: list[str] = ["ReShade*.*", "reshade*.*", "renodx*.*"]
@@ -124,6 +127,7 @@ class UninstallWorker(QObject):
 
             self.finished.emit(True)
         except Exception as e:
+            # Never re-raise here: an unhandled exception inside a QThread slot aborts the process.
+            print(f"Error while deleting files: {e}")
             self.error.emit(str(e))
             self.finished.emit(False)
-            raise IndexError(f"Error while deleting files: {e}")

@@ -120,8 +120,9 @@ def detect_graphics_api(path: str) -> str:
     if "opengl32.dll" in imports_lower:
         return "OpenGL"
 
-    # Fallback to D3D 11 as the safest modern default
-    return "D3D 11"
+    # Many engines load the graphics DLL at runtime (LoadLibrary), so the import
+    # table tells nothing. Return empty so the UI does not claim a detection.
+    return ""
 
 
 def get_extra_search_paths() -> list[str]:
@@ -137,6 +138,43 @@ def get_extra_search_paths() -> list[str]:
             if p and os.path.isdir(p):
                 paths.append(p)
     return paths
+
+
+IGNORED_EXE_PREFIXES = (
+    "uninstall", "unins", "setup", "dxsetup", "vc_redist", "vcredist",
+    "crash", "unitycrashhandler", "ue4prereqsetup", "ueprereqsetup",
+    "easyanticheat", "eac", "dotnet", "directx", "launcher_", "redist",
+)
+IGNORED_EXE_DIRS = {
+    "engine", "redist", "_commonredist", "commonredist", "prerequisites",
+    "directx", "vcredist", "dotnet", "support", "tools", "easyanticheat", "installers",
+}
+
+
+def pick_game_executable(game_dir: str) -> str | None:
+    """
+    Returns the most likely main executable of a game directory: skips helper
+    and redistributable binaries, then prefers the shallowest remaining .exe.
+    """
+    candidates: list[tuple[int, int, str]] = []
+
+    for root, dirs, files in os.walk(game_dir):
+        dirs[:] = [d for d in dirs if d.lower() not in IGNORED_EXE_DIRS]
+        depth = os.path.relpath(root, game_dir).count(os.sep)
+        for file in files:
+            lower = file.lower()
+            if not lower.endswith(".exe") or lower.startswith(IGNORED_EXE_PREFIXES):
+                continue
+            # Unreal games: "Game.exe" at the root is a bootstrap, the real
+            # binary is "*-Shipping.exe" a few levels down.
+            priority = 0 if "shipping" in lower else 1
+            candidates.append((priority, depth, os.path.join(root, file)))
+
+    if not candidates:
+        return None
+
+    candidates.sort()
+    return candidates[0][2]
 
 
 def scan_heroic_games() -> list[dict]:
@@ -243,18 +281,14 @@ def scan_steam_games() -> list[dict]:
                                     g_dir = os.path.join(apps_dir, "common", dir_match.group(1))
 
                                     if os.path.exists(g_dir):
-                                        for root, _, files in os.walk(g_dir):
-                                            for file in files:
-                                                if file.lower().endswith(".exe") and not file.lower().startswith("uninstall"):
-                                                    exe_path = os.path.join(root, file)
-                                                    if exe_path not in seen_exes:
-                                                        seen_exes.add(exe_path)
-                                                        games.append({
-                                                            "title": g_name,
-                                                            "exe": exe_path,
-                                                            "source": "Steam"
-                                                        })
-                                                    break
+                                        exe_path = pick_game_executable(g_dir)
+                                        if exe_path and exe_path not in seen_exes:
+                                            seen_exes.add(exe_path)
+                                            games.append({
+                                                "title": g_name,
+                                                "exe": exe_path,
+                                                "source": "Steam"
+                                            })
                             except Exception:
                                 continue
             except Exception:

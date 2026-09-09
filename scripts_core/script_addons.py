@@ -1,8 +1,6 @@
 import configparser
 import os
 import shutil
-import urllib.request
-import zipfile
 from PySide6.QtCore import QStandardPaths
 from utils.utils import generic_download, unzip_file
 
@@ -28,17 +26,12 @@ def fetch_addons(is_64bit: bool = True, use_cache: bool = True) -> list[dict]:
     content = ""
 
     try:
-        req = urllib.request.Request(
-            ADDONS_URL,
-            headers={"User-Agent": "LeShade/2.5.0"}
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            content = resp.read().decode("utf-8", errors="ignore")
-            try:
-                with open(cache_file, "w", encoding="utf-8") as f:
-                    f.write(content)
-            except Exception:
-                pass
+        content = generic_download(ADDONS_URL, None, timeout=10) or ""
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception:
+            pass
     except Exception:
         if use_cache and os.path.isfile(cache_file):
             try:

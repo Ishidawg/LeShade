@@ -79,8 +79,27 @@ def read_manager_content(key: str) -> list[str]:
     return game_content
 
 
-def read_boolean_flags(index: int, key: str) -> str:
-    temp_data: list[str] = []
+def get_game_entry_by_dir(game_dir: str) -> dict | None:
+    if not os.path.exists(MANAGER_PATH):
+        return None
+    try:
+        with open(MANAGER_PATH, "r") as file:
+            data = json.load(file)
+    except Exception as e:
+        print(f"Error reading manager: {e}")
+        return None
+
+    if not isinstance(data, list):
+        return None
+
+    for entry in data:
+        if isinstance(entry, dict) and entry.get("dir") == game_dir:
+            return entry
+    return None
+
+
+def read_boolean_flags(index: int, key: str) -> bool | None:
+    temp_data: list[bool | None] = []
 
     with open(MANAGER_PATH, "r") as file:
         current_file = json.load(file)

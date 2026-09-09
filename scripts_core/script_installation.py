@@ -74,7 +74,7 @@ class InstallationWorker(QObject):
 
             self.status_update()
         except Exception as e:
-            print("Error on installation process: {e}")
+            print(f"Error on installation process: {e}")
             self.install_progress.emit(0)
             self.install_finished.emit(False)
 
@@ -153,7 +153,7 @@ class InstallationWorker(QObject):
         reshade_dll: str = "ReShade64.dll" if self.game_arch == "64-bit" else "ReShade32.dll"
         reshade_dll_dir: str = os.path.join(self.reshade_path, reshade_dll)
 
-        if not reshade_dll_dir:
+        if not os.path.isfile(reshade_dll_dir):
             raise FileNotFoundError(
                 f"Could not find {reshade_dll} in {self.reshade_path}")
 
@@ -302,31 +302,60 @@ def check_existing_installation(game_exe_path: str) -> dict:
     }
 
 
+class LifecycleWorker(QObject):
+    """
+    Runs a blocking lifecycle operation (update / uninstall) off the UI thread.
+    The callable must return (success, message, *extra).
+    """
+    finished: Signal = Signal(bool, str, object)
+
+    def __init__(self, operation, *args, **kwargs):
+        super().__init__()
+        self.operation = operation
+        self.args = args
+        self.kwargs = kwargs
+
+    def run(self) -> None:
+        try:
+            result = self.operation(*self.args, **self.kwargs)
+        except Exception as e:
+            self.finished.emit(False, str(e), None)
+            return
+
+        success, message, *extra = result
+        self.finished.emit(bool(success), str(message), extra[0] if extra else None)
+
+
 def update_reshade_dll_only(
     game_exe_path: str,
     game_api: str = "",
     target_dll_name: str = "",
     reshade_source_dir: str = EXTRACT_PATH,
     is_steam: bool = True
-) -> tuple[bool, str]:
+) -> tuple[bool, str, bool | None]:
+    """
+    Returns (success, message, have_hlsl). have_hlsl is True when the game
+    already shipped d3dcompiler_47.dll, False when LeShade downloaded it.
+    """
     try:
         exe_path = Path(game_exe_path).resolve()
         game_dir = exe_path.parent if exe_path.is_file() else exe_path
         if not game_dir.is_dir():
-            return False, f"Game directory does not exist: {game_dir}"
+            return False, f"Game directory does not exist: {game_dir}", None
 
         if not os.path.exists(reshade_source_dir):
-            return False, "ReShade binaries not found in cache. Please download ReShade first."
+            return False, "ReShade binaries not found in cache. Please download ReShade first.", None
+
+        arch = get_executable_architecture(exe_path)
 
         if game_api == "Vulkan":
             vulkan_install = InstallVulkan(str(exe_path), is_steam)
             vulkan_install.run()
         else:
-            arch = get_executable_architecture(exe_path)
             reshade_dll = "ReShade64.dll" if arch == "64-bit" else "ReShade32.dll"
             reshade_src = os.path.join(reshade_source_dir, reshade_dll)
             if not os.path.isfile(reshade_src):
-                return False, f"Could not find {reshade_dll} in {reshade_source_dir}. Please download ReShade first."
+                return False, f"Could not find {reshade_dll} in {reshade_source_dir}. Please download ReShade first.", None
 
             if not target_dll_name:
                 existing = check_existing_installation(str(exe_path))
@@ -341,25 +370,43 @@ def update_reshade_dll_only(
             shutil.copy(reshade_src, target_dll_dest)
 
         # Download HLSL compiler if needed
-        arch = get_executable_architecture(exe_path)
-        download_hlsl_compiler(str(game_dir), arch)
+        have_hlsl = download_hlsl_compiler(str(game_dir), arch)
 
         if game_api == "D3D 8":
             download_d3d8to9(str(game_dir))
 
-        return True, "ReShade DLL updated successfully!"
+        return True, "ReShade DLL updated successfully!", have_hlsl
     except Exception as e:
-        return False, str(e)
+        return False, str(e), None
 
 
-def uninstall_game_reshade(game_exe_path: str, is_steam: bool = True) -> tuple[bool, str]:
+def uninstall_game_reshade(
+    game_exe_path: str, is_steam: bool = True, is_vulkan: bool | None = None
+) -> tuple[bool, str]:
     try:
-        from scripts_core.script_manager import remove_game_by_dir, remove_game_by_path
+        from scripts_core.script_manager import (
+            get_game_entry_by_dir,
+            remove_game_by_dir,
+            remove_game_by_path,
+        )
 
         exe_path = Path(game_exe_path).resolve()
         game_dir = exe_path.parent if exe_path.is_file() else exe_path
         if not game_dir.is_dir():
             return False, f"Directory does not exist: {game_dir}"
+
+        entry = get_game_entry_by_dir(str(game_dir))
+        if is_vulkan is None:
+            is_vulkan = bool(entry.get("vulkan")) if entry else False
+
+        # Only delete d3dcompiler_47.dll when we know LeShade downloaded it
+        if entry is not None and entry.get("hlsl_compiler") is False:
+            compiler = game_dir / "d3dcompiler_47.dll"
+            if compiler.is_file():
+                try:
+                    compiler.unlink()
+                except Exception:
+                    pass
 
         # 1. Delete ReShade candidate DLLs only if verified as ReShade
         candidate_dlls = ["dxgi.dll", "d3d11.dll", "d3d9.dll", "d3d8.dll", "d3d10.dll", "d3d12.dll", "opengl32.dll"]
@@ -397,16 +444,18 @@ def uninstall_game_reshade(game_exe_path: str, is_steam: bool = True) -> tuple[b
                     except Exception:
                         pass
 
-        # 5. Clean Vulkan layer if relevant
-        try:
-            InstallVulkan(str(exe_path), is_steam, remove=True)
-        except Exception:
-            pass
+        # 5. Clean Vulkan layer only for Vulkan installs (this spawns wine regedit)
+        vulkan_warning = ""
+        if is_vulkan:
+            try:
+                InstallVulkan(str(exe_path), is_steam, remove=True)
+            except Exception as e:
+                vulkan_warning = f" Vulkan layer registry cleanup failed: {e}"
 
         # 6. Remove from manager.json
         remove_game_by_dir(str(game_dir))
         remove_game_by_path(str(exe_path))
 
-        return True, "ReShade uninstalled successfully!"
+        return True, "ReShade uninstalled successfully!" + vulkan_warning
     except Exception as e:
         return False, str(e)

@@ -29,7 +29,6 @@ from widgets.pages.page_wrapper import PageWrapper
 from widgets.widget_bottom_buttons import WidgetBottomButtons
 from widgets.widget_title import WidgetTitle
 
-app_version: str = "2.5.0"
 build_type: str = "Release"
 
 
@@ -41,6 +40,25 @@ def get_localdir():
         return base_path
     else:
         return os.path.dirname(os.path.abspath(__file__))
+
+
+def read_app_version() -> str:
+    # Single source of truth: the VERSION file at the project root.
+    # meson.build and the COPR workflows read the same file.
+    version_file: str = os.path.join(get_localdir(), "VERSION")
+
+    try:
+        with open(version_file, "r", encoding="utf-8") as file:
+            version: str = file.read().strip()
+            if version:
+                return version
+    except OSError as e:
+        print(f"Could not read VERSION file: {e}")
+
+    return "unknown"
+
+
+app_version: str = read_app_version()
 
 
 class Pages(IntEnum):
