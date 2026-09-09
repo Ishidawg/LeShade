@@ -140,3 +140,10 @@ Description of what you have fixed.
 - `d3d8to9.dll` from [crosire](https://github.com/crosire/d3d8to9?tab=readme-ov-file).
 - icu files _(executables and dlls)_ from [icu](https://github.com/unicode-org/icu?tab=readme-ov-file)
 - [AppImage](https://github.com/crosire/d3d8to9?tab=readme-ov-file) Tool to build my one of my packages.
+
+### Support:
+You can support my work by **opening issues** and **contributing to the project**. Also, if you **feel comfortable** and **have the conditions** you can sponsor the project on _Ko-Fi_ and at _GitHub Sponsor_ _(do not feel obligated)_.
+<div>
+	<a href='https://ko-fi.com/N4N11CAN1D' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+	<a href='https://github.com/sponsors/IshidawG' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://camo.githubusercontent.com/369f5e3f574fd9693f5b1b6e193eb5211827ccacd0eec91ede06f7574e20f0c7/68747470733a2f2f6769746875622e6769746875626173736574732e636f6d2f696d616765732f6d6f64756c65732f736974652f73706f6e736f72732f6c6f676f2d6d6f6e612e737667' border='0' alt='Sponsor me at GitHub Sponsor' /></a>
+</div>
