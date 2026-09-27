@@ -40,4 +40,5 @@ Easier understanding _(I like the way RenoDX does)_.
 | 🟩      |Red Dead Redemption 2                       | Vulkan 	|  Steam   | Cachy OS	|
 | 🟩      |Tomb Raider (2013)                       | DX11, DX12     |  Heroic   | Fedora KDE   |Less FPS using DX12
 | 🟩      |Rise of the Tomb Raider                       | DX11     |  Heroic   | Fedora KDE   |
+| 🟩      |Monster Hunter Wilds                       | DX12     |  Steam   | Gentoo   |
 
