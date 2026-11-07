@@ -13,5 +13,5 @@ src/__main__.py
 src/app.py
 src/assets/logo.png
 src/qml/Main.qml
+src/qml/components/Footer.qml
 src/qml/pages/HomePage.qml
-src/qml/pages/logo.png
