@@ -27,8 +27,12 @@ Kirigami.Page {
 
 			Controls.Label {
 				Layout.fillWidth: true
+				Layout.maximumWidth: 800
 				Layout.alignment: Qt.AlignHCenter
+
 				wrapMode: Text.WordWrap
+				horizontalAlignment: Text.AlignJustify
+
 				leftPadding: Kirigami.Units.largeSpacing * 10
 				rightPadding: Kirigami.Units.largeSpacing * 10
 				topPadding: Kirigami.Units.largeSpacing * 4
@@ -41,10 +45,12 @@ Kirigami.Page {
 
 				Controls.Button {
 					Layout.alignment: Qt.AlignTop
+					icon.name: "list-add-symbolic"
 					text: qsTr("Install")
 				}
 				Controls.Button {
 					Layout.alignment: Qt.AlignTop
+					icon.name: "user-trash-symbolic"
 					text: qsTr("Uninstall")
 				}
 			}
