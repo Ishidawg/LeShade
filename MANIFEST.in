@@ -1,0 +1,4 @@
+# include src/qml/*.qml
+# include src/qml/*
+recursive-include src/qml *.qml
+recursive-include src/assets *.png

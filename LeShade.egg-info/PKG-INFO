@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: LeShade
+Version: 2.6.0
+Author-email: Ishidawg <willianscagol@gmail.com>
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Topic :: Utilities
+Classifier: Programming Language :: Python
+Classifier: Operating System :: POSIX :: Linux
+License-File: LICENSE
+Dynamic: license-file

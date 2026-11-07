@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "LeShade"
+version = "2.6.0"
+authors = [
+	{name = "Ishidawg", email = "willianscagol@gmail.com"}
+]
+classifiers = [
+	"License :: OSI Approved :: MIT License",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Utilities",
+    "Programming Language :: Python",
+    "Operating System :: POSIX :: Linux",
+]
+
+[project.scripts]
+leshade_main = "LeShade.app:main"
+
+[tool.setuptools]
+packages = ["LeShade"]
+package-dir = {LeShade = "src"}
+include-package-data = true
+
+[tool.setuptools.data-files]
+"share/applications" = ["io.github.ishidawg.LeShade.desktop"]

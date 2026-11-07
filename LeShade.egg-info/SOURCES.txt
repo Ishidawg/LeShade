@@ -1,0 +1,17 @@
+LICENSE
+MANIFEST.in
+README.md
+io.github.ishidawg.LeShade.desktop
+pyproject.toml
+LeShade.egg-info/PKG-INFO
+LeShade.egg-info/SOURCES.txt
+LeShade.egg-info/dependency_links.txt
+LeShade.egg-info/entry_points.txt
+LeShade.egg-info/top_level.txt
+src/__init__.py
+src/__main__.py
+src/app.py
+src/assets/logo.png
+src/qml/Main.qml
+src/qml/pages/HomePage.qml
+src/qml/pages/logo.png
