@@ -6,6 +6,11 @@ import org.kde.kirigami as Kirigami
 Kirigami.Page {
 	title: qsTr("LeShade - A ReShade Manager")
 
+	Component {
+		id: uninstallPageComponent
+		UninstallPage {}
+	}
+
 	Item {
 		// Container that fills the parent window, so, parent = ruler
 		anchors.fill: parent
@@ -23,7 +28,6 @@ Kirigami.Page {
 				fillMode: Image.PreserveAspectFit
 				source: "../../assets/logo.png"
 			}
-
 
 			Controls.Label {
 				Layout.fillWidth: true
@@ -47,11 +51,25 @@ Kirigami.Page {
 					Layout.alignment: Qt.AlignTop
 					icon.name: "list-add-symbolic"
 					text: qsTr("Install")
+
+					Controls.ToolTip.delay: 1000
+					Controls.ToolTip.timeout: 5000
+					Controls.ToolTip.visible: hovered
+					Controls.ToolTip.text: qsTr("Install Reshade on a Game")
 				}
 				Controls.Button {
 					Layout.alignment: Qt.AlignTop
 					icon.name: "user-trash-symbolic"
 					text: qsTr("Uninstall")
+
+					Controls.ToolTip.delay: 1000
+					Controls.ToolTip.timeout: 5000
+					Controls.ToolTip.visible: hovered
+					Controls.ToolTip.text: qsTr("Open uninstall page")
+
+					onClicked: {
+						applicationWindow().pageStack.push(uninstallPageComponent)
+					}
 				}
 			}
 		}
