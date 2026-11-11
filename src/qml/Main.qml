@@ -12,16 +12,16 @@ import "components"
 
 // Provides basic features needed for all kirigami applications
 Kirigami.ApplicationWindow {
-    // Unique identifier to reference this object
-    id: root
-    minimumWidth: 620
+  // Unique identifier to reference this object
+  id: root
+  minimumWidth: 620
 	minimumHeight: 500
 	width: 620
 	height: 500
 
 	title: "LeShade 2.6.0"
 
-    // Set the first page that will be loaded when the app opens
+  // Set the first page that will be loaded when the app opens
 	// This can also be set to an id of a Kirigami.Page
 	pageStack.initialPage: HomePage {}
 

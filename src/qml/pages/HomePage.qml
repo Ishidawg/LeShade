@@ -4,12 +4,12 @@ import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 
 Kirigami.Page {
-	title: qsTr("LeShade - A ReShade Manager")
+  title: qsTr("LeShade - A ReShade Manager")
 
-	Component {
-		id: uninstallPageComponent
-		UninstallPage {}
-	}
+	// Component {
+	// 	id: uninstallPageComponent
+	// 	UninstallPage {}
+	// }
 
 	Item {
 		// Container that fills the parent window, so, parent = ruler
@@ -24,7 +24,7 @@ Kirigami.Page {
 			Image {
 				Layout.alignment: Qt.AlignHCenter
 				sourceSize.width: 142
-			   	sourceSize.height: 142
+        sourceSize.height: 142
 				fillMode: Image.PreserveAspectFit
 				source: "../../assets/logo.png"
 			}
@@ -67,8 +67,11 @@ Kirigami.Page {
 					Controls.ToolTip.visible: hovered
 					Controls.ToolTip.text: qsTr("Open uninstall page")
 
-					onClicked: {
-						applicationWindow().pageStack.push(uninstallPageComponent)
+          onClicked: {
+					  // applicationWindow().pageStack.replace(uninstallPageComponent)
+            applicationWindow().pageStack.replace(
+              Qt.resolvedUrl("UninstallPage.qml")
+            )
 					}
 				}
 			}
