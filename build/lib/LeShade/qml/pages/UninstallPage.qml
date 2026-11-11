@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 
+import "../components"
+
 Kirigami.Page {
 	title: qsTr("LeShade - Uninstall")
 
@@ -37,37 +39,7 @@ Kirigami.Page {
 
   Component {
     id: gameDelegate
-
-    Kirigami.AbstractCard {
-      contentItem: Item {
-        implicitWidth: delegateLayout.implicitWidth
-        implicitHeight: delegateLayout.implicitHeight
-
-        GridLayout {
-          id: delegateLayout
-          anchors {
-            left: parent.left
-            top: parent.top
-            right: parent.right
-          }
-
-          rowSpacing: Kirigami.Units.largeSpacing
-          columnSpacing: Kirigami.Units.largeSpacing
-          columns: 2
-
-          Kirigami.Heading {
-            level: 2
-            text: qsTr(title)
-          }
-
-          Controls.Button {
-            Layout.alignment: Qt.AlignRight
-					  icon.name: "user-trash-symbolic"
-            text: qsTr("Uninstall")
-          }
-        }
-      }
-    }
+    UninstallScroll {}
   }
 
 	Item {
@@ -84,6 +56,7 @@ Kirigami.Page {
 
 				wrapMode: Text.WordWrap
 				horizontalAlignment: Text.AlignHCenter
+        bottomPadding: Kirigami.Units.largeSpacing * 2
 
 				text: qsTr("Games that you've installed ReShade on:")
       }
@@ -95,12 +68,15 @@ Kirigami.Page {
         Layout.fillHeight: true
         clip: true
 
+        // Contains info to be displayed
         model: gameModel
+        // Delegate hows the info will be presented in the ListView
         delegate: gameDelegate
       }
 
 			RowLayout {
-				Layout.alignment: Qt.AlignHCenter
+    		Layout.alignment: Qt.AlignHCenter
+        Layout.topMargin: Kirigami.Units.largeSpacing
 
 				Controls.Button {
 					icon.name: "user-home-symbolic"
@@ -111,7 +87,7 @@ Kirigami.Page {
 					Controls.ToolTip.visible: hovered
 					Controls.ToolTip.text: qsTr("Returns to Home Page")
 
-					onClicked: {
+          onClicked: {
             applicationWindow().pageStack.replace(
               Qt.resolvedUrl("HomePage.qml")
             )

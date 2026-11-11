@@ -9,6 +9,8 @@ import "components"
 // Notes:
 // anchors = relative position, so it difines position relative to the parent. use to position Layouts
 // Layout = organize elements inside a structure. Use to position elements.
+// Width = default on every item, do not use in layouts
+// Layout.prefferedWidth = target size of an item (if it have width enough)
 
 // Provides basic features needed for all kirigami applications
 Kirigami.ApplicationWindow {
