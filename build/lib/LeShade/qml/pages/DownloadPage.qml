@@ -3,15 +3,18 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 
+import "../components"
+
 Kirigami.Page {
   title: "LeShade - Download ReShade"
 
   Item {
 			anchors.fill: parent
     ColumnLayout {
-      anchors.verticalCenter: parent.verticalCenter
-      anchors.left: parent.left
-      anchors.right: parent.right
+      //anchors.verticalCenter: parent.verticalCenter
+      //anchors.left: parent.left
+      //anchors.right: parent.right
+      anchors.fill: parent
 
       spacing: 20
 
@@ -26,7 +29,6 @@ Kirigami.Page {
 				topPadding: Kirigami.Units.largeSpacing * 4
 				bottomPadding: Kirigami.Units.largeSpacing * 2
 
-        // text: qsTr("You can select if ReShade has addon support or not, and choose the version. Do not use addon support for multiplayer games with anti-cheat.")
         text: qsTr("Here you choose what version of ReShade you want to install: Addon or non-addon support. Select the ReShade release version too (nightly to have the latest one). Keep in mind that is recommended to not use addon support for multiplayer games with anti-cheat.")
       }
 
@@ -64,6 +66,15 @@ Kirigami.Page {
 				  Layout.fillWidth: true
           value: 50.0
         }
+      }
+      Item {
+        Layout.fillHeight: true
+      } 
+      ActionButtons {
+        Layout.alignment: Qt.AlignHCenter
+        onBackClicked: applicationWindow().pageStack.replace(
+          Qt.resolvedUrl("HomePage.qml")
+        )
       }
     }
   }

@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 
+import "../components"
+
 Kirigami.Page {
   title: qsTr("LeShade - A ReShade Manager")
 

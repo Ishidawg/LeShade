@@ -75,7 +75,7 @@ Kirigami.Page {
       }
 
 			RowLayout {
-    		Layout.alignment: Qt.AlignHCenter
+        Layout.alignment: Qt.AlignHCenter
         Layout.topMargin: Kirigami.Units.largeSpacing
 
 				Controls.Button {
