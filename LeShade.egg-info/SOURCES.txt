@@ -18,4 +18,5 @@ src/qml/components/Footer.qml
 src/qml/components/UninstallScroll.qml
 src/qml/pages/DownloadPage.qml
 src/qml/pages/HomePage.qml
+src/qml/pages/InstallPage.qml
 src/qml/pages/UninstallPage.qml

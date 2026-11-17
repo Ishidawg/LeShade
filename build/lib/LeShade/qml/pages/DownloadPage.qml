@@ -9,7 +9,7 @@ Kirigami.Page {
   title: "LeShade - Download ReShade"
 
   Item {
-			anchors.fill: parent
+    anchors.fill: parent
     ColumnLayout {
       //anchors.verticalCenter: parent.verticalCenter
       //anchors.left: parent.left
@@ -74,6 +74,9 @@ Kirigami.Page {
         Layout.alignment: Qt.AlignHCenter
         onBackClicked: applicationWindow().pageStack.replace(
           Qt.resolvedUrl("HomePage.qml")
+        )
+        onNextClicked: applicationWindow().pageStack.replace(
+          Qt.resolvedUrl("InstallPage.qml")
         )
       }
     }
