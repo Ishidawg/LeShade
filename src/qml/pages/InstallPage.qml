@@ -114,7 +114,6 @@ Kirigami.Page {
                 Layout.fillHeight: true
             }
 
-            // Todo: replace every applicationWindow by KirigamiLayout
             ActionButtons {
                 Layout.alignment: Qt.AlignHCenter
                 onBackClicked: {

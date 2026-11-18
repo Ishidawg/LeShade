@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import org.kde.kirigami.layouts as KL
 
 Kirigami.Page {
     title: qsTr("LeShade - A ReShade Manager")
@@ -48,7 +49,7 @@ Kirigami.Page {
                     Controls.ToolTip.visible: hovered
                     Controls.ToolTip.text: qsTr("Install Reshade on a Game")
                     onClicked: {
-                        applicationWindow().pageStack.replace(Qt.resolvedUrl("DownloadPage.qml"));
+                        KL.PageStack.replace(Qt.resolvedUrl("DownloadPage.qml"));
                     }
                 }
 
@@ -61,7 +62,7 @@ Kirigami.Page {
                     Controls.ToolTip.visible: hovered
                     Controls.ToolTip.text: qsTr("Open uninstall page")
                     onClicked: {
-                        applicationWindow().pageStack.replace(Qt.resolvedUrl("UninstallPage.qml"));
+                        KL.PageStack.replace(Qt.resolvedUrl("UninstallPage.qml"));
                     }
                 }
             }

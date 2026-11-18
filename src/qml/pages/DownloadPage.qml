@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import org.kde.kirigami.layouts as KL
 
 import "../components"
 
@@ -81,8 +82,12 @@ Kirigami.Page {
 
             ActionButtons {
                 Layout.alignment: Qt.AlignHCenter
-                onBackClicked: applicationWindow().pageStack.replace(Qt.resolvedUrl("HomePage.qml"))
-                onNextClicked: applicationWindow().pageStack.replace(Qt.resolvedUrl("InstallPage.qml"))
+                onBackClicked: {
+                    KL.PageStack.replace(Qt.resolvedUrl("HomePage.qml"));
+                }
+                onNextClicked: {
+                    KL.PageStack.replace(Qt.resolvedUrl("InstallPage.qml"));
+                }
             }
         }
     }

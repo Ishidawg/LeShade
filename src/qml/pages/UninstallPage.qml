@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import org.kde.kirigami.layouts as KL
 
 import "../components"
 
@@ -82,7 +83,7 @@ Kirigami.Page {
                     Controls.ToolTip.visible: hovered
                     Controls.ToolTip.text: qsTr("Returns to Home Page")
                     onClicked: {
-                        applicationWindow().pageStack.replace(Qt.resolvedUrl("HomePage.qml"));
+                        KL.PageStack.replace(Qt.resolvedUrl("HomePage.qml"));
                     }
                 }
             }
