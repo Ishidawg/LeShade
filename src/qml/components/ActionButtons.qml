@@ -8,11 +8,16 @@ RowLayout {
     signal backClicked
     signal nextClicked
 
+    property alias nextButton: nextBtn
+    property alias backButton: backBtn
+
     Controls.Button {
+        id: backBtn
         text: qsTr("Back")
         onClicked: root.backClicked()
     }
     Controls.Button {
+        id: nextBtn
         text: qsTr("Next")
         onClicked: root.nextClicked()
     }

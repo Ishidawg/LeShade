@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import org.kde.kirigami.layouts as KL
 
 import "../components"
 
@@ -39,7 +40,7 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignJustify
-                    topPadding: Kirigami.Units.largeSpacing * 4
+                    // topPadding: Kirigami.Units.largeSpacing * 4
                     text: qsTr("Select the game executable:")
                 }
 
@@ -113,8 +114,15 @@ Kirigami.Page {
                 Layout.fillHeight: true
             }
 
+            // Todo: replace every applicationWindow by KirigamiLayout
             ActionButtons {
                 Layout.alignment: Qt.AlignHCenter
+                onBackClicked: {
+                    KL.PageStack.replace(Qt.resolvedUrl("DownloadPage.qml"));
+                }
+                onNextClicked: {
+                    KL.PageStack.replace(Qt.resolvedUrl("ClonePage.qml"));
+                }
             }
         }
     }

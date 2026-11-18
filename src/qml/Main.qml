@@ -15,9 +15,9 @@ Kirigami.ApplicationWindow {
     // Unique identifier to reference this object
     id: root
     minimumWidth: 620
-    minimumHeight: 500
+    minimumHeight: 540
     width: 620
-    height: 500
+    height: 540
     title: "LeShade 2.6.0"
 
     // Set the first page that will be loaded when the app opens

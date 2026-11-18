@@ -23,7 +23,7 @@ Kirigami.Page {
                 Layout.alignment: Qt.AlignHCenter
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignJustify
-                topPadding: Kirigami.Units.largeSpacing * 4
+                // topPadding: Kirigami.Units.largeSpacing * 4
                 bottomPadding: Kirigami.Units.largeSpacing * 2
                 text: qsTr("Here you choose what version of ReShade you want to install: Addon or non-addon support. Select the ReShade release version too (nightly to have the latest one). Keep in mind that is recommended to not use addon support for multiplayer games with anti-cheat.")
             }

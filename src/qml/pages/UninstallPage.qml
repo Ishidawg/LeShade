@@ -47,8 +47,8 @@ Kirigami.Page {
 
         ColumnLayout {
             // Fills horizontally only
+            Layout.maximumWidth: 800
             anchors.fill: parent
-            anchors.verticalCenter: parent.verticalCenter
 
             Controls.Label {
                 Layout.fillWidth: true
