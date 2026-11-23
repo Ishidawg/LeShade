@@ -9,6 +9,23 @@ import "../components"
 Kirigami.Page {
     title: "LeShade - Download ReShade"
 
+    ListModel {
+        id: releaseModel
+
+        ListElement {
+            title: "Crosire slim"
+            description: "Default crosire, eg: Deband, UIMask..."
+        }
+        ListElement {
+            title: "Crossire legacy"
+            description: "Legacy shaders: eg: AmbientLight..."
+        }
+        ListElement {
+            title: "Sweet FX"
+            description: "SMAA, FXAA, CAS..."
+        }
+    }
+
     Item {
         anchors.fill: parent
         ColumnLayout {
@@ -53,26 +70,35 @@ Kirigami.Page {
 
                     Controls.ComboBox {
                         Layout.fillWidth: true
-                        model: ListModel {
-                            id: releaseModel
-                            ListElement {
-                                text: qsTr("7.5.1")
-                            }
-                            ListElement {
-                                text: qsTr("7.5.0")
-                            }
-                        }
+                        model: downloadBackend.feed_release_version()
+                        // model: ListModel {
+                        //     id: releaseModel
+                        //     ListElement {
+                        //         text: qsTr("7.5.1")
+                        //     }
+                        //     ListElement {
+                        //         text: qsTr("7.5.0")
+                        //     }
+                        // }
                     }
                 }
 
                 Controls.Button {
                     Layout.fillWidth: true
                     text: qsTr("Download")
+
+                    onClicked: {
+                        downloadBackend.download();
+                    }
                 }
 
                 Controls.ProgressBar {
                     Layout.fillWidth: true
-                    value: 50.0
+                    from: 0
+                    to: 100
+                    value: 0
+                    indeterminate: true
+                    // value: 50.0
                 }
             }
 

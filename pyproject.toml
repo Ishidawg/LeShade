@@ -20,7 +20,11 @@ classifiers = [
 leshade_main = "LeShade.app:main"
 
 [tool.setuptools]
-packages = ["LeShade"]
+packages = [
+  "LeShade",
+  "LeShade.backend",
+  "LeShade.backend.pages"
+]
 package-dir = {LeShade = "src"}
 include-package-data = true
 

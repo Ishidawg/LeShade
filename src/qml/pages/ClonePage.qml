@@ -76,7 +76,9 @@ Kirigami.Page {
 
                 Controls.ProgressBar {
                     Layout.fillWidth: true
-                    value: 50.0
+                    from: 0
+                    to: 100
+                    indeterminate: true
                 }
             }
 

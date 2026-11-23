@@ -12,6 +12,8 @@ src/__init__.py
 src/__main__.py
 src/app.py
 src/assets/logo.png
+src/backend/utils.py
+src/backend/pages/Download.py
 src/qml/Main.qml
 src/qml/components/ActionButtons.qml
 src/qml/components/CloneScroll.qml
