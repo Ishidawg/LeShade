@@ -56,6 +56,7 @@ Kirigami.Page {
                     Layout.fillWidth: true
 
                     Controls.ComboBox {
+                        id: versionSelector
                         Layout.fillWidth: true
                         model: ListModel {
                             id: versionModel
@@ -66,11 +67,18 @@ Kirigami.Page {
                                 text: qsTr("non-addon")
                             }
                         }
+                        onActivated: {
+                            downloadBackend.getVersion(currentText);
+                        }
                     }
 
                     Controls.ComboBox {
+                        id: releaseSelector
                         Layout.fillWidth: true
                         model: downloadBackend.feed_release_version()
+                        onActivated: {
+                            downloadBackend.getRelease(currentText);
+                        }
                         // model: ListModel {
                         //     id: releaseModel
                         //     ListElement {
@@ -98,7 +106,6 @@ Kirigami.Page {
                     to: 100
                     value: 0
                     indeterminate: true
-                    // value: 50.0
                 }
             }
 
