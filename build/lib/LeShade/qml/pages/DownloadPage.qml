@@ -8,21 +8,23 @@ import "../components"
 
 Kirigami.Page {
     title: "LeShade - Download ReShade"
+    property var releaseVersions: []
 
-    ListModel {
-        id: releaseModel
+    // Listen to signal from DownloadBackend (Download.py)
+    Connections {
+        target: downloadBackend
 
-        ListElement {
-            title: "Crosire slim"
-            description: "Default crosire, eg: Deband, UIMask..."
+        function onRelease_version_ready(versions) {
+            releaseVersions = versions;
+
+            if (releaseVersions.length > 0) {
+                releaseSelector.currentIndex = 0;
+                downloadBackend.get_release(releaseSelector.currentText);
+            }
         }
-        ListElement {
-            title: "Crossire legacy"
-            description: "Legacy shaders: eg: AmbientLight..."
-        }
-        ListElement {
-            title: "Sweet FX"
-            description: "SMAA, FXAA, CAS..."
+
+        function onRelease_version_failed(message) {
+            console.error("Failed to get ReShade tgas:", message);
         }
     }
 
@@ -64,20 +66,26 @@ Kirigami.Page {
                             }
                         }
                         onActivated: {
-                            downloadBackend.getVersion(currentText);
+                            downloadBackend.get_version(currentText);
                         }
                     }
 
                     Controls.ComboBox {
                         id: releaseSelector
                         Layout.fillWidth: true
-                        model: downloadBackend.feed_release_version()
+                        model: releaseVersions
                         Component.onCompleted: {
-                            downloadBackend.getRelease(currentText);
+                            downloadBackend.feed_release_version();
                         }
                         onActivated: {
-                            downloadBackend.getRelease(currentText);
+                            downloadBackend.get_release();
                         }
+                        // Component.onCompleted: {
+                        //     downloadBackend.getRelease(currentText);
+                        // }
+                        // onActivated: {
+                        //     downloadBackend.getRelease(currentText);
+                        // }
                     }
                 }
 
