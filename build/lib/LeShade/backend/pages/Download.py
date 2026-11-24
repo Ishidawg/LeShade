@@ -1,6 +1,5 @@
 from PySide6.QtCore import QObject, Slot, QStandardPaths
 from ..utils import get_tags, generic_request
-import re
 
 DOWNLOAD_PATH: str = QStandardPaths.writableLocation(
     QStandardPaths.StandardLocation.DownloadLocation)
@@ -19,7 +18,7 @@ class DownloadBackend(QObject):
     def download(self):
         # TODO: try except, defensive statement
         if self.is_addon:
-            pass
+            self.url = f"https://reshade.me/downloads/ReShade_Setup_{self.release_version}_Addon.exe"
         else:
             self.url = f"https://reshade.me/downloads/ReShade_Setup_{self.release_version}.exe"
 

@@ -29,9 +29,6 @@ Kirigami.Page {
     Item {
         anchors.fill: parent
         ColumnLayout {
-            //anchors.verticalCenter: parent.verticalCenter
-            //anchors.left: parent.left
-            //anchors.right: parent.right
             anchors.fill: parent
             spacing: 20
 
@@ -41,7 +38,6 @@ Kirigami.Page {
                 Layout.alignment: Qt.AlignHCenter
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignJustify
-                // topPadding: Kirigami.Units.largeSpacing * 4
                 bottomPadding: Kirigami.Units.largeSpacing * 2
                 text: qsTr("Here you choose what version of ReShade you want to install: Addon or non-addon support. Select the ReShade release version too (nightly to have the latest one). Keep in mind that is recommended to not use addon support for multiplayer games with anti-cheat.")
             }
@@ -61,10 +57,10 @@ Kirigami.Page {
                         model: ListModel {
                             id: versionModel
                             ListElement {
-                                text: qsTr("addon")
+                                text: qsTr("Addon")
                             }
                             ListElement {
-                                text: qsTr("non-addon")
+                                text: qsTr("Non-Addon")
                             }
                         }
                         onActivated: {
@@ -76,18 +72,12 @@ Kirigami.Page {
                         id: releaseSelector
                         Layout.fillWidth: true
                         model: downloadBackend.feed_release_version()
+                        Component.onCompleted: {
+                            downloadBackend.getRelease(currentText);
+                        }
                         onActivated: {
                             downloadBackend.getRelease(currentText);
                         }
-                        // model: ListModel {
-                        //     id: releaseModel
-                        //     ListElement {
-                        //         text: qsTr("7.5.1")
-                        //     }
-                        //     ListElement {
-                        //         text: qsTr("7.5.0")
-                        //     }
-                        // }
                     }
                 }
 
@@ -97,15 +87,17 @@ Kirigami.Page {
 
                     onClicked: {
                         downloadBackend.download();
+                        progressbar.indeterminate = true;
                     }
                 }
 
                 Controls.ProgressBar {
+                    id: progressbar
                     Layout.fillWidth: true
                     from: 0
                     to: 100
                     value: 0
-                    indeterminate: true
+                    indeterminate: false
                 }
             }
 
