@@ -24,7 +24,18 @@ Kirigami.Page {
         }
 
         function onRelease_version_failed(message) {
-            console.error("Failed to get ReShade tgas:", message);
+            console.error("Failed to get ReShade tags:", message);
+        }
+
+        function onReshade_download_finished(value) {
+            if (value) {
+                progressbar.indeterminate = false;
+                progressbar.value = 100;
+            }
+        }
+
+        function onReshade_download_failed(message) {
+            console.error("Failed to download ReShade", message);
         }
     }
 
@@ -78,7 +89,7 @@ Kirigami.Page {
                             downloadBackend.feed_release_version();
                         }
                         onActivated: {
-                            downloadBackend.get_release();
+                            downloadBackend.get_release(currentText);
                         }
                         // Component.onCompleted: {
                         //     downloadBackend.getRelease(currentText);
@@ -94,8 +105,8 @@ Kirigami.Page {
                     text: qsTr("Download")
 
                     onClicked: {
-                        downloadBackend.download();
                         progressbar.indeterminate = true;
+                        downloadBackend.download();
                     }
                 }
 
